@@ -31,6 +31,11 @@ float my_rand(int i) {
 }
 
 
+float getVms_from_Ev(float eps_in_ev)
+{
+    return sqrt(eps_in_ev)*5.9e5;
+}
+
 double delta_f(double E, double phi)
 {
     double Emax=2.0;

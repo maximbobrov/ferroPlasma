@@ -36,6 +36,7 @@ extern vec3<float> *bodyVel;
 extern double tic,t[9];
 double get_time(void);
  void direct(int numParticles);
+ void direct_seq(int numParticles);
  double get_nearwall_potential(float x, float y);
 
 

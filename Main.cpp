@@ -562,7 +562,7 @@ vec4<float> init_pos()
     res.x = w_x0+0.001*(w_x1-w_x0);
     res.y = 0.0+0.0251*(w_y1)+my_rand(0)*my_rand(0)*(w_y1)*0.75;
     res.z = rand()/(float) RAND_MAX*(w_z1-w_z0)+w_z0;
-    res.w = 1.0;
+    res.w = qe; //single electrons
 
     return res;
 
@@ -573,7 +573,7 @@ vec3<float> init_vel()
     vec3<float> vel;
 
     double angle = 0.98*acos(1-2*my_rand(0)) - M_PI / 2;
-    double en = 0.1e2;
+    double en = getVms_from_Ev(0.2);//0.1e2;
     vel.x = en *  cos(angle);
     vel.y = en * sin(angle);
 
@@ -584,7 +584,7 @@ vec3<float> init_vel()
 void create_random_particles(int threadIdx, vec4<float> *bodyPos_, vec3<float> *bodyVel_,vec3<float> *bodyAccel_)
 {
     int curNum = numParticles;
-    int numToAdd = std::min(int(my_rand(threadIdx) * 50.0), maxParticles - numParticles-1);
+    int numToAdd = std::min(int(my_rand(threadIdx) * 5.0), maxParticles - numParticles-1);
     numParticles += numToAdd;
     for (int i = curNum; i < curNum + numToAdd; ++i)
     {
@@ -641,19 +641,19 @@ void wall_collision(int threadIdx, int particlesIdx, vec3<float> *bodyAccel_, ve
 
 
 
-        q[xIdx]+=1.0/2.75;
+        q[xIdx]+=bodyPos_[particlesIdx].w/2.75;
 
         double addit=0.5;
         for (int i=xIdx-1;i>=fmax(xIdx-3,0);i--)
         {
-            q[i]+=addit/2.75;
+            q[i]+=addit*bodyPos_[particlesIdx].w/2.75;
             addit*=0.5;
         }
 
         addit=0.5;
         for (int i=xIdx+1;i<=fmin(xIdx+3,N_X-1);i++)
         {
-            q[i]+=addit/2.75;
+            q[i]+=addit*bodyPos_[particlesIdx].w/2.75;
             addit*=0.5;
         }
 
@@ -890,7 +890,7 @@ void fmm_step(double dt)
 
     tic = get_time();
     //tre.fmmMain(numParticles,1);//treeOrFMM);
-    direct(numParticles);
+    direct_seq(numParticles);
     toc = get_time();
     timeFMM = toc-tic;
 
@@ -907,11 +907,11 @@ void fmm_step(double dt)
     for( i=0; i<numParticles; i++ ) {
 
 
-        float magn=1e2;//1e-1;
+        float magn=qe/Me;//1e-1;
         vec3<float> ev=getE(bodyPos[i].x,bodyPos[i].y);
-        bodyVel[i].x -= magn*ev.x*dt +0.0000002*dt*bodyAccel[i].x;
-        bodyVel[i].y -= magn*ev.y*dt +0.0000002*dt*bodyAccel[i].y;
-        bodyVel[i].z -=0.0000002*dt*bodyAccel[i].z;
+        bodyVel[i].x -= magn*(ev.x +bodyAccel[i].x)*dt;
+        bodyVel[i].y -= magn*(ev.y +bodyAccel[i].y)*dt;
+        bodyVel[i].z -=magn*dt*bodyAccel[i].z;
 
         /*
     bodyVel[i].x *= 0.9995;
@@ -1223,6 +1223,7 @@ void sweep_init()
 
     }
 
+    float gsum=0.0;
     for (int i=0; i<N_Y; i++)
     {
         gau[i]=0.0;
@@ -1231,8 +1232,16 @@ void sweep_init()
             int pow2n=1<<abs(i-(N_Y_DIEL-1));
 
             gau[i]=1.0/pow2n;
+            gsum+=gau[i];
         }
     }
+
+
+    for (int i=0; i<N_Y; i++)
+    {
+        gau[i]/=gsum;
+    }
+
 
 
     for (i=0;i<N_X;i++)
@@ -1316,6 +1325,8 @@ void sweep()
 
     tt+=1;
 
+
+    double vol= fabs(dx*dy*(w_z1-w_z0));//volume of a cell
     for (int i=1; i<N_X-1; i++)
     {
         for (int j=1; j<N_Y-1; j++)
@@ -1324,7 +1335,7 @@ void sweep()
 
             // rho_[i][j]=-n_1[i][j];//q_e*(-n_1[i][j])/eps_0;;//q_e*(-n_1[i][j]+n_2[i][j])/eps_0;
             RHS[i][j]=(Py_[i][j+1]-Py_[i][j-1])/(2.0*dy)/eps_0
-                    /*+(Px_[i+1][j]-Px_[i-1][j])/(2.0*dx)/eps_0 ;*/ - 2.5*gau[j]*q[i]*1e16;///eps_0;
+                    /*+(Px_[i+1][j]-Px_[i-1][j])/(2.0*dx)/eps_0 ;*/ - gau[j]*q[i]/(eps_0*vol);
 
 
             div_[i][j]=RHS[i][j];
@@ -1612,7 +1623,10 @@ void sweep()
 
     //  printf("pmin=%e pmax=%e \n",emin,emax);
     if (move_particles)
-        fmm_step(dt);
+    {
+        for (int i=1;i<10;i++)
+        fmm_step(dt/100000);
+    }
 
 }
 

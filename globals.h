@@ -32,6 +32,11 @@
 
  #define U_TAU 1.0
 
+#define qe 1.6e-19
+#define Me 9.11e-31
+#define eps0 8.85e-12
+#define pi4 12.5663706144
+
 
  #define W_WIDTH 600
  #define W_HEIGHT 500
@@ -66,7 +71,7 @@ void rand_init();
 
 
 float my_rand(int i);
-
+float getVms_from_Ev(float eps_in_ev);
 
 void get_div(double f_x[N_X][N_Y],double f_y[N_X][N_Y],double out[N_X][N_Y]);
 
