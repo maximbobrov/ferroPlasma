@@ -63,7 +63,7 @@ typedef struct jpdata{
   float x, y, z, m;
 } Jpdata ALIGN16;
 
-void p2p_kernel(Ipdata *ipdata, Fodata *fodata, Jpdata *jpdata, int nj){
+/*void p2p_kernel(Ipdata *ipdata, Fodata *fodata, Jpdata *jpdata, int nj){
   int j;
   assert(((unsigned long)jpdata & 15) == 0);
   assert(((unsigned long)ipdata & 15) == 0);
@@ -151,9 +151,9 @@ void p2p_kernel(Ipdata *ipdata, Fodata *fodata, Jpdata *jpdata, int nj){
   STORPS(AY, *fodata->ay);     // AY = *fodata->ay
   STORPS(AZ, *fodata->az);     // AZ = *fodata->az
   STORPS(PHI, *fodata->phi);   // PHI = *fodata->phi
-}
+}*/
 
-static inline void v4sf_transpose(
+/*static inline void v4sf_transpose(
     v4sf *d0, v4sf *d1, v4sf *d2, v4sf *d3,
     v4sf  s0, v4sf  s1, v4sf  s2, v4sf  s3)
 {
@@ -169,14 +169,14 @@ static inline void v4sf_transpose(
   *d3 = __builtin_ia32_unpckhps(
         __builtin_ia32_unpckhps(s0, s2),
         __builtin_ia32_unpckhps(s1, s3));
-}
+}*/
 
-static inline void v3sf_store_sp(v4sf vec, float *d0, float *d1, float *d2){
+/*static inline void v3sf_store_sp(v4sf vec, float *d0, float *d1, float *d2){
   *d0 = __builtin_ia32_vec_ext_v4sf(vec, 0);
   *d1 = __builtin_ia32_vec_ext_v4sf(vec, 1);
   *d2 = __builtin_ia32_vec_ext_v4sf(vec, 2);
 }
-
+*/
 
 
 
@@ -239,7 +239,7 @@ double get_nearwall_potential(float x, float y)
 }
 
 // direct summation kernel
-void direct(int n) {
+/*void direct(int n) {
   int ii,i,offset;
   Ipdata iptcl;
   Fodata fout;
@@ -280,19 +280,18 @@ void direct(int n) {
   free(jptcl);
 
   //direct_wall(bodyAccel,bodyPos,n);
-}
+}*/
 
-/*
-void getEFromElectrons(int n) {
+void getEFromElectrons(vec3<float> &bodyAccel_, double x, double y, double z,  int n) {
     vec3<float> dist;
     float invDist,invDistCube;
       vec3<float> ai = {0.0, 0.0, 0.0};
       for( int j=0; j<n; j++ ){
-        dist.x = bodyPos_[j].x-x;
-        dist.y = bodyPos_[j].y-y;
-        dist.z = bodyPos_[j].z-z;
+        dist.x = bodyPos[j].x-x;
+        dist.y = bodyPos[j].y-y;
+        dist.z = bodyPos[j].z-z;
         invDist = 1.0/sqrtf(dist.x*dist.x+dist.y*dist.y+dist.z*dist.z+1e-14);
-        invDistCube = bodyPos_[j].w*invDist*invDist*invDist;
+        invDistCube = bodyPos[j].w*invDist*invDist*invDist;
         ai.x -= dist.x*invDistCube;
         ai.y -= dist.y*invDistCube;
         ai.z -= dist.z*invDistCube;
@@ -301,7 +300,7 @@ void getEFromElectrons(int n) {
       bodyAccel_.x = inv4PI*ai.x/eps0;
       bodyAccel_.y = inv4PI*ai.y/eps0;
       bodyAccel_.z = inv4PI*ai.z/eps0;
-}*/
+}
 
 // direct summation kernel
 void direct_seq(int n) {

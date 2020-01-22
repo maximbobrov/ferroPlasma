@@ -39,6 +39,8 @@ double get_time(void);
  void direct_seq(int numParticles);
  double get_nearwall_potential(float x, float y);
 
+ void getEFromElectrons(vec3<float> &bodyAccel_, double x, double y, double z,  int n);
+
 
 
 #endif // __FMM_H__

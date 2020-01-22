@@ -2,9 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include  <GL/gl.h>
-#include  <GL/glu.h>
-#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+//#include  <GL/gl.h>
+//#include  <GL/glu.h>
+//#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+
+#include <my_include/gl.h>
+#include <my_include/glu.h>
+#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -252,8 +256,8 @@ void display(void)
     /* clear window */
 
 
-     if (clearc)
-    glClear(GL_COLOR_BUFFER_BIT);
+    if (clearc)
+        glClear(GL_COLOR_BUFFER_BIT);
 
 
     glLoadIdentity();
@@ -581,7 +585,7 @@ vec3<float> init_vel()
     return vel;
 }
 
-void create_random_particles(int threadIdx, vec4<float> *bodyPos_, vec3<float> *bodyVel_,vec3<float> *bodyAccel_)
+/*void create_random_particles(int threadIdx, vec4<float> *bodyPos_, vec3<float> *bodyVel_,vec3<float> *bodyAccel_)
 {
     int curNum = numParticles;
     int numToAdd = std::min(int(my_rand(threadIdx) * 5.0), maxParticles - numParticles-1);
@@ -599,9 +603,83 @@ void create_random_particles(int threadIdx, vec4<float> *bodyPos_, vec3<float> *
         bodyAccel_[i].y=0.0;
         bodyAccel_[i].z=0.0;
     }
+}*/
+
+double calcJ(double E)
+{
+    double t = 1.1;
+    double B = 10.0;
+    double phi = 4.0;
+    double y = 3.79 * 1e-4 * sqrt(fabs(B * E)) / phi;
+    double tetta = 0.95 - 1.03 * y * y;
+    return (1.54 * 1e-6 * B * B * E * E / (t *t  * phi)) * exp( - 6.83 * 1e7 * pow(phi, 1.5) * tetta / fabs( B * E));
 }
 
 
+void create_random_particles(int threadIdx, vec4<float> *bodyPos_, vec3<float> *bodyVel_,vec3<float> *bodyAccel_)
+{
+    /*int curNum = numParticles[threadIdx];
+    int numToAdd = std::min(int(my_rand(threadIdx) * 2.0), maxParticles - numParticles[threadIdx]-1);
+    numParticles[threadIdx] += numToAdd;
+    for (int i = curNum; i < curNum + numToAdd; ++i)
+    {
+        vec4 pos=init_pos(threadIdx);
+        vec3 vel=init_vel(threadIdx);
+        bodyPos_[i].x=pos.x;
+        bodyPos_[i].y=pos.y;
+        bodyPos_[i].z=pos.z;
+        bodyPos_[i].w=pos.w;
+        bodyVel_[i]=vel;
+        bodyAccel_[i].x=0.0;
+        bodyAccel_[i].y=0.0;
+        bodyAccel_[i].z=0.0;
+    }*/
+    for (int i = (N_Y-1)/2; i < (N_Y-1); i+=1)
+    {
+
+
+        double dz = w_z1 - w_z0;
+        double x_ = w_x0 + 0.001 * (w_x1-w_x0);//- N_X * dx / 2;
+        double y_ = /*0.0251 * (w_y1) +*/w_y0 + i * (w_y1 - w_y0) / (N_Y-1);//i * dy - N_Y * dy / 2;
+        double z_ = my_rand(0) * dz - dz / 2;
+        //vec3 E = getE(x_, y_);
+        vec3<float> E;
+        getEFromElectrons(E, x_, y_, z_, numParticles);
+        //printf("Ex=%e Ey = %e\n", E.x, E.y);
+        E.x = Ex[0][i];
+        E.y = Ey[0][i];
+        E.x = fmax(0, -E.x);
+        //printf("Ex=%e Ey = %e\n", E.x, E.y);
+        double J =calcJ(0.01 * E.x);
+        int chargeNum = 1e0;
+        printf("JJJJ = %f jjj = %e E = %e \n", (dt * J * dy * dz * 1e4  * 6.24151 * 1e18 / chargeNum), J , 0.01 *E.x);
+        int curNum = numParticles;
+        int numToAdd =  std::min(int(dt * J * dy * dz * 1e4 * 6.24151 * 1e18 / chargeNum), maxParticles - numParticles-2);
+        numToAdd = numToAdd > 5 ? 5 : numToAdd;
+        if(my_rand(threadIdx) < (dt * J * dy * dz * 1e4 * 6.24151 * 1e18 / chargeNum) - int(dt * J * dy * dz * 1e4  * 6.24151 * 1e18 / chargeNum))
+            numToAdd++;
+
+        numParticles += numToAdd;
+        for (int n = curNum; n < curNum + numToAdd; ++n)
+        {
+            bodyPos_[n].x = x_;
+            bodyPos_[n].y = y_;
+            bodyPos_[n].z = z_;
+            bodyPos_[n].w = 1.6e-19 * chargeNum;
+            double angle =  0.98 * acos(1 - 2 * my_rand(threadIdx)) - M_PI / 2;
+            //printf("Ey = %f\n", angle);
+            if (y_ < w_y0 + 0.1 * (w_y1 - w_y0) && angle < 0)
+                angle *= -1;
+            double en = getVms_from_Ev(0.2);
+            bodyVel_[n].x = en * cos(angle);
+            bodyVel_[n].y = en * sin(angle);
+            bodyVel_[n].z = 0;
+            bodyAccel_[n].x = 0.0;
+            bodyAccel_[n].y = 0.0;
+            bodyAccel_[n].z = 0.0;
+        }
+    }
+}
 
 void delete_particle(int threadIdx, int particlesIdx, vec3<float> *bodyAccel_, vec4<float> *bodyPos_, vec3<float> *bodyVel_)
 {
@@ -617,14 +695,10 @@ void delete_particle(int threadIdx, int particlesIdx, vec3<float> *bodyAccel_, v
 void wall_collision(int threadIdx, int particlesIdx, vec3<float> *bodyAccel_, vec4<float> *bodyPos_, vec3<float> *bodyVel_)
 {
     int xIdx = (bodyPos[particlesIdx].x - w_x0)/dx;
-
-
-    // printf("collison occured xIdx=%d \n",xIdx);
     if ((xIdx>=0)&&(xIdx<N_X))
     {
         double me=9.1e-31*1e8;
         double Ev_in_J=1.6e-19;
-
         double v2=((bodyVel[particlesIdx].x*bodyVel[particlesIdx].x)+(bodyVel[particlesIdx].y*bodyVel[particlesIdx].y)+(bodyVel[particlesIdx].z*bodyVel[particlesIdx].z));
         // double v2_y=(bodyVel[particlesIdx].y*bodyVel[particlesIdx].y); //for a potential
 
@@ -884,7 +958,10 @@ void fmm_step(double dt)
         float x=w_x0+dx*i;
         WallEnergy[i]=get_nearwall_potential(x,Y_WALL);
     }*/
-
+   /* for (int i=1; i<7; i++)
+    {
+        printf("E =%e J=%e \n",i*2e7, calcJ(i*2e7));
+    }*/
     create_random_particles(0, bodyPos, bodyVel,bodyAccel);
     //create_random_particles(0, bodyPos, bodyVel,bodyAccel);
 
@@ -1115,9 +1192,11 @@ void kb(unsigned char key, int x, int y)
 
     if (key=='f')
     {
-
+        move_particles=!move_particles;
         sasign*=-1.0;
-
+        for(int i=0;i<20;i++)
+          sweep();
+        move_particles=!move_particles;
     }
 
     if (key=='m')
@@ -1151,7 +1230,7 @@ void kb(unsigned char key, int x, int y)
     {
 
         clearc=!clearc;
-       // printf("viewing DIV \n");
+        // printf("viewing DIV \n");
 
     }
 
@@ -1283,7 +1362,7 @@ void sweep_init()
         {
 
             phi_[i][j]=0;
-            Py_[i][j]=sin(6.28*i*15.0/N_X + 3.14);//rand()*0.52/RAND_MAX - 0.26;
+            Py_[i][j]=0.26 * sin(6.28*i*15.0/N_X /*+ 6.28*/);//rand()*0.52/RAND_MAX - 0.26;
             Py0_[i][j]=Py_[i][j];
 
             Px_[i][j]=0.0;
@@ -1366,7 +1445,7 @@ void sweep()
     for (int j=N_Y_DIEL;j<N_Y;j++)
     {
 
-        phi_[0][j]=-50.5;
+        phi_[0][j]=-sasign*15.5;
 
     }
 
@@ -1491,7 +1570,7 @@ void sweep()
 
     INPUT_PARAM par_ferr;
     double kap=1.38e-10;
-    par_ferr.a=(1.0/dt)+(kap*2.0/(dx*dx) + kap*2.0/(dy*dy));
+    par_ferr.a=(1.0/(1e5*dt))+(kap*2.0/(dx*dx) + kap*2.0/(dy*dy));
     par_ferr.bp=-kap/(dx*dx);
     par_ferr.bm=-kap/(dx*dx);
     par_ferr.cp=-kap/(dy*dy);
@@ -1535,7 +1614,7 @@ void sweep()
         for (int j=1; j<N_Y-1; j++)
         {
 
-            RHS_p[i][j]= /*1.4e7*(1.0-i*1.0/N_X)*/ -Ey[i][j]+Py0_[i][j]/dt;
+            RHS_p[i][j]= /*1.4e7*(1.0-i*1.0/N_X)*/ -Ey[i][j]+Py0_[i][j]/(1e5*dt);
 
         }
     }
@@ -1624,8 +1703,8 @@ void sweep()
     //  printf("pmin=%e pmax=%e \n",emin,emax);
     if (move_particles)
     {
-        for (int i=1;i<10;i++)
-        fmm_step(dt/100000);
+        //for (int i=1;i<10;i++)
+        fmm_step(dt);
     }
 
 }

@@ -20,5 +20,8 @@ QMAKE_CXXFLAGS_RELEASE += -O3 -ffast-math  -msse -std=c++11
 
 QMAKE_LFLAGS += -O3 -ffast-math  -msse -std=c++11
 
-LIBS+=  -lGL -lGLU -lglut -lm
+#LIBS+=  -lGL -lGLU -lglut -lm
+
+LIBS += -lopenGL32 -lGLU32 -lm
+LIBS += -L$$PWD/my_lib -lglut32
 

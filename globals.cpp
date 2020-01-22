@@ -105,7 +105,7 @@ double dx=(w_x1-w_x0)/(N_X-1);//1.0e-4/N_X;
 double dy=(w_y1-w_y0)/(N_Y-1);//0.3e-4/N_Y;
 double U=1.0;
 
-double dt=1.5e-11;
+double dt=1.5e-15;
 double D=0.01;
 double b= 0.8;
 double nu= 17.9*10e-6;
