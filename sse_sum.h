@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iostream>
 #include <sys/time.h>
+#include "globals.h"
 
 const float eps                = 1e-7;       // single precision epsilon
 const float inv4PI             = 0.25/M_PI;  // Laplace kernel coefficient

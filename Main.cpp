@@ -12,6 +12,8 @@
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
+#include <iostream>
+#include <vector>
 
 
 #include "phi_mult.h"
@@ -53,6 +55,9 @@ bool clearc=true;
 #include "sse_sum.h"
 const int maxParticles=8192;
 int numParticles=0;//4096;
+
+std::vector <double>  avPy_;
+std::vector <double>  avEy_;
 
 void filter_conv(int n,int nf, FILE* file,bool write)
 {
@@ -423,8 +428,25 @@ glVertex2f((i-50)/100.0*1.15,0.2+conv[i]*0.35);
         glVertex3f(w_x0+i*dx ,w_y0+(j-6)*dy ,0);
         glEnd();
 
+        glBegin(GL_POINTS);
+        glColor3f(1,0,0);
+
+        double esc_max = -1e20;
+
+        double psc_max = -1e20;
 
 
+        for(int i=0; i< avEy_.size();i++)
+        {
+            if(fabs(avEy_[i])>esc_max) esc_max = fabs(avEy_[i]);
+
+            if(fabs(avPy_[i])>psc_max) psc_max = fabs(avPy_[i]);
+        }
+        for(int i=0; i< avEy_.size();i++)
+        {
+            glVertex3f(0.4 * (w_x1 - w_x0)*avEy_[i]/esc_max +w_x1/2 + w_x0/2 ,  0.4 * (w_y1 - w_y0)*avPy_[i]/psc_max ,0);
+        }
+        glEnd();
 /*
         j = N_Y/2;
         double cE=1e-9;
@@ -1368,8 +1390,8 @@ void sweep_init()
             n_2[i][j]=10e10;//10e10;
             p_in[i][j]=0;
             //  out_Ux[i][j]=sqrt(dy*j)*U;
-            phi_[i][j]=0.0;//sin(i*6*M_PI/(N_X-1));
-
+            phi_[i][j]=0.0;//0.02 * sin(i*6*M_PI/(N_X-1));
+            Ey0[i][j]=0.0;
             if ((i==0)||(i==N_X-1)||(j==0)||(j==N_Y-1))
             {
                 n_1[i][j]=0.0;
@@ -1390,7 +1412,7 @@ void sweep_init()
         {
 
             phi_[i][j]=0;
-            Py_[i][j]=0.26 * sin(6.28*i*20.0/N_X + 3.14); //* sin(6.28*i*15.0/N_X /*+ 6.28*/);//rand()*0.52/RAND_MAX - 0.26;
+            Py_[i][j]=rand()*0.52/RAND_MAX - 0.26;//0.26 * sin(6.28*i*20.0/N_X + 3.14); //* sin(6.28*i*15.0/N_X /*+ 6.28*/);//rand()*0.52/RAND_MAX - 0.26;
             Py0_[i][j]=Py_[i][j];
 
             Px_[i][j]=0.0;
@@ -1429,64 +1451,37 @@ void sweep()
 {
     double rho_min=1e30;
     double rho_max=-1e30;
-
-    tt+=1;
-
-
+    tt+=dt;
     double vol= fabs(dx*dy*(w_z1-w_z0));//volume of a cell
     for (int i=1; i<N_X-1; i++)
     {
         for (int j=1; j<N_Y-1; j++)
         {
-
-
             // rho_[i][j]=-n_1[i][j];//q_e*(-n_1[i][j])/eps_0;;//q_e*(-n_1[i][j]+n_2[i][j])/eps_0;
             RHS[i][j]=(Py_[i][j+1]-Py_[i][j-1])/(2.0*dy)/eps_0
-                    /*+(Px_[i+1][j]-Px_[i-1][j])/(2.0*dx)/eps_0 ;*/ - gau[j]*q[i]/(eps_0*vol);
-
-
+                    /*+(Px_[i+1][j]-Px_[i-1][j])/(2.0*dx)/eps_0 ;*/ /*- gau[j]*q[i]/(eps_0*vol)*/;
             div_[i][j]=RHS[i][j];
             if (div_[i][j]>rho_max) rho_max=div_[i][j];
             if (div_[i][j]<rho_min) rho_min=div_[i][j];
-
-            // Py_[i][j]=0.0;
         }
-
     }
-
-
-
     //   printf("rho_min = %e rho_max= %e q=%e  \n", rho_min,rho_max,-0.26/dy/eps_0);
-
-
+    double omega=2*3.1415926535*2e7;
+    double avE;
     for (int i=0;i<N_X;i++)
     {
         //phi_[i][N_Y-1]=0.0;
-        phi_[i][0]=0;//*(1.0-i*1.0/N_X);
+        phi_[i][N_Y-1]=100.*sin(omega*tt);//*(1.0-i*1.0/N_X);
+        phi_[i][0]=-100.*sin(omega*tt);
 
-        //  phi_[i][N_Y-1]=sasign *50;//* sin(tt/3000);
-        //if ((i<20)&&(i>0)) phi_[i][N_Y-1]=-A/4000;
-        //if ((i>=60)&&(i<N_X-1)) phi_[i][0]=A/4000;
     }
+    avE = (phi_[0][N_Y-1] - phi_[0][0]) / (w_y1 -w_y0);
+    avEy_.push_back(avE);
 
-
-    for (int j=N_Y_DIEL;j<N_Y;j++)
+  /*  for (int j=N_Y_DIEL;j<N_Y;j++)
     {
-
         phi_[0][j]=-sasign*20.5;
-
-    }
-
-    /* for (int nnn=0;nnn<13;nnn++)
-    {
-        for (int i=1;i<N_X-1;i++)
-        {
-            // phi_[i][j]=A*sin(i*6*M_PI/(N_X-1)+1800.0*alpha*t*dt);
-            phi_[i][N_Y-1]=(phi_[i][N_Y-1]+phi_[i-1][N_Y-1]+phi_[i+1][N_Y-1])/3.0;//-A;//.0;//A*sin(i*6*M_PI/(N_X-1)+1800.0*alpha*t*dt);
-            phi_[i][0]=(phi_[i-1][0]+phi_[i][0]+phi_[i+1][0])/3.0;//A*sin(i*6*M_PI/(N_X-1)+1800.0*alpha*t*dt);
-        }
     }*/
-
 
     INPUT_PARAM par;
     par.a=((2.0)/(dx*dx)+2.0/(dy*dy));
@@ -1495,9 +1490,9 @@ void sweep()
     par.cp=-1.0/(dy*dy);
     par.cm=-1.0/(dy*dy);
 
-    par.w_bc_type=3;
-    par.e_bc_type=1;
-    par.n_bc_type=1;
+    par.w_bc_type=2;
+    par.e_bc_type=2;
+    par.n_bc_type=3;
     par.s_bc_type=3;
 
     par.w_bc_val=0.0;
@@ -1508,30 +1503,8 @@ void sweep()
     //jacobi(par,phi_,div_,20);//phi
     multigrid_N(par,phi_,RHS,3,6);
     multigrid_N(par,phi_,RHS,3,6);
-    /*multigrid_N(par,phi_,RHS,3,6);
-
     multigrid_N(par,phi_,RHS,3,6);
     multigrid_N(par,phi_,RHS,3,6);
-    multigrid_N(par,phi_,RHS,3,6);*/
-
-
-    //       multigrid_N(par,phi_,RHS,3,6);
-    /*multigrid_N(par,phi_,RHS,8,3);
-    multigrid_N(par,phi_,RHS,8,3);
-    multigrid_N(par,phi_,RHS,8,3);
-    multigrid_N(par,phi_,RHS,8,3);*/
-
-    //
-
-    //getE();
-
-
-
-    /*n_1[i][j]*(1.0/dt+D*2.0/(dx*dx) + D*2.0/(dy*dy))
-            - D*((n_1[i+1][j]+n_1[i-1][j])/(dx*dx) +(n_1[i][j+1]+n_1[i][j-1])/(dy*dy))
-            = n_1_prev[i][j]/dt
-                   +mu*(n_1[i][j]*rho_[i][j]+E x[i][j]*(n_1[i+1][j]-n_1[i-1][j])/(2.0*dx) + E y[i][j]*(n_1[i][j+1]-n_1[i][j-1])/(2.0*dy));*/
-
 
     double mu=1.0;
     double D=1.0;
@@ -1553,37 +1526,13 @@ void sweep()
     par2.n_bc_val=0.0;
     par2.s_bc_val=0.0;
 
-
-    /*
-    for (int i=1; i<N_X-1; i++)
-    {
-        for (int j=1; j<N_Y-1; j++)
-        {
-
-            int ip=(E_x[i][j]<0);
-            int im=(E_x[i][j]>=0);
-            int jp=(E_y[i][j]<0);
-            int jm=(E_y[i][j]>=0);
-
-            RHS_p[i][j]=n_1_prev[i][j]/dt
-                    - mu*(n_1[i][j]*rho_[i][j]+ E_x[i][j]*(n_1[i+ip][j]-n_1[i-im][j])/(dx) + E_y[i][j]*(n_1[i][j+jp]-n_1[i][j-jm])/(dy));
-        }
-    }
-
-    jacobi(par2,n_1,RHS_p,100);
-
-
-    advect();
-*/
-
     for (int i=0; i<N_X; i++)
     {
         for (int j=0; j<N_Y; j++)
         {
             Ex[i][j]=-ddx(phi_,i,j);
-            Ey[i][j]=-ddy(phi_,i,j);
+            Ey[i][j]=-ddy(phi_,i,j) + rand() *1e9 / RAND_MAX - 0.5e9;
         }
-
     }
 
     double xix=1.17*eps_0;
@@ -1597,15 +1546,15 @@ void sweep()
     }
 
     INPUT_PARAM par_ferr;
-    double kap=1.38e-10;
-    par_ferr.a=(1.0/(1e5*dt))+(kap*2.0/(dx*dx) + kap*2.0/(dy*dy));
+    double kap=1.38e-10*0.5;
+    par_ferr.a=(1.0/(dt))+(kap*2.0/(dx*dx) + kap*2.0/(dy*dy));
     par_ferr.bp=-kap/(dx*dx);
     par_ferr.bm=-kap/(dx*dx);
     par_ferr.cp=-kap/(dy*dy);
     par_ferr.cm=-kap/(dy*dy);
 
-    par_ferr.w_bc_type=1;
-    par_ferr.e_bc_type=0;
+    par_ferr.w_bc_type=2;
+    par_ferr.e_bc_type=2;
     par_ferr.n_bc_type=1;
     par_ferr.s_bc_type=1;
 
@@ -1626,109 +1575,68 @@ void sweep()
 
     double x0=-0.3;
     p.order=5;
-    p.C[0]=2*alp*(T-T0);//(T-T0); //x
+    p.C[0]=2*alp*(T-T0) *0.5;//(T-T0); //x
     p.C[1]=0.0;         //xx
-    p.C[2]=-4.0*bet;   //xxx
+    p.C[2]=-4.0*bet *0.5;   //xxx
     p.C[3]=0.0;        //x^4
-    p.C[4]=6.0*gam;
+    p.C[4]=6.0*gam *0.5; //o.5 from crank-nikolson
 
     //-(fiy*0.0033- 2.0*alp*81*P1 - 4*bet*P1^3 +6*gam*P1^5)
-
-
     double emin=1e23;
     double emax=-1e23;
     for (int i=1; i<N_X-1; i++)
     {
         for (int j=1; j<N_Y-1; j++)
         {
-
-            RHS_p[i][j]= /*1.4e7*(1.0-i*1.0/N_X)*/ -Ey[i][j]+Py0_[i][j]/(1e5*dt);
+            double lapl0 = kap *( - Py0_[i][j] * (2.0 / (dx * dx) + 2.0 / (dy * dy)) + 1.0 / (dx * dx) * (Py0_[i+1][j] + Py0_[i-1][j]) +  1.0 / (dy * dy) * (Py0_[i][j+1] + Py0_[i][j-1]));
+            double poly0 = p.C[0] * Py0_[i][j] +
+                           p.C[2] * Py0_[i][j] * Py0_[i][j] * Py0_[i][j] +
+                           p.C[4] * Py0_[i][j] * Py0_[i][j] * Py0_[i][j] * Py0_[i][j] * Py0_[i][j];
+            RHS_p[i][j]= /*1.4e7*(1.0-i*1.0/N_X)*/ -0.05*(Ey[i][j]+Ey0[i][j]) + lapl0  -poly0 +Py0_[i][j]/(dt);
 
         }
     }
 
     //  printf("emin=%e emax=%e \n",emin,emax);
-
     jacobi_polynomial( par_ferr, p,Py_,RHS_p, 5);
-
     emin=1e23;
     emax=-1e23;
+    double avPy = 0;
     for (int i=1; i<N_X-1; i++)
     {
         for (int j=1; j<N_Y-1; j++)
         {
-
             if (emin>Py_[i][j]) emin=Py_[i][j];
             if (emax<Py_[i][j]) emax=Py_[i][j];
+            if (shift < j &&  j < N_Y_DIEL)
+              avPy+=Py_[i][j];
         }
     }
-
+        avPy_.push_back(avPy);
     for (int i=1; i<N_X-1; i++)
     {
         for (int j=1; j<N_Y-1; j++)
         {
             Py0_[i][j]=Py_[i][j];
-        }
-    }
-
-
-    ///px
-    ///
-    ///
-
-    INPUT_PARAM par_ferr_x;
-
-    par_ferr.a=(1.0/dt);
-    par_ferr.bp=0.0;
-    par_ferr.bm=0.0;
-    par_ferr.cp=0.0;
-    par_ferr.cm=0.0;
-
-    par_ferr.w_bc_type=1;
-    par_ferr.e_bc_type=1;
-    par_ferr.n_bc_type=1;
-    par_ferr.s_bc_type=1;
-
-    par_ferr.w_bc_val=0.0;
-    par_ferr.e_bc_val=0.0;
-    par_ferr.n_bc_val=0.0;
-    par_ferr.s_bc_val=0.0;
-
-    poly p_x;
-
-
-
-
-    p_x.order=1;
-    p.C[0]=1/xix;//0.0;//(T-T0); //x
-    //p.C[1]=0.0;         //xx
-
-    //-(fiy*0.0033- 2.0*alp*81*P1 - 4*bet*P1^3 +6*gam*P1^5)
-
-    for (int i=1; i<N_X-1; i++)
-    {
-        for (int j=1; j<N_Y-1; j++)
-        {
-
-            RHS_p[i][j]=  -Ex[i][j]+Px0_[i][j]/dt;
+            Ey0[i][j]=Ey[i][j];
 
         }
     }
 
-    /* for (int i=0; i<N_X; i++)
+    for (int j=0; j<N_Y; j++)
     {
-        RHS_p[i][0]=(Px_[i][1]-Px_[i][0])/dy;
-        RHS_p[i][N_Y_DIEL-1]=(Px_[i][N_Y_DIEL-1]-Px_[i][N_Y_DIEL-2])/dy;
-    }*/
+        Py0_[0][j]=Py0_[N_X-2][j];
+        Py0_[N_X-1][j]=Py0_[1][j];
 
-    //  printf("emin=%e emax=%e \n",emin,emax);
+        Py_[0][j]=Py_[N_X-2][j];
+        Py_[N_X-1][j]=Py_[1][j];
 
-    //  jacobi_polynomial( par_ferr_x, p_x,Px_,RHS_p, 5);
+        phi_[0][j]=phi_[N_X-2][j];
+        phi_[N_X-1][j]=phi_[1][j];
+
+    }
 
 
-
-
-    //  printf("pmin=%e pmax=%e \n",emin,emax);
     if (move_particles)
     {
         //for (int i=1;i<10;i++)

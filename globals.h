@@ -9,10 +9,12 @@
  //#define N_Y 513
 //#define N_Y_DIEL 255
 
+#define M_PI 3.1415926535
 
-#define N_X 257
-#define N_Y 257
-#define N_Y_DIEL 128
+#define N_X 129
+#define N_Y 129
+#define N_Y_DIEL 119
+
 
 
 #define w_x0 0.0
@@ -92,7 +94,7 @@ extern double BoundaryLayerGauss[N_X];
 extern int gaussL;
 
 
-extern double div_[N_X][N_Y],div_J[N_X][N_Y],rho_[N_X][N_Y],phi_[N_X][N_Y],Ex[N_X][N_Y],Ey[N_X][N_Y], p_in[N_X][N_Y],rho_in[N_X][N_Y];
+extern double div_[N_X][N_Y],div_J[N_X][N_Y],rho_[N_X][N_Y],phi_[N_X][N_Y],Ex[N_X][N_Y],Ey[N_X][N_Y], Ey0[N_X][N_Y],p_in[N_X][N_Y],rho_in[N_X][N_Y];
 extern int shift;
 //extern double flow_1[N_X][N_Y];
 //extern double flow_2[N_X][N_Y];

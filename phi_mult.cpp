@@ -350,7 +350,8 @@ double jacobi_N(INPUT_PARAM par, double field[N_X][N_Y], double rhs[N_X][N_Y], i
                         field[i-1][j]=field[nx-1][j];
 
 
-                     if (j<N_Y_DIEL) field[i-1][j]=field[i][j];
+                     //if (j<N_Y_DIEL1) field[i-1][j]=field[i][j];
+
                 }
 
                 if (i==nx-1)
@@ -363,9 +364,18 @@ double jacobi_N(INPUT_PARAM par, double field[N_X][N_Y], double rhs[N_X][N_Y], i
                         field[i+1][j]=field[1][j];
                 }
 
-                field[i][j]=(rhs[i][j]-(b_p*field[i+1][j]+b_m*field[i-1][j]+c_p*field[i][j+1]+c_m*field[i][j-1]))
-                        /a;
+                double f_xm=field[i-1][j];
+                double f_xp=field[i+1][j];
 
+                if (i==1) f_xm=field[nx-1][j];
+                if (i==nx-1) f_xp=field[1][j];
+
+                //field[i][j]=(rhs[i][j]-(b_p*field[i+1][j]+b_m*field[i-1][j]+c_p*field[i][j+1]+c_m*field[i][j-1]))
+                  //      /a;
+
+
+                field[i][j]=(rhs[i][j]-(b_p*f_xp+b_m*f_xm+c_p*field[i][j+1]+c_m*field[i][j-1]))
+                        /a;
 
 
             }
@@ -694,7 +704,14 @@ int jacobi_polynomial(INPUT_PARAM par, poly pol,double field[N_X][N_Y],double rh
             {
                 //p[i][j]=0;
 
-                rhs_[i][j]=rhs[i][j]-(b_p*field[i+1][j]+b_m*field[i-1][j]+c_p*field[i][j+1]+c_m*field[i][j-1]);
+
+                double f_xm=field[i-1][j];
+                double f_xp=field[i+1][j];
+
+                if (i==1) f_xm=field[N_X-2][j];
+                if (i==N_X-2) f_xp=field[1][j];
+
+                rhs_[i][j]=rhs[i][j]-(b_p*f_xp+b_m*f_xm+c_p*field[i][j+1]+c_m*field[i][j-1]);
 
                 field[i][j]=field[i][j]*0.7+0.3*solve_poly(poly_new,field[i][j],rhs_[i][j],4);//(rhs[i][j]-(b_p*field[i+1][j]+b_m*field[i-1][j]+c_p*field[i][j+1]+c_m*field[i][j-1]))/a;
             }
