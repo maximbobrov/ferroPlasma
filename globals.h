@@ -11,9 +11,10 @@
 
 #define M_PI 3.1415926535
 
-#define N_X 129
-#define N_Y 129
-#define N_Y_DIEL 119
+#define N_X 257
+#define N_Y 257
+#define N_Y_DIEL 247
+
 
 
 
@@ -85,6 +86,10 @@ extern double RHS[N_X][N_Y],RHS_p[N_X][N_Y],E_x[N_X][N_Y],E_y[N_X][N_Y];
 
 
 //multigr--------------------------------------------
+
+extern double frequency;
+
+extern double tt; //curr time;
 extern bool move_particles;
 extern double q[N_X],gau[N_Y];
 
@@ -93,6 +98,8 @@ extern double BoundaryLayer[N_X],WallEnergy[N_X];
 extern double BoundaryLayerGauss[N_X];
 extern int gaussL;
 
+extern double Pins_top[N_X];  //nera electrode pinning
+extern double Pins_bottom[N_Y];
 
 extern double div_[N_X][N_Y],div_J[N_X][N_Y],rho_[N_X][N_Y],phi_[N_X][N_Y],Ex[N_X][N_Y],Ey[N_X][N_Y], Ey0[N_X][N_Y],p_in[N_X][N_Y],rho_in[N_X][N_Y];
 extern int shift;

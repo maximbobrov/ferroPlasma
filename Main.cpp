@@ -241,11 +241,11 @@ void display(void)
 
 
 
-        printf("pmin=%e pmax=%e \n",emin,emax);
+        printf("pmin=%e pmax=%e pmean=%e\n",emin,emax,avPy_[avPy_.size()-1]);
 
 
 
-        printf("bmax=%e divmax=%e \n",bmax,div_max);
+     //   printf("bmax=%e divmax=%e \n",bmax,div_max);
 
 
 
@@ -447,7 +447,7 @@ glVertex2f((i-50)/100.0*1.15,0.2+conv[i]*0.35);
             glVertex3f(0.4 * (w_x1 - w_x0)*avEy_[i]/esc_max +w_x1/2 + w_x0/2 ,  0.4 * (w_y1 - w_y0)*avPy_[i]/psc_max ,0);
         }
         glEnd();
-/*
+        /*
         j = N_Y/2;
         double cE=1e-9;
         glBegin(GL_QUADS);
@@ -1008,7 +1008,7 @@ void fmm_step(double dt)
         float x=w_x0+dx*i;
         WallEnergy[i]=get_nearwall_potential(x,Y_WALL);
     }*/
-   /* for (int i=1; i<7; i++)
+    /* for (int i=1; i<7; i++)
     {
         printf("E =%e J=%e \n",i*2e7, calcJ(i*2e7));
     }*/
@@ -1245,7 +1245,7 @@ void kb(unsigned char key, int x, int y)
         move_particles=!move_particles;
         sasign*=-1.0;
         for(int i=0;i<20;i++)
-          sweep();
+            sweep();
         move_particles=!move_particles;
     }
 
@@ -1335,12 +1335,86 @@ void kb(unsigned char key, int x, int y)
 }
 
 
+double check_frequency()
+{
+    if (avPy_.size()>2)
+    {
+        int imax=avPy_.size()-1;
+        if ((avPy_[imax]<=0)&&(avPy_[imax-1]>0))
+        {
+
+            double alpha=fabs(avPy_[imax-1])/fabs(avPy_[imax-1]-avPy_[imax]);
+            double e=avEy_[imax-1]*(1.0-alpha)+avEy_[imax]*(alpha);
+            printf("!!!!!!!!!!!!!!!!!!!!!!!!!!! freq= %e Ec= %e \n", frequency,e);
+            FILE* f=fopen("freqs.txt","a");
+            fprintf(f,"%e %e \n", frequency,e);
+            fclose(f);
+
+            tt=0.0;
+            frequency/=1.3;
+            // avEy_.clear();
+            // avPy_.clear();
+
+        }
+    }
+
+
+
+}
+
+double tt_prev=0.0;
+double check_area()
+{
+    if ((tt-tt_prev)>5e-10)
+    {
+        double ar_p=0.0;
+        double ar_m=0.0;
+        double ar_z=0.0;
+
+        double vol=(N_X-1)*(N_Y-1);
+        for (int i=1; i<N_X-1; i++)
+        {
+            for (int j=1; j<N_Y-1; j++)
+            {
+                if (fabs(Py_[i][j]) <= 0.05)
+                    ar_z+=1.0/vol;
+
+                if (Py_[i][j]>0.05)
+                    ar_p+=1.0/vol;
+
+                if (Py_[i][j]<-0.05)
+                    ar_m+=1.0/vol;
+            }
+        }
+
+        FILE* f=fopen("area_t_p_m_z.txt","a");
+        fprintf(f,"%e %e %e %e\n", tt, ar_p,ar_m,ar_z);
+        fclose(f);
+
+        tt_prev=tt;
+
+    }
+}
 
 
 void sweep_init()
 {
     int i,j,k,n;
     double App,R_2,b,m;
+
+
+    for (int i=0; i<N_X; i++)
+    {
+        /*        if (i<50)
+            q[i]=-0.013/dy;
+        else q[i]=0.0;*/
+        q[i]=0.0;
+
+        Pins_top[i]=pow(rand()*1.0/RAND_MAX,20)*500.0;
+        Pins_bottom[i]=pow(rand()*1.0/RAND_MAX,20)*500.0;
+
+    }
+
 
 
     for (int i=1; i<N_X-1; i++)
@@ -1350,7 +1424,13 @@ void sweep_init()
         else q[i]=0.0;*/
         q[i]=0.0;
 
+        Pins_top[i]=(Pins_top[i]+Pins_top[i-1]+Pins_top[i+1])/3.0;
+        Pins_bottom[i]=(Pins_bottom[i]+Pins_bottom[i-1]+Pins_bottom[i+1])/3.0;
+
+
     }
+
+
 
     float gsum=0.0;
     for (int i=0; i<N_Y; i++)
@@ -1397,14 +1477,8 @@ void sweep_init()
                 n_1[i][j]=0.0;
                 n_2[i][j]=0.0;
             }
-
-
         }
-
-
     }
-
-    //   field_phi(5, phi_, 1000);
 
     for (i=0;i<N_X;i++)
     {
@@ -1412,7 +1486,7 @@ void sweep_init()
         {
 
             phi_[i][j]=0;
-            Py_[i][j]=rand()*0.52/RAND_MAX - 0.26;//0.26 * sin(6.28*i*20.0/N_X + 3.14); //* sin(6.28*i*15.0/N_X /*+ 6.28*/);//rand()*0.52/RAND_MAX - 0.26;
+            Py_[i][j]=0.26;//0 for freq//rand()*0.52/RAND_MAX - 0.26;//0.26 * sin(6.28*i*20.0/N_X + 3.14); //* sin(6.28*i*15.0/N_X /*+ 6.28*/);//rand()*0.52/RAND_MAX - 0.26;
             Py0_[i][j]=Py_[i][j];
 
             Px_[i][j]=0.0;
@@ -1420,33 +1494,8 @@ void sweep_init()
 
         }
     }
-    //  field_U(0.0, Ux_,500);
-
-    /*  for (i=0; i<N_X; i++)
-    {
-        out_Ux[i][0]=0.0;
-        out_Ux[j][N_Y]=0.0;
-    }
-  */
-}
-//double ddx()
-void  get_rhs_NAVIER();
-
-
-
-void advect()
-{
-    for (int i=1; i<N_X-1; i++)
-    {
-        for (int j=1; j<N_Y-1; j++)
-        {
-            n_1_prev[i][j]=n_1[i][j];
-        }
-    }
-
 }
 
-double tt=0.0;
 void sweep()
 {
     double rho_min=1e30;
@@ -1466,19 +1515,19 @@ void sweep()
         }
     }
     //   printf("rho_min = %e rho_max= %e q=%e  \n", rho_min,rho_max,-0.26/dy/eps_0);
-    double omega=2*3.1415926535*2e7;
+    double omega=2*3.1415926535*frequency;
     double avE;
     for (int i=0;i<N_X;i++)
     {
         //phi_[i][N_Y-1]=0.0;
-        phi_[i][N_Y-1]=100.*sin(omega*tt);//*(1.0-i*1.0/N_X);
-        phi_[i][0]=-100.*sin(omega*tt);
+        phi_[i][N_Y-1]=-6;//100.*sin(omega*tt);//*(1.0-i*1.0/N_X);
+        phi_[i][0]=6;//-100.*sin(omega*tt);
 
     }
     avE = (phi_[0][N_Y-1] - phi_[0][0]) / (w_y1 -w_y0);
     avEy_.push_back(avE);
 
-  /*  for (int j=N_Y_DIEL;j<N_Y;j++)
+    /*  for (int j=N_Y_DIEL;j<N_Y;j++)
     {
         phi_[0][j]=-sasign*20.5;
     }*/
@@ -1505,6 +1554,9 @@ void sweep()
     multigrid_N(par,phi_,RHS,3,6);
     multigrid_N(par,phi_,RHS,3,6);
     multigrid_N(par,phi_,RHS,3,6);
+    multigrid_N(par,phi_,RHS,3,6);
+    multigrid_N(par,phi_,RHS,3,6);
+
 
     double mu=1.0;
     double D=1.0;
@@ -1531,9 +1583,24 @@ void sweep()
         for (int j=0; j<N_Y; j++)
         {
             Ex[i][j]=-ddx(phi_,i,j);
-            Ey[i][j]=-ddy(phi_,i,j) + rand() *1e9 / RAND_MAX - 0.5e9;
+            Ey[i][j]=-ddy(phi_,i,j);// + rand() *8e7 / RAND_MAX - 4e7;
         }
     }
+
+    for (int i=0; i<N_X; i++)
+    {
+        for (int j=0; j<N_Y; j++)
+        {
+
+            double pow2n_top=pow(1.35,abs(j-(N_Y_DIEL-1)));//1<<abs(j-(N_Y_DIEL-1));
+            double pow2n_bot=pow(1.35,abs(j-(shift)));//1<<abs(j-(shift));
+
+
+            Ey[i][j]+= 5e7*(Pins_top[i]/pow2n_top+Pins_bottom[i]/pow2n_bot);
+        }
+    }
+
+
 
     double xix=1.17*eps_0;
     for (int i=1; i<N_X-1; i++)
@@ -1546,7 +1613,7 @@ void sweep()
     }
 
     INPUT_PARAM par_ferr;
-    double kap=1.38e-10*0.5;
+    double kap=1.38e-10*0.15;
     par_ferr.a=(1.0/(dt))+(kap*2.0/(dx*dx) + kap*2.0/(dy*dy));
     par_ferr.bp=-kap/(dx*dx);
     par_ferr.bm=-kap/(dx*dx);
@@ -1590,8 +1657,8 @@ void sweep()
         {
             double lapl0 = kap *( - Py0_[i][j] * (2.0 / (dx * dx) + 2.0 / (dy * dy)) + 1.0 / (dx * dx) * (Py0_[i+1][j] + Py0_[i-1][j]) +  1.0 / (dy * dy) * (Py0_[i][j+1] + Py0_[i][j-1]));
             double poly0 = p.C[0] * Py0_[i][j] +
-                           p.C[2] * Py0_[i][j] * Py0_[i][j] * Py0_[i][j] +
-                           p.C[4] * Py0_[i][j] * Py0_[i][j] * Py0_[i][j] * Py0_[i][j] * Py0_[i][j];
+                    p.C[2] * Py0_[i][j] * Py0_[i][j] * Py0_[i][j] +
+                    p.C[4] * Py0_[i][j] * Py0_[i][j] * Py0_[i][j] * Py0_[i][j] * Py0_[i][j];
             RHS_p[i][j]= /*1.4e7*(1.0-i*1.0/N_X)*/ -0.05*(Ey[i][j]+Ey0[i][j]) + lapl0  -poly0 +Py0_[i][j]/(dt);
 
         }
@@ -1609,10 +1676,10 @@ void sweep()
             if (emin>Py_[i][j]) emin=Py_[i][j];
             if (emax<Py_[i][j]) emax=Py_[i][j];
             if (shift < j &&  j < N_Y_DIEL)
-              avPy+=Py_[i][j];
+                avPy+=Py_[i][j]/((N_X-1.0)*(N_Y-2.0*shift));
         }
     }
-        avPy_.push_back(avPy);
+    avPy_.push_back(avPy);
     for (int i=1; i<N_X-1; i++)
     {
         for (int j=1; j<N_Y-1; j++)
@@ -1642,6 +1709,8 @@ void sweep()
         //for (int i=1;i<10;i++)
         fmm_step(dt);
     }
+    //check_frequency();
+    check_area();
 
 }
 

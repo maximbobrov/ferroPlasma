@@ -67,6 +67,9 @@ double delta_f(double E, double phi)
 
 
 //multigr--------------------------------------------
+double frequency = 2e7;
+
+double tt=0.0; //curr time
 
 double q[N_X],gau[N_Y]; //wall charge
 
@@ -84,6 +87,10 @@ double div_[N_X][N_Y],div_J[N_X][N_Y],rho_[N_X][N_Y],phi_[N_X][N_Y],Ex[N_X][N_Y]
 
 double Px_[N_X][N_Y],Px0_[N_X][N_Y]; //polaization
 double Py_[N_X][N_Y],Py0_[N_X][N_Y];
+
+double Pins_top[N_X];  //nera electrode pinning
+double Pins_bottom[N_Y];
+
 
 double sasign = 1.0;
 double n_1[N_X][N_Y],n_1_prev[N_X][N_Y];
