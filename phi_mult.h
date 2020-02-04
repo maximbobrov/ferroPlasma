@@ -32,7 +32,7 @@ double solve_current_phi(double rho_in[N_X][N_Y],double Jx_in[N_X][N_Y],double J
 void get_div(double f_x[N_X][N_Y],double f_y[N_X][N_Y],double out[N_X][N_Y]);
 double NavierStoks_solver(double p_in[N_X][N_Y], double out_Ux[N_X][N_Y],double out_Uy[N_X][N_Y], int itn);
 
-double solve_poly(poly p,double _x0, double rhs,int itn);
+double solve_poly(poly &p,double _x0, double rhs,int itn);
 int jacobi_polynomial(INPUT_PARAM par, poly pol,double field[N_X][N_Y],double rhs[N_X][N_Y], int itn);
 
 

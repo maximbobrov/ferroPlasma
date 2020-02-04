@@ -594,7 +594,7 @@ double jacobi(INPUT_PARAM par, double field[N_X][N_Y], double rhs[N_X][N_Y], int
 /////
 
 
-double calc_poly(poly p, double r, double x) //возвращает значение функции f(x) = x^2-2
+double calc_poly(poly &p, double r, double x) //возвращает значение функции f(x) = x^2-2
 {
     double sum=0.0;
     double xn=x;
@@ -607,7 +607,7 @@ double calc_poly(poly p, double r, double x) //возвращает значен
        return sum-r;
 }
 
-float calc_d_poly(poly p, double x) //возвращает значение производной
+float calc_d_poly(poly &p, double x) //возвращает значение производной
 {
     double sum=p.C[0];
     double xn=x;
@@ -619,7 +619,7 @@ float calc_d_poly(poly p, double x) //возвращает значение пр
    return sum;
 }
 
-float calc_d2_poly(poly p, double x) // значение второй производной
+float calc_d2_poly(poly &p, double x) // значение второй производной
 {
     double sum=2.0*p.C[1];
     double xn=x;
@@ -631,7 +631,7 @@ float calc_d2_poly(poly p, double x) // значение второй произ
    return sum;
 }
 
-double solve_poly(poly p,double _x0, double rhs,int itn)
+double solve_poly(poly &p,double _x0, double rhs,int itn)
 {
     double x0,x,xn,eps;// вычисляемые приближения для корня
     double a, b,deltax;// границы отрезка и необходимая точность
@@ -713,7 +713,7 @@ int jacobi_polynomial(INPUT_PARAM par, poly pol,double field[N_X][N_Y],double rh
 
                 rhs_[i][j]=rhs[i][j]-(b_p*f_xp+b_m*f_xm+c_p*field[i][j+1]+c_m*field[i][j-1]);
 
-                field[i][j]=field[i][j]*0.7+0.3*solve_poly(poly_new,field[i][j],rhs_[i][j],4);//(rhs[i][j]-(b_p*field[i+1][j]+b_m*field[i-1][j]+c_p*field[i][j+1]+c_m*field[i][j-1]))/a;
+                field[i][j]=field[i][j]*0.7+0.3*solve_poly(poly_new,field[i][j],rhs_[i][j],3);//(rhs[i][j]-(b_p*field[i+1][j]+b_m*field[i-1][j]+c_p*field[i][j+1]+c_m*field[i][j-1]))/a;
             }
         }
 

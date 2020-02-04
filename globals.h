@@ -12,8 +12,8 @@
 #define M_PI 3.1415926535
 
 #define N_X 257
-#define N_Y 257
-#define N_Y_DIEL 247
+#define N_Y 129
+#define N_Y_DIEL 126
 
 
 
@@ -22,8 +22,8 @@
 #define w_x1 0.5e-6
 
 
-#define w_y0 -1.e-7
-#define w_y1 1.e-7
+#define w_y0 -0.5e-7
+#define w_y1 0.5e-7
 
 #define w_z0 -1.0e-7
 #define w_z1 1.0e-7
@@ -42,7 +42,7 @@
 
 
  #define W_WIDTH 600
- #define W_HEIGHT 500
+ #define W_HEIGHT 300
 
  #define RES2_MIN 0.000001
 

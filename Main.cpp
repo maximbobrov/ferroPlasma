@@ -194,17 +194,8 @@ void display(void)
 
     if (redr==1)
     {
+        for (int i=0;i<20;i++)
         sweep();
-        sweep();
-        //fmm_step(dt*4000.0);
-        //fmm_step(dt*4000.0);
-        sweep();
-        sweep();
-        sweep();
-        sweep();
-        sweep();
-
-
     }
 
 
@@ -245,7 +236,7 @@ void display(void)
 
 
 
-     //   printf("bmax=%e divmax=%e \n",bmax,div_max);
+        //   printf("bmax=%e divmax=%e \n",bmax,div_max);
 
 
 
@@ -1242,11 +1233,11 @@ void kb(unsigned char key, int x, int y)
 
     if (key=='f')
     {
-        move_particles=!move_particles;
+        //move_particles=!move_particles;
         sasign*=-1.0;
         for(int i=0;i<20;i++)
             sweep();
-        move_particles=!move_particles;
+        //move_particles=!move_particles;
     }
 
     if (key=='m')
@@ -1402,16 +1393,25 @@ void sweep_init()
     int i,j,k,n;
     double App,R_2,b,m;
 
-
+    double topAv = 0.0;
+    double botAv = 0.0;
     for (int i=0; i<N_X; i++)
     {
         /*        if (i<50)
             q[i]=-0.013/dy;
         else q[i]=0.0;*/
         q[i]=0.0;
+        Pins_top[i]=pow(rand()*1.0/RAND_MAX,20)*50.0;
+        topAv += Pins_top[i]/N_X;
+        Pins_bottom[i]=pow(rand()*1.0/RAND_MAX,20)*50.0;
+        botAv += Pins_bottom[i]/N_X;
 
-        Pins_top[i]=pow(rand()*1.0/RAND_MAX,20)*500.0;
-        Pins_bottom[i]=pow(rand()*1.0/RAND_MAX,20)*500.0;
+    }
+    for (int i=0; i<N_X; i++)
+    {
+
+        Pins_top[i] -= topAv ;
+        Pins_bottom[i] -= botAv;
 
     }
 
@@ -1424,8 +1424,8 @@ void sweep_init()
         else q[i]=0.0;*/
         q[i]=0.0;
 
-        Pins_top[i]=(Pins_top[i]+Pins_top[i-1]+Pins_top[i+1])/3.0;
-        Pins_bottom[i]=(Pins_bottom[i]+Pins_bottom[i-1]+Pins_bottom[i+1])/3.0;
+        /*Pins_top[i]=(Pins_top[i]+Pins_top[i-1]+Pins_top[i+1])/3.0;
+        Pins_bottom[i]=(Pins_bottom[i]+Pins_bottom[i-1]+Pins_bottom[i+1])/3.0;*/
 
 
     }
@@ -1498,6 +1498,8 @@ void sweep_init()
 
 void sweep()
 {
+    double time = get_time();
+//    printf("StartTime = %f\n", time);
     double rho_min=1e30;
     double rho_max=-1e30;
     tt+=dt;
@@ -1520,8 +1522,8 @@ void sweep()
     for (int i=0;i<N_X;i++)
     {
         //phi_[i][N_Y-1]=0.0;
-        phi_[i][N_Y-1]=-6;//100.*sin(omega*tt);//*(1.0-i*1.0/N_X);
-        phi_[i][0]=6;//-100.*sin(omega*tt);
+        phi_[i][N_Y-1]=-sasign * 1.5 * (6 + Pins_top[i]);//100.*sin(omega*tt);//*(1.0-i*1.0/N_X);
+        phi_[i][0]=sasign * 1.5 * (6 + Pins_bottom[i]);//-100.*sin(omega*tt);
 
     }
     avE = (phi_[0][N_Y-1] - phi_[0][0]) / (w_y1 -w_y0);
@@ -1548,7 +1550,8 @@ void sweep()
     par.e_bc_val=0.0;
     par.n_bc_val=0.0;
     par.s_bc_val=0.0;
-
+    double time1 = get_time();
+    //    printf("BeforeMultigr = %f\n", time1 - time);
     //jacobi(par,phi_,div_,20);//phi
     multigrid_N(par,phi_,RHS,3,6);
     multigrid_N(par,phi_,RHS,3,6);
@@ -1556,6 +1559,8 @@ void sweep()
     multigrid_N(par,phi_,RHS,3,6);
     multigrid_N(par,phi_,RHS,3,6);
     multigrid_N(par,phi_,RHS,3,6);
+    time1 = get_time();
+   //     printf("AfterMultigr = %f\n", time1 - time);
 
 
     double mu=1.0;
@@ -1587,7 +1592,7 @@ void sweep()
         }
     }
 
-    for (int i=0; i<N_X; i++)
+    /*for (int i=0; i<N_X; i++)
     {
         for (int j=0; j<N_Y; j++)
         {
@@ -1598,7 +1603,7 @@ void sweep()
 
             Ey[i][j]+= 5e7*(Pins_top[i]/pow2n_top+Pins_bottom[i]/pow2n_bot);
         }
-    }
+    }*/
 
 
 
@@ -1665,7 +1670,11 @@ void sweep()
     }
 
     //  printf("emin=%e emax=%e \n",emin,emax);
+    time1 = get_time();
+     //   printf("beforePolyn = %f\n", time1 - time);
     jacobi_polynomial( par_ferr, p,Py_,RHS_p, 5);
+    time1 = get_time();
+     //   printf("AfterPolyn = %f\n", time1 - time);
     emin=1e23;
     emax=-1e23;
     double avPy = 0;
@@ -1710,8 +1719,11 @@ void sweep()
         fmm_step(dt);
     }
     //check_frequency();
-    check_area();
 
+    time1 = get_time();
+    //    printf("EndTime = %f\n",  time1 - time);
+
+            check_area();
 }
 
 

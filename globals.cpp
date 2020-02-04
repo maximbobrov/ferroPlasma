@@ -80,7 +80,7 @@ double q[N_X],gau[N_Y]; //wall charge
 
 
  bool move_particles=false;
-int shift = 10;
+int shift = 3;
 double div_[N_X][N_Y],div_J[N_X][N_Y],rho_[N_X][N_Y],phi_[N_X][N_Y],Ex[N_X][N_Y],Ey[N_X][N_Y],Ey0[N_X][N_Y], p_in[N_X][N_Y],rho_in[N_X][N_Y];
 //double flow_1[N_X][N_Y];
 //double flow_2[N_X][N_Y];
