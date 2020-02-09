@@ -58,6 +58,8 @@ int numParticles=0;//4096;
 
 std::vector <double>  avPy_;
 std::vector <double>  avEy_;
+std::vector <double>  area_;
+std::vector <double>  T_;
 
 void filter_conv(int n,int nf, FILE* file,bool write)
 {
@@ -436,6 +438,30 @@ glVertex2f((i-50)/100.0*1.15,0.2+conv[i]*0.35);
         for(int i=0; i< avEy_.size();i++)
         {
             glVertex3f(0.4 * (w_x1 - w_x0)*avEy_[i]/esc_max +w_x1/2 + w_x0/2 ,  0.4 * (w_y1 - w_y0)*avPy_[i]/psc_max ,0);
+        }
+        glEnd();
+
+
+
+
+
+         double tmax = -1e20;
+
+
+         glBegin(GL_POINTS);
+         glColor3f(0,1,0);
+
+
+        for(int i=0; i< T_.size();i++)
+        {
+            if(fabs(log(T_[i]))>tmax) tmax = fabs(log(T_[i]));
+
+        }
+        for(int i=0; i< T_.size();i++)
+        {
+            glVertex3f(0.4 * (w_x1 - w_x0)*log(T_[i])/tmax +w_x1/2 + w_x0/2 ,  0.4 * (w_y1 - w_y0)*0 ,0);
+            glVertex3f(0.4 * (w_x1 - w_x0)*log(T_[i])/tmax +w_x1/2 + w_x0/2 ,  0.4 * (w_y1 - w_y0)*1 ,0);
+            glVertex3f(0.4 * (w_x1 - w_x0)*log(T_[i])/tmax +w_x1/2 + w_x0/2 ,  0.4 * (w_y1 - w_y0)*area_[i] ,0);
         }
         glEnd();
         /*
@@ -1377,11 +1403,11 @@ double check_area()
                     ar_m+=1.0/vol;
             }
         }
-
-        FILE* f=fopen("area_t_p_m_z.txt","a");
+        FILE* f=fopen("1.8area_t_p_m_z.txt","a");
         fprintf(f,"%e %e %e %e\n", tt, ar_p,ar_m,ar_z);
         fclose(f);
-
+        area_.push_back(ar_m/(ar_p+ar_m+ar_z));
+        T_.push_back(tt);
         tt_prev=tt;
 
     }
@@ -1522,8 +1548,8 @@ void sweep()
     for (int i=0;i<N_X;i++)
     {
         //phi_[i][N_Y-1]=0.0;
-        phi_[i][N_Y-1]=-sasign * 1.5 * (6 + Pins_top[i]);//100.*sin(omega*tt);//*(1.0-i*1.0/N_X);
-        phi_[i][0]=sasign * 1.5 * (6 + Pins_bottom[i]);//-100.*sin(omega*tt);
+        phi_[i][N_Y-1]=-sasign * 1.8 * (6 + Pins_top[i]);//100.*sin(omega*tt);//*(1.0-i*1.0/N_X);
+        phi_[i][0]=sasign * 1.8 * (6 + Pins_bottom[i]);//-100.*sin(omega*tt);
 
     }
     avE = (phi_[0][N_Y-1] - phi_[0][0]) / (w_y1 -w_y0);
@@ -1793,7 +1819,7 @@ void init()
 
 int main(int argc, char** argv)
 {
-    srand(time(NULL));
+    //srand(time(NULL));
     glutInit(&argc,argv);
     glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(W_HEIGHT*(w_x1-w_x0)/(w_y1-w_y0),W_HEIGHT);
