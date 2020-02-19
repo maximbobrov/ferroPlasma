@@ -13,7 +13,7 @@
 
 #define N_X 257
 #define N_Y 129
-#define N_Y_DIEL 126
+#define N_Y_DIEL 64
 
 
 

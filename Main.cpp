@@ -2,13 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//#include  <GL/gl.h>
-//#include  <GL/glu.h>
-//#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+#include  <GL/gl.h>
+#include  <GL/glu.h>
+#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
 
-#include <my_include/gl.h>
-#include <my_include/glu.h>
-#include <my_include/glut.h>
+//#include <my_include/gl.h>
+//#include <my_include/glu.h>
+//#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -53,7 +53,7 @@ bool clearc=true;
 #undef MAIN
 */
 #include "sse_sum.h"
-const int maxParticles=8192;
+const int maxParticles=81920;
 int numParticles=0;//4096;
 
 std::vector <double>  avPy_;
@@ -196,7 +196,7 @@ void display(void)
 
     if (redr==1)
     {
-        for (int i=0;i<20;i++)
+        for (int i=0;i<5;i++)
         sweep();
     }
 
@@ -688,7 +688,7 @@ void create_random_particles(int threadIdx, vec4<float> *bodyPos_, vec3<float> *
         bodyAccel_[i].y=0.0;
         bodyAccel_[i].z=0.0;
     }*/
-    for (int i = (N_Y-1)/2+20; i < (N_Y-1); i+=1)
+    for (int i = (N_Y-1)/2+2; i < (N_Y-1); i+=1)
     {
 
 
@@ -704,16 +704,27 @@ void create_random_particles(int threadIdx, vec4<float> *bodyPos_, vec3<float> *
         E.y = Ey[0][i];
         E.x = fmax(0, -E.x);
         //printf("Ex=%e Ey = %e\n", E.x, E.y);
-        double J =calcJ(0.01 * E.x);
+        double J =calcJ(0.02 * E.x);
         int chargeNum = 1e0;
-        printf("JJJJ = %f jjj = %e E = %e \n", (dt * J * dy * dz * 1e4  * 6.24151 * 1e18 / chargeNum), J , 0.01 *E.x);
+        //printf("JJJJ = %f jjj = %e E = %e \n", (dt * J * dy * dz * 1e4  * 6.24151 * 1e18 / chargeNum), J , 0.01 *E.x);
         int curNum = numParticles;
         int numToAdd =  std::min(int(dt * J * dy * dz * 1e4 * 6.24151 * 1e18 / chargeNum), maxParticles - numParticles-2);
         numToAdd = numToAdd > 5 ? 5 : numToAdd;
+
+
+
+
+
         if(my_rand(threadIdx) < (dt * J * dy * dz * 1e4 * 6.24151 * 1e18 / chargeNum) - int(dt * J * dy * dz * 1e4  * 6.24151 * 1e18 / chargeNum))
             numToAdd++;
 
+
+           // numToAdd=(rand()*1.0/RAND_MAX>0.95);
+        //    printf("numtoadd=%d %e \n",numToAdd, E.x);
         numParticles += numToAdd;
+
+
+
         for (int n = curNum; n < curNum + numToAdd; ++n)
         {
             bodyPos_[n].x = x_;
@@ -724,9 +735,9 @@ void create_random_particles(int threadIdx, vec4<float> *bodyPos_, vec3<float> *
             //printf("Ey = %f\n", angle);
             if (y_ < w_y0 + 0.1 * (w_y1 - w_y0) && angle < 0)
                 angle *= -1;
-            double en = getVms_from_Ev(0.2);
-            bodyVel_[n].x = en * cos(angle);
-            bodyVel_[n].y = en * sin(angle);
+            double en = getVms_from_Ev(0.00002);
+            bodyVel_[n].x = 0.0;//en * cos(angle);
+            bodyVel_[n].y = 0.0;//en * sin(angle);
             bodyVel_[n].z = 0;
             bodyAccel_[n].x = 0.0;
             bodyAccel_[n].y = 0.0;
@@ -741,6 +752,9 @@ void delete_particle(int threadIdx, int particlesIdx, vec3<float> *bodyAccel_, v
     bodyVel_[particlesIdx] = bodyVel_[numParticles-1];
     bodyAccel_[particlesIdx] = bodyAccel_[numParticles-1];
     numParticles -= 1;
+
+
+
     //float r = my_rand(threadIdx);
     //randMax  = randMax > r ? randMax : r;
     // randMin  = randMin < r ? randMin : r;
@@ -769,7 +783,7 @@ void wall_collision(int threadIdx, int particlesIdx, vec3<float> *bodyAccel_, ve
         //double phi
         vec3<float> ev=getE(bodyPos[particlesIdx].x, dy);
 
-        if(ev.y>0)
+        //if(ev.y>0)
         {
 
             q[xIdx]+=bodyPos_[particlesIdx].w/2.75;
@@ -789,11 +803,11 @@ void wall_collision(int threadIdx, int particlesIdx, vec3<float> *bodyAccel_, ve
             }
             delete_particle( threadIdx, particlesIdx, bodyAccel_, bodyPos_, bodyVel_);
         }
-        else
+        //else
         {
 
-            bodyPos[particlesIdx].y -= dt*bodyVel[particlesIdx].y;
-            bodyVel[particlesIdx].y=fabs(bodyVel[particlesIdx].y);
+         //   bodyPos[particlesIdx].y -= dt*bodyVel[particlesIdx].y;
+         //   bodyVel[particlesIdx].y=fabs(bodyVel[particlesIdx].y);
         }
 
 
@@ -981,6 +995,8 @@ void wall_collision(int threadIdx, int particlesIdx, vec3<float> *bodyAccel_, ve
 
 void fmm_step(double dt)
 {
+
+        printf("part_num=%d \n",numParticles);
     int i;
     double tic,toc,timeFMM;
 
@@ -1034,7 +1050,7 @@ void fmm_step(double dt)
 
     tic = get_time();
     //tre.fmmMain(numParticles,1);//treeOrFMM);
-    direct_seq(numParticles);
+    //direct_seq(numParticles);                            //!!!!!HERE
     toc = get_time();
     timeFMM = toc-tic;
 
@@ -1053,9 +1069,9 @@ void fmm_step(double dt)
 
         float magn=qe/Me;//1e-1;
         vec3<float> ev=getE(bodyPos[i].x,bodyPos[i].y);
-        bodyVel[i].x -= magn*(ev.x +bodyAccel[i].x)*dt;
-        bodyVel[i].y -= magn*(ev.y +bodyAccel[i].y)*dt;
-        bodyVel[i].z -=magn*dt*bodyAccel[i].z;
+        bodyVel[i].x -= magn*(ev.x /*+bodyAccel[i].x*/)*dt;
+        bodyVel[i].y -= magn*(ev.y /*+bodyAccel[i].y*/)*dt;
+        bodyVel[i].z -=0.0;//magn*dtbodyAccel[i].z;
 
         /*
     bodyVel[i].x *= 0.9995;
@@ -1448,13 +1464,16 @@ void sweep_init()
         /*        if (i<50)
             q[i]=-0.013/dy;
         else q[i]=0.0;*/
-        q[i]=0.0;
+        q[i]=-1e-16;
 
         /*Pins_top[i]=(Pins_top[i]+Pins_top[i-1]+Pins_top[i+1])/3.0;
         Pins_bottom[i]=(Pins_bottom[i]+Pins_bottom[i-1]+Pins_bottom[i+1])/3.0;*/
 
 
     }
+        q[0]=-1e-16;
+        q[1]=-1e-16;
+
 
 
 
@@ -1512,7 +1531,11 @@ void sweep_init()
         {
 
             phi_[i][j]=0;
+            if (i>2)
             Py_[i][j]=0.26;//0 for freq//rand()*0.52/RAND_MAX - 0.26;//0.26 * sin(6.28*i*20.0/N_X + 3.14); //* sin(6.28*i*15.0/N_X /*+ 6.28*/);//rand()*0.52/RAND_MAX - 0.26;
+            else
+                Py_[i][j]=-0.26;
+
             Py0_[i][j]=Py_[i][j];
 
             Px_[i][j]=0.0;
@@ -1536,7 +1559,7 @@ void sweep()
         {
             // rho_[i][j]=-n_1[i][j];//q_e*(-n_1[i][j])/eps_0;;//q_e*(-n_1[i][j]+n_2[i][j])/eps_0;
             RHS[i][j]=(Py_[i][j+1]-Py_[i][j-1])/(2.0*dy)/eps_0
-                    /*+(Px_[i+1][j]-Px_[i-1][j])/(2.0*dx)/eps_0 ;*/ /*- gau[j]*q[i]/(eps_0*vol)*/;
+                    /*+(Px_[i+1][j]-Px_[i-1][j])/(2.0*dx)/eps_0 ;*/ - 1.0*gau[j]*q[i]/(eps_0*vol);
             div_[i][j]=RHS[i][j];
             if (div_[i][j]>rho_max) rho_max=div_[i][j];
             if (div_[i][j]<rho_min) rho_min=div_[i][j];
@@ -1548,17 +1571,17 @@ void sweep()
     for (int i=0;i<N_X;i++)
     {
         //phi_[i][N_Y-1]=0.0;
-        phi_[i][N_Y-1]=-sasign * 1.8 * (6 + Pins_top[i]);//100.*sin(omega*tt);//*(1.0-i*1.0/N_X);
-        phi_[i][0]=sasign * 1.8 * (6 + Pins_bottom[i]);//-100.*sin(omega*tt);
+        //phi_[i][N_Y-1]=-sasign * 1.8 * (6 + Pins_top[i]);//100.*sin(omega*tt);//*(1.0-i*1.0/N_X);
+        phi_[i][0]=0.0;//sasign * 1.8 * (6 + Pins_bottom[i]);//-100.*sin(omega*tt);
 
     }
     avE = (phi_[0][N_Y-1] - phi_[0][0]) / (w_y1 -w_y0);
     avEy_.push_back(avE);
 
-    /*  for (int j=N_Y_DIEL;j<N_Y;j++)
+    for (int j=N_Y_DIEL;j<N_Y;j++)
     {
         phi_[0][j]=-sasign*20.5;
-    }*/
+    }
 
     INPUT_PARAM par;
     par.a=((2.0)/(dx*dx)+2.0/(dy*dy));
@@ -1567,9 +1590,9 @@ void sweep()
     par.cp=-1.0/(dy*dy);
     par.cm=-1.0/(dy*dy);
 
-    par.w_bc_type=2;
-    par.e_bc_type=2;
-    par.n_bc_type=3;
+    par.w_bc_type=3;
+    par.e_bc_type=1;
+    par.n_bc_type=1;
     par.s_bc_type=3;
 
     par.w_bc_val=0.0;
@@ -1599,13 +1622,13 @@ void sweep()
     par2.cp=-D/(dy*dy);
     par2.cm=-D/(dy*dy);
 
-    par2.w_bc_type=2;
-    par2.e_bc_type=2;
-    par2.n_bc_type=0;
-    par2.s_bc_type=0;
+    par2.w_bc_type=0;
+    par2.e_bc_type=0;
+    par2.n_bc_type=1;
+    par2.s_bc_type=1;
 
-    par2.w_bc_val=0.0;
-    par2.e_bc_val=0.0;
+    par2.w_bc_val=-0.26;
+    par2.e_bc_val=0.26;
     par2.n_bc_val=0.0;
     par2.s_bc_val=0.0;
 
@@ -1643,21 +1666,22 @@ void sweep()
         }
     }
 
+    double dt_poly=1000*dt;
     INPUT_PARAM par_ferr;
     double kap=1.38e-10*0.15;
-    par_ferr.a=(1.0/(dt))+(kap*2.0/(dx*dx) + kap*2.0/(dy*dy));
+    par_ferr.a=(1.0/(dt_poly))+(kap*2.0/(dx*dx) + kap*2.0/(dy*dy));
     par_ferr.bp=-kap/(dx*dx);
     par_ferr.bm=-kap/(dx*dx);
     par_ferr.cp=-kap/(dy*dy);
     par_ferr.cm=-kap/(dy*dy);
 
-    par_ferr.w_bc_type=2;
-    par_ferr.e_bc_type=2;
+    par_ferr.w_bc_type=0;
+    par_ferr.e_bc_type=0;
     par_ferr.n_bc_type=1;
     par_ferr.s_bc_type=1;
 
-    par_ferr.w_bc_val=0.26;
-    par_ferr.e_bc_val=0.0;
+    par_ferr.w_bc_val=-0.26;
+    par_ferr.e_bc_val=-0.26;
     par_ferr.n_bc_val=0.0;
     par_ferr.s_bc_val=0.0;
 
@@ -1690,7 +1714,7 @@ void sweep()
             double poly0 = p.C[0] * Py0_[i][j] +
                     p.C[2] * Py0_[i][j] * Py0_[i][j] * Py0_[i][j] +
                     p.C[4] * Py0_[i][j] * Py0_[i][j] * Py0_[i][j] * Py0_[i][j] * Py0_[i][j];
-            RHS_p[i][j]= /*1.4e7*(1.0-i*1.0/N_X)*/ -0.05*(Ey[i][j]+Ey0[i][j]) + lapl0  -poly0 +Py0_[i][j]/(dt);
+            RHS_p[i][j]= /*1.4e7*(1.0-i*1.0/N_X)*/ -0.05*(Ey[i][j]+Ey0[i][j]) + lapl0  -poly0 +Py0_[i][j]/(dt_poly);
 
         }
     }
@@ -1698,7 +1722,7 @@ void sweep()
     //  printf("emin=%e emax=%e \n",emin,emax);
     time1 = get_time();
      //   printf("beforePolyn = %f\n", time1 - time);
-    jacobi_polynomial( par_ferr, p,Py_,RHS_p, 5);
+    jacobi_polynomial( par_ferr, p,Py_,RHS_p, 4);
     time1 = get_time();
      //   printf("AfterPolyn = %f\n", time1 - time);
     emin=1e23;
