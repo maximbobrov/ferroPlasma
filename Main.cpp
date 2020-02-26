@@ -14,7 +14,7 @@
 #include "globals.h"
 #include <iostream>
 #include <vector>
-
+#include "efieldlagrangian.h"
 
 #include "phi_mult.h"
 
@@ -61,104 +61,12 @@ std::vector <double>  avEy_;
 std::vector <double>  area_;
 std::vector <double>  T_;
 
-void filter_conv(int n,int nf, FILE* file,bool write)
-{
-
-    for (int i=0;i<100;i++)
-    {
-        conv[i]=0.0;
-        conv1[i]=0.0;
-    }
-
-
-
-    for (int i=-nf;i<=nf;i++)
-    {
-        conv[50+i]=1;
-        conv1[i]=0.0;
-    }
-
-
-    for (int nn=0;nn<n;nn++)
-    {
-        for (int i=1;i<99;i++)
-        {
-            conv1[i]=0.0;
-            for (int j=-nf;j<=nf;j++)
-            {
-                //conv[50+i]=1;
-                conv1[i]+=conv[j+i];0.0;
-            }
-
-            //  conv1[i]=(conv[i]+conv[i+1]+conv[i-1])/3.0;
-        }
-
-        for (int i=1;i<99;i++)
-        {
-            conv[i]=conv1[i];
-        }
-    }
-
-    double nrm=conv[50];
-    for (int i=0;i<100;i++)
-    {
-        conv[i]/=nrm;
-    }
-
-    {
-        int ii=50;
-
-        double di;
-        while (conv[ii]>0.5)
-            ii++;
-        di=(ii-1)*(fabs(0.5-conv[ii]))/fabs(conv[ii]-conv[ii-1]) + ii*(fabs(0.5-conv[ii-1]))/fabs(conv[ii]-conv[ii-1]) ;
-
-        double cmm=0.0;
-        double mm=0.0;
-        for (int i=0;i<100;i++)
-        {
-            cmm+=conv[i]*(i-50)*(i-50);
-            mm+=conv[i];
-        }
-        //  fprintf(file,"n=%d disp=%f disp2=%f \n",n,di-50,sqrt(cmm/mm));
-        if (write)
-            fprintf(file,"%d %f %f \n",n,di-50,sqrt(cmm/mm));
-        else
-            printf("n=%d disp=%f disp2=%f \n",n,di-50,sqrt(cmm/mm));
-    }
-
-
-
-    //   glOrtho(-0.6, 0.6, -0.6,0.6, -10.0, 10.0);
-    /*
-    glColor3f(1,0,0);
-    glBegin(GL_LINE_STRIP);
-
-        for (int i=0;i<100;i++)
-        {
-    glVertex2f((i-50)/100.0*1.15,0.2+conv[i]*0.35);
-
-        }
-        glEnd();
-        glPointSize(2);
-        glColor3f(0,1,0);
-        glBegin(GL_POINTS);
-
-            for (int i=0;i<100;i++)
-            {
-        glVertex2f((i-50)/100.0*1.15,0.2+conv[i]*0.35);
-
-            }
-            glEnd();
-            */
-
-
-
-}
-
 
 
 int i_tick=0;
+
+eFieldLagrangian* lagr_solver;
+
 
 void display(void)
 {
@@ -180,27 +88,15 @@ void display(void)
         }
     }
 
-
-    double bmax=0.0;
+ /*   double bmax=0.0;
     double Emax=0.0001;
-
-
     for(int i=0; i<N_X; i++ )
     {
         if (fabs(q[i])>bmax)
         {
             bmax=fabs(q[i]);//BoundaryLayerGauss[i]);
         }
-
     }
-
-    if (redr==1)
-    {
-        for (int i=0;i<5;i++)
-        sweep();
-    }
-
-
 
     i_tick++;
     if (i_tick>10){
@@ -217,8 +113,6 @@ void display(void)
 
         printf("emin=%e emax=%e \n",emin,emax);
 
-
-
         emin=1e23;
         emax=-1e23;
         for (int i=1; i<N_X-1; i++)
@@ -230,22 +124,18 @@ void display(void)
                 if (emax<Py_[i][j]) emax=Py_[i][j];
             }
         }
-
-
-
-
         printf("pmin=%e pmax=%e pmean=%e\n",emin,emax,avPy_[avPy_.size()-1]);
 
-
-
-        //   printf("bmax=%e divmax=%e \n",bmax,div_max);
-
-
-
-
-
         i_tick=0;
+    }*/
+
+    if (redr==1)
+    {
+        for (int i=0;i<5;i++)
+        sweep();
     }
+
+
 
     int i,j;//,k,l;
 
@@ -260,50 +150,14 @@ void display(void)
 
     glLoadIdentity();
 
-    // glTranslatef(0,0.4,0);
-    // glRotatef(-90,0,0,1);
     glRotatef(ry,1.0,0,0);
     glRotatef(rx,0.0,1.0,0);
 
     glColor3f(1,1,1);
 
-    //filter_conv(0);
-
-    //filter_conv(2);
-    //////////
-    /*glColor3f(1,0,0);
-glBegin(GL_LINE_STRIP);
-
-    for (int i=0;i<100;i++)
-    {
-glVertex2f((i-50)/100.0*1.15,0.2+conv[i]*0.35);
-
-    }
-    glEnd();
-    glPointSize(2);
-    glColor3f(0,1,0);
-    glBegin(GL_POINTS);
-
-        for (int i=0;i<100;i++)
-        {
-    glVertex2f((i-50)/100.0*1.15,0.2+conv[i]*0.35);
-
-        }
-        glEnd();
-*/
-    /////////////
-
-
-
-    //printf("Pxmax=%e \n",px_max);
-    // glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-
-
     for (i=0;i<N_X-1;i++)
     {
         glBegin(GL_TRIANGLE_STRIP);
-
-
         for (j=0;j<N_Y;j++)
         {
             if (view==VIEW_PHI)
@@ -318,7 +172,7 @@ glVertex2f((i-50)/100.0*1.15,0.2+conv[i]*0.35);
                 l_2=ck*(div_[i][j])/div_max;
 
             glColor3f(l_2,l_2,-l_2);
-            glVertex2f(dx*(i),dy*(j-N_Y/2));
+            glVertex2f(w_x0+dx*(i),w_y0+dy*j);
 
             if (view==VIEW_PHI)
                 l_2=ck*(phi_[i+1][j])/phi_max;
@@ -332,44 +186,15 @@ glVertex2f((i-50)/100.0*1.15,0.2+conv[i]*0.35);
                 l_2=ck*(div_[i+1][j])/div_max;
 
             glColor3f(l_2,l_2,-l_2);
-            glVertex2f(dx*(i+1),dy*(j-N_Y/2));
-        }
-
-
-        glEnd();
-
-    }
-
-
-    //glEnable(GL_LINE_SMOOTH);
-
-    /*    for (int ii=0;ii<N_X;ii++)
-    {
-        i=ii;
-        glBegin(GL_LINES);
-        for (int jj=0;jj<8;jj++)
-        {
-
-            j=jj*8+1;
-
-            glColor3f(1,1,1);
-            glVertex2f(dx*(i-N_X/2),dy*(j-N_Y/2));
-
-
-
-            glColor3f(0.5,0.5,0.5);
-            if (view_v==VIEW_JX)  glVertex2f(dx*(i-N_X/2)+cv*Jx_[i][j], dy*(j-N_Y/2)+cv*Jy_[i][j]);
-            if (view_v==VIEW_UX)  glVertex2f(dx*(i-N_X/2)+cv*Ux_[i][j], dy*(j-N_Y/2)+cv*Uy_[i][j]);
+            glVertex2f(w_x0+dx*(i+1),w_y0+dy*j);
         }
         glEnd();
     }
 
-  */  glEnable(GL_BLEND);
+/*    glEnable(GL_BLEND);
 
     glEnable(GL_POINT_SMOOTH);
     glPointSize(1.5);
-
-
 
     double vel_scale=0.0;
     for( i=0; i<numParticles; i++ ) {
@@ -397,19 +222,6 @@ glVertex2f((i-50)/100.0*1.15,0.2+conv[i]*0.35);
 
     for( i=0; i<N_X; i++ )
     {
-
-        /*        glColor3f((BoundaryLayerGauss[i])/bmax,-(BoundaryLayerGauss[i])/bmax,0);
-        j = -2;
-        glBegin(GL_QUADS);
-        glVertex3f(w_x0+i*dx ,w_y0+j*dy ,0);
-        glColor3f((BoundaryLayerGauss[i+1])/bmax,-(BoundaryLayerGauss[i+1])/bmax,0);
-        glVertex3f(w_x0+(i+1)*dx ,w_y0+j*dy ,0);
-        glVertex3f(w_x0+(i+1)*dx ,w_y0+(j-3)*dy ,0);
-        glColor3f((BoundaryLayerGauss[i])/bmax,-(BoundaryLayerGauss[i])/bmax,0);
-        glVertex3f(w_x0+i*dx ,w_y0+(j-3)*dy ,0);
-        glEnd();
-  */
-
         glColor3f((q[i])/bmax,-(q[i])/bmax,0);
         j = 0;
         glBegin(GL_QUADS);
@@ -425,9 +237,7 @@ glVertex2f((i-50)/100.0*1.15,0.2+conv[i]*0.35);
         glColor3f(1,0,0);
 
         double esc_max = -1e20;
-
         double psc_max = -1e20;
-
 
         for(int i=0; i< avEy_.size();i++)
         {
@@ -440,10 +250,6 @@ glVertex2f((i-50)/100.0*1.15,0.2+conv[i]*0.35);
             glVertex3f(0.4 * (w_x1 - w_x0)*avEy_[i]/esc_max +w_x1/2 + w_x0/2 ,  0.4 * (w_y1 - w_y0)*avPy_[i]/psc_max ,0);
         }
         glEnd();
-
-
-
-
 
          double tmax = -1e20;
 
@@ -464,46 +270,36 @@ glVertex2f((i-50)/100.0*1.15,0.2+conv[i]*0.35);
             glVertex3f(0.4 * (w_x1 - w_x0)*log(T_[i])/tmax +w_x1/2 + w_x0/2 ,  0.4 * (w_y1 - w_y0)*area_[i] ,0);
         }
         glEnd();
-        /*
-        j = N_Y/2;
-        double cE=1e-9;
-        glBegin(GL_QUADS);
-         glColor3f(cE*(Ey[i][j])*ck,-cE*(Ey[i][j])*ck,0);
-        glVertex3f(w_x0+i*dx ,w_y0+0*dy ,0);
-        glColor3f(cE*(Ey[i+1][j])*ck,-cE*(Ey[i+1][j])*ck,0);
-        glVertex3f(w_x0+(i+1)*dx ,w_y0+0*dy ,0);
-        glVertex3f(w_x0+(i+1)*dx ,w_y0+(0-6)*dy ,0);
-        glColor3f(cE*(Ey[i][j])*ck,-cE*(Ey[i][i])*ck,0);
-        glVertex3f(w_x0+i*dx ,w_y0+(0-6)*dy ,0);
-        glEnd();
+
+
+    }
 */
+
+    glPointSize(5);
+    glBegin(GL_POINTS);
+
+    double rhomax=0.0;
+    for (int i=0;i<lagr_solver->m_elec_num;i++)
+    {
+        if (fabs(lagr_solver->m_electrodes[i].phi_ext)>rhomax)
+            rhomax=lagr_solver->m_electrodes[i].phi_ext;
     }
 
 
-    /*  for( i=0; i<N_X; i++ )
+    printf("phimax=%e \n",rhomax);
+    for (int i=0;i<lagr_solver->m_elec_num;i++)
     {
-        //glColor3f(ck*(BoundaryLayer[i]) * 1.0 / (maxB-minB),-ck*(BoundaryLayer[i]) * 1.0 / (maxB-minB),0);
-        glColor3f((WallEnergy[i])/Emax,-(WallEnergy[i])/Emax,0);
-        j = 0;
-        glBegin(GL_QUADS);
-        glVertex3f(w_x0+i*dx ,w_y0+j*dy ,0);
-        glColor3f((WallEnergy[i+1])/Emax,-(WallEnergy[i+1])/Emax,0);
-        glVertex3f(w_x0+(i+1)*dx ,w_y0+j*dy ,0);
-        glVertex3f(w_x0+(i+1)*dx ,w_y0+(j-2)*dy ,0);
-        glColor3f((WallEnergy[i])/Emax,-(WallEnergy[i])/Emax,0);
-        glVertex3f(w_x0+i*dx ,w_y0+(j-2)*dy ,0);
-        glEnd();
-    }*/
-
+        double c=ck*lagr_solver->m_electrodes[i].phi_ext/rhomax;
+        printf("i=%d phi=%e  phi_fix=%e\n",i,lagr_solver->m_electrodes[i].phi_ext,lagr_solver->m_electrodes[i].phi_fix);
+        glColor3f(c,c,-c);
+        double x=0.5*(lagr_solver->m_electrodes[i].r0.x+lagr_solver->m_electrodes[i].r1.x);
+        double y=0.5*(lagr_solver->m_electrodes[i].r0.y+lagr_solver->m_electrodes[i].r1.y);
+        glVertex3f(x,y,0.0);
+    }
 
     glColor3f(0.5,0.5,0.5);
 
     glBegin(GL_LINE_LOOP);
-
-    /*glVertex3f(dx*(-N_X/2),dy*(-N_Y/2),0);
-    glVertex3f(dx*(N_X-1-N_X/2),dy*(-N_Y/2),0);
-    glVertex3f(dx*(N_X-1-N_X/2),dy*(N_Y-1-N_Y/2),0);
-    glVertex3f(dx*(-N_X/2),dy*(N_Y-1-N_Y/2),0);*/
 
     glVertex3f(w_x0,w_y0,w_z0);
     glVertex3f(w_x1,w_y0,w_z0);
@@ -515,18 +311,11 @@ glVertex2f((i-50)/100.0*1.15,0.2+conv[i]*0.35);
 
     glBegin(GL_LINE_LOOP);
 
-    /*glVertex3f(dx*(-N_X/2),dy*(-N_Y/2),0);
-    glVertex3f(dx*(N_X-1-N_X/2),dy*(-N_Y/2),0);
-    glVertex3f(dx*(N_X-1-N_X/2),dy*(N_Y-1-N_Y/2),0);
-    glVertex3f(dx*(-N_X/2),dy*(N_Y-1-N_Y/2),0);*/
-
     glVertex3f(w_x0,w_y0,w_z1);
     glVertex3f(w_x1,w_y0,w_z1);
     glVertex3f(w_x1,w_y1,w_z1);
     glVertex3f(w_x0,w_y1,w_z1);
     glEnd();
-
-
 
     glPointSize(3.0);
 
@@ -544,13 +333,8 @@ void m_m(int x,int y) //mouse move
     {
         rx=rx0+0.5*(x-mx0);
         ry=ry0+0.5*(y-my0);
-
-
     }
-
     glutPostRedisplay();
-
-
 }
 
 
@@ -563,7 +347,6 @@ void m_d(int button, int state,int x, int y)  //mouse down
         rotate=0;
         rx0=rx;
         ry0=ry;
-
     }
     if (state==GLUT_DOWN)
     {
@@ -572,8 +355,6 @@ void m_d(int button, int state,int x, int y)  //mouse down
         my0=y;
 
     }
-
-
 
     mouse_x=(1.0*x)/W_WIDTH;
 
@@ -596,7 +377,6 @@ vec3<float> getE(float x, float y)
     int i0=(int)a0;
     a0-=i0;
 
-
     double b0=fmax(fmin(N_Y-1,(N_Y-1)*(y-w_y0)/(w_y1-w_y0)),0);
     int j0=(int)b0;
     b0-=j0;
@@ -607,11 +387,7 @@ vec3<float> getE(float x, float y)
     ret.y=(1.0-b0)*((1.0-a0)*Ey[i0][j0]+(a0)*Ey[i0+1][j0]) + (b0)*((1.0-a0)*Ey[i0][j0+1]+(a0)*Ey[i0+1][j0+1]);
     ret.z;
     return ret;
-
-
 }
-
-
 
 vec4<float> init_pos()
 {
@@ -639,26 +415,6 @@ vec3<float> init_vel()
     return vel;
 }
 
-/*void create_random_particles(int threadIdx, vec4<float> *bodyPos_, vec3<float> *bodyVel_,vec3<float> *bodyAccel_)
-{
-    int curNum = numParticles;
-    int numToAdd = std::min(int(my_rand(threadIdx) * 5.0), maxParticles - numParticles-1);
-    numParticles += numToAdd;
-    for (int i = curNum; i < curNum + numToAdd; ++i)
-    {
-        vec4<float> pos=init_pos();//threadIdx);
-        vec3<float> vel=init_vel();//(threadIdx);
-        bodyPos_[i].x=pos.x;
-        bodyPos_[i].y=pos.y;
-        bodyPos_[i].z=pos.z;
-        bodyPos_[i].w=pos.w;
-        bodyVel_[i]=vel;
-        bodyAccel_[i].x=0.0;
-        bodyAccel_[i].y=0.0;
-        bodyAccel_[i].z=0.0;
-    }
-}*/
-
 double calcJ(double E)
 {
     double t = 1.1;
@@ -669,26 +425,9 @@ double calcJ(double E)
     return (1.54 * 1e-6 * B * B * E * E / (t *t  * phi)) * exp( - 6.83 * 1e7 * pow(phi, 1.5) * tetta / fabs( B * E));
 }
 
-
 void create_random_particles(int threadIdx, vec4<float> *bodyPos_, vec3<float> *bodyVel_,vec3<float> *bodyAccel_)
 {
-    /*int curNum = numParticles;
-    int numToAdd = std::min(int(my_rand(threadIdx) * 2.0), maxParticles - numParticles-1);
-    numParticles += numToAdd;
-    for (int i = curNum; i < curNum + numToAdd; ++i)
-    {
-        vec4<float> pos=init_pos();
-        vec3<float> vel=init_vel();
-        bodyPos_[i].x=pos.x;
-        bodyPos_[i].y=pos.y;
-        bodyPos_[i].z=pos.z;
-        bodyPos_[i].w=pos.w;
-        bodyVel_[i]=vel;
-        bodyAccel_[i].x=0.0;
-        bodyAccel_[i].y=0.0;
-        bodyAccel_[i].z=0.0;
-    }*/
-    for (int i = (N_Y-1)/2+2; i < (N_Y-1); i+=1)
+       for (int i = (N_Y-1)/2+2; i < (N_Y-1); i+=1)
     {
 
 
@@ -711,10 +450,6 @@ void create_random_particles(int threadIdx, vec4<float> *bodyPos_, vec3<float> *
         int numToAdd =  std::min(int(dt * J * dy * dz * 1e4 * 6.24151 * 1e18 / chargeNum), maxParticles - numParticles-2);
         numToAdd = numToAdd > 5 ? 5 : numToAdd;
 
-
-
-
-
         if(my_rand(threadIdx) < (dt * J * dy * dz * 1e4 * 6.24151 * 1e18 / chargeNum) - int(dt * J * dy * dz * 1e4  * 6.24151 * 1e18 / chargeNum))
             numToAdd++;
 
@@ -722,8 +457,6 @@ void create_random_particles(int threadIdx, vec4<float> *bodyPos_, vec3<float> *
            // numToAdd=(rand()*1.0/RAND_MAX>0.95);
         //    printf("numtoadd=%d %e \n",numToAdd, E.x);
         numParticles += numToAdd;
-
-
 
         for (int n = curNum; n < curNum + numToAdd; ++n)
         {
@@ -752,12 +485,6 @@ void delete_particle(int threadIdx, int particlesIdx, vec3<float> *bodyAccel_, v
     bodyVel_[particlesIdx] = bodyVel_[numParticles-1];
     bodyAccel_[particlesIdx] = bodyAccel_[numParticles-1];
     numParticles -= 1;
-
-
-
-    //float r = my_rand(threadIdx);
-    //randMax  = randMax > r ? randMax : r;
-    // randMin  = randMin < r ? randMin : r;
 }
 
 void wall_collision(int threadIdx, int particlesIdx, vec3<float> *bodyAccel_, vec4<float> *bodyPos_, vec3<float> *bodyVel_)
@@ -1002,49 +729,6 @@ void fmm_step(double dt)
 
     static float BoundaryLayerGauss2[N_X];
 
-    /*    for (i=1;i<N_X-1;i++)
-    {
-        BoundaryLayerGauss[i]=0.5*(BoundaryLayer[i]+0.5*(BoundaryLayer[i+1]+BoundaryLayer[i-1]));
-
-    }
-
-    BoundaryLayerGauss[0]=BoundaryLayerGauss[1];
-    BoundaryLayerGauss[N_X-1]=BoundaryLayerGauss[N_X-2];
-
-    for (int j=0;j<1;j++)
-    {
-        for (i=1;i<N_X-1;i++)
-        {
-            BoundaryLayerGauss2[i]=0.5*(BoundaryLayerGauss[i]+0.5*(BoundaryLayerGauss[i+1]+BoundaryLayerGauss[i-1]));
-
-        }
-
-        BoundaryLayerGauss2[0]=BoundaryLayerGauss2[1];
-        BoundaryLayerGauss2[N_X-1]=BoundaryLayerGauss2[N_X-2];
-
-
-        for (i=1;i<N_X-1;i++)
-        {
-            BoundaryLayerGauss[i]=0.5*(BoundaryLayerGauss2[i]+0.5*(BoundaryLayerGauss2[i+1]+BoundaryLayerGauss2[i-1]));
-
-        }
-
-        BoundaryLayerGauss[0]=BoundaryLayerGauss[1];
-        BoundaryLayerGauss[N_X-1]=BoundaryLayerGauss[N_X-2];
-    }*/
-
-
-    /*
-
-    for (i=0;i<N_X;i++)
-    {
-        float x=w_x0+dx*i;
-        WallEnergy[i]=get_nearwall_potential(x,Y_WALL);
-    }*/
-    /* for (int i=1; i<7; i++)
-    {
-        printf("E =%e J=%e \n",i*2e7, calcJ(i*2e7));
-    }*/
     create_random_particles(0, bodyPos, bodyVel,bodyAccel);
     //create_random_particles(0, bodyPos, bodyVel,bodyAccel);
 
@@ -1059,26 +743,13 @@ void fmm_step(double dt)
     {
         lay_num+=fabs(BoundaryLayer[i]);
     }
-
-    //  printf("fmm    : %g  pnum=%d bnum=%f ck=%e\n",timeFMM, numParticles,lay_num,ck);
-
-
-
+   //  printf("fmm    : %g  pnum=%d bnum=%f ck=%e\n",timeFMM, numParticles,lay_num,ck);
     for( i=0; i<numParticles; i++ ) {
-
-
         float magn=qe/Me;//1e-1;
         vec3<float> ev=getE(bodyPos[i].x,bodyPos[i].y);
         bodyVel[i].x -= magn*(ev.x /*+bodyAccel[i].x*/)*dt;
         bodyVel[i].y -= magn*(ev.y /*+bodyAccel[i].y*/)*dt;
         bodyVel[i].z -=0.0;//magn*dtbodyAccel[i].z;
-
-        /*
-    bodyVel[i].x *= 0.9995;
-    bodyVel[i].y *= 0.9995;
-    bodyVel[i].z *= 0.9995;*/
-
-
     }
 
     for( i=0; i<numParticles; i++ )
@@ -1137,81 +808,7 @@ void fmm_init()
     {
         BoundaryLayer[i]=0.000001;
     }
-
-    /*for( i=0; i<maxParticles; i++ ) {
-  bodyPos[i].x = rand()/(float) RAND_MAX*2*M_PI-M_PI;
-  bodyPos[i].y = rand()/(float) RAND_MAX*2*M_PI-M_PI;
-  bodyPos[i].z = rand()/(float) RAND_MAX*2*M_PI-M_PI;
-  bodyPos[i].w = rand()/(float) RAND_MAX;
-}*/
-
 }
-
-
-
-/*
-void fmm_init()
-{
-    int i,iteration,numParticles;
-    double tic,toc,timeDirect,timeFMM,L2norm,difference,normalizer;
-    vec3<float> *bodyAcceld;
-    FmmKernel kernel;
-    FmmSystem tree;
-    std::fstream fid("time2.dat",std::ios::out);
-
-    bodyAccel = new vec3<float>[maxParticles];
-    bodyAcceld = new vec3<float>[maxParticles];
-    bodyPos = new vec4<float>[maxParticles];
-
-    for( i=0; i<maxParticles; i++ ) {
-      bodyPos[i].x = rand()/(float) RAND_MAX*2*M_PI-M_PI;
-      bodyPos[i].y = rand()/(float) RAND_MAX*2*M_PI-M_PI;
-      bodyPos[i].z = rand()/(float) RAND_MAX*2*M_PI-M_PI;
-      bodyPos[i].w = rand()/(float) RAND_MAX;
-    }
-
-   // for( iteration=0; iteration<25; iteration++ ) {
-      numParticles =maxParticles; // int(pow(10,(iteration+32)/8.0));
-      printf("N = %d\n",numParticles);
-
-      tic = get_time();
-      tree.fmmMain(numParticles,1);
-      toc = get_time();
-      timeFMM = toc-tic;
-      printf("fmm    : %g\n",timeFMM);
-      for ( i=0; i<9; i++ ) fid << t[i] << " ";
-      fid << std::endl;
-      for( i=0; i<numParticles; i++ ) {
-        bodyAcceld[i].x = bodyAccel[i].x;
-        bodyAcceld[i].y = bodyAccel[i].y;
-        bodyAcceld[i].z = bodyAccel[i].z;
-      }
-
-      tic = get_time();
-      kernel.direct(numParticles);
-      toc = get_time();
-      timeDirect = toc-tic;
-      printf("direct : %g\n",timeDirect);
-
-      L2norm = 0;
-      for( i=0; i<numParticles; i++ ) {
-        difference = (bodyAccel[i].x-bodyAcceld[i].x)*
-               (bodyAccel[i].x-bodyAcceld[i].x)+
-               (bodyAccel[i].y-bodyAcceld[i].y)*
-               (bodyAccel[i].y-bodyAcceld[i].y)+
-               (bodyAccel[i].z-bodyAcceld[i].z)*
-               (bodyAccel[i].z-bodyAcceld[i].z);
-        normalizer = bodyAccel[i].x*bodyAccel[i].x+
-               bodyAccel[i].y*bodyAccel[i].y+
-               bodyAccel[i].z*bodyAccel[i].z;
-        L2norm += difference/normalizer/numParticles;
-      }
-      L2norm = sqrt(L2norm);
-      printf("error  : %g\n\n",L2norm);
-
-    fid.close();
-}*/
-
 
 void kb(unsigned char key, int x, int y)
 {
@@ -1220,149 +817,78 @@ void kb(unsigned char key, int x, int y)
     double max_err=0.0;
     if (key=='.')
     {
-
-
         ck*=1.1;
-
-
     }
-
 
     if (key==',')
     {
-
-
         ck/=1.1;
-
-
-    }
+   }
     if (key==']')
     {
-
-
-        dt*=1.1;
+       dt*=1.1;
         printf("dt=%e \n",dt);
-
     }
-
 
     if (key=='[')
     {
-
-
         dt/=1.1;
         printf("dt=%e \n",dt);
-
     }
-
 
     if (key=='1')
     {
-
         view=VIEW_PHI;
         printf("viewing PHI \n");
-
     }
 
 
     if (key=='2')
     {
-
         view=VIEW_E;
         printf("viewing E \n");
-
     }
 
     if (key=='f')
     {
-        //move_particles=!move_particles;
-        sasign*=-1.0;
+         sasign*=-1.0;
         for(int i=0;i<20;i++)
             sweep();
-        //move_particles=!move_particles;
     }
 
     if (key=='m')
     {
-
         move_particles=!move_particles;
-
     }
 
     if (key=='3')
     {
-
         view=VIEW_P;
         printf("viewing P \n");
-
     }
-
-
-
 
     if (key=='4')
     {
 
         view=VIEW_PX;
         printf("viewing PX \n");
-
     }
 
 
     if (key=='5')
     {
-
         clearc=!clearc;
-        // printf("viewing DIV \n");
-
     }
-
-
-
-
 
     if (key=='s')
     {
-
-        //   for(int i=0;i<10;i++)
         sweep();
-
-
-        //   fmm_step(0.0000001);
-
     }
-    if (key=='d')
-    {
-
-        solve_current_1(rho_,Jx_,Jy_,Ux_,Uy_,80);
-    }
-
-    if (key=='u')
-    {
-
-        //  for(int i=0;i<100;i++)
-
-        field_U(1.0, Ux_,1000);
-
-    }
-
-    if (key=='n')
-    {
-
-        //  for(int i=0;i<100;i++)
-
-        NavierStoks_solver(p_in, Ux_, Uy_,1000);
-
-    }
-
 
     if (key==' ')
     {
         redr=!redr;
-        // filter_conv(iglob,1,NULL,false);
-        //iglob++;
     }
-
 
     glutPostRedisplay();
 }
@@ -1439,9 +965,6 @@ void sweep_init()
     double botAv = 0.0;
     for (int i=0; i<N_X; i++)
     {
-        /*        if (i<50)
-            q[i]=-0.013/dy;
-        else q[i]=0.0;*/
         q[i]=0.0;
         Pins_top[i]=pow(rand()*1.0/RAND_MAX,20)*50.0;
         topAv += Pins_top[i]/N_X;
@@ -1454,28 +977,15 @@ void sweep_init()
 
         Pins_top[i] -= topAv ;
         Pins_bottom[i] -= botAv;
-
     }
-
-
 
     for (int i=1; i<N_X-1; i++)
     {
-        /*        if (i<50)
-            q[i]=-0.013/dy;
-        else q[i]=0.0;*/
         q[i]=-1e-16;
-
-        /*Pins_top[i]=(Pins_top[i]+Pins_top[i-1]+Pins_top[i+1])/3.0;
-        Pins_bottom[i]=(Pins_bottom[i]+Pins_bottom[i-1]+Pins_bottom[i+1])/3.0;*/
-
 
     }
         q[0]=-1e-16;
         q[1]=-1e-16;
-
-
-
 
     float gsum=0.0;
     for (int i=0; i<N_Y; i++)
@@ -1490,20 +1000,15 @@ void sweep_init()
         }
     }
 
-
     for (int i=0; i<N_Y; i++)
     {
         gau[i]/=gsum;
     }
 
-
-
     for (i=0;i<N_X;i++)
     {
-
         for (j=0;j<N_Y;j++)
         {
-
             double x= (i-N_X/2)*dx;
             double y= (j-N_Y/2)*dy;
 
@@ -1535,17 +1040,33 @@ void sweep_init()
             Py_[i][j]=0.26;//0 for freq//rand()*0.52/RAND_MAX - 0.26;//0.26 * sin(6.28*i*20.0/N_X + 3.14); //* sin(6.28*i*15.0/N_X /*+ 6.28*/);//rand()*0.52/RAND_MAX - 0.26;
             else
                 Py_[i][j]=-0.26;
-
             Py0_[i][j]=Py_[i][j];
-
             Px_[i][j]=0.0;
             Px0_[i][j]=0.0;
-
         }
     }
 }
 
+
 void sweep()
+{
+    lagr_solver->updatePhi();
+    lagr_solver->solvePhi(100);
+
+
+
+    for (int i=0;i<N_X;i++)
+    {
+        for (int j=0;j<N_Y;j++)
+        {
+            phi_[i][j]=lagr_solver->getPhi(w_x0+dx*(i),w_y0+dy*j);
+        }
+    }
+
+
+}
+
+void sweep_eul()
 {
     double time = get_time();
 //    printf("StartTime = %f\n", time);
@@ -1785,6 +1306,11 @@ void init()
     glLoadIdentity ();
     glOrtho(w_x0-(w_x1-w_x0)*0.01, w_x1*1.01, w_y0*1.05,w_y1*1.05, -10.0, 10.0);
     glMatrixMode (GL_MODELVIEW);
+
+
+    lagr_solver= new eFieldLagrangian();
+    lagr_solver->updatePhi();
+
     rand_init();
     sweep_init();
 
@@ -1798,8 +1324,6 @@ void init()
     gam=7.89e9;
     T=300;
     T0=381;
-
-
 
     double x1=0;
     double x0=0;
@@ -1820,23 +1344,6 @@ void init()
         if (i%100==0)
             printf("i=%d x=%e \n",i,x1);
     }
-
-    /*
-    solve_poly(p,x0, rh,2);
-    solve_poly(p,x0, rh,3);
-    solve_poly(p,x0, rh,4);
-    solve_poly(p,x0, rh,5);
-    solve_poly(p,x0, rh,6);
-    solve_poly(p,x0, rh,7);
-
-    solve_poly(p,x0, rh,8);
-    solve_poly(p,x0, rh,9);
-    solve_poly(p,x0, rh,10);
-    solve_poly(p,x0, rh,11);
-*/
-
-
-
 }
 
 
