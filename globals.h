@@ -18,8 +18,8 @@
 
 
 
-#define w_x0 0.0
-#define w_x1 0.5e-6
+#define w_x0 -0.25e-6
+#define w_x1 0.25e-6
 
 
 #define w_y0 -0.5e-7
@@ -69,6 +69,12 @@ typedef struct
 
 }poly;
 
+
+
+double calc_poly(poly &p, double r, double x); //возвращает значение функции f(x) = x^2-2
+double calc_d_poly(poly &p, double x); //возвращает значение производной
+double calc_d2_poly(poly &p, double x); // значение второй производной
+double solve_poly(poly &p,double _x0, double rhs,int itn);
 
 void rand_init();
 

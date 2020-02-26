@@ -1,4 +1,5 @@
 #include "pzsolver.h"
+#include "globals.h"
 
 
 pzSolver::pzSolver()
@@ -23,11 +24,10 @@ pzSolver::pzSolver()
         m_p[i].ds=_dx*_dz;
     }
 
-
-    double kap=1.38e-10*0.15;
-    m_par.a=(1.0/(m_dt))+(kap*2.0/(m_dx*m_dx));
-    m_par.bp=-kap/(dx*dx);
-    m_par.bm=-kap/(dx*dx);
+    kappa=1.38e-10*0.15;
+    m_par.a=(1.0/(m_dt))+(kappa*2.0/(m_dx*m_dx));
+    m_par.bp=-kappa/(m_dx*m_dx);
+    m_par.bm=-kappa/(m_dx*m_dx);
 
     double alp,bet,gam,T,T0,rh;
     alp=3.324e5;
@@ -46,32 +46,72 @@ pzSolver::pzSolver()
     m_poly.C[4]=6.0*gam *0.5; //o.5 from crank-nikolson
 
     //-(fiy*0.0033- 2.0*alp*81*P1 - 4*bet*P1^3 +6*gam*P1^5)
-    double emin=1e23;
-    double emax=-1e23;
-    for (int i=1; i<N_X-1; i++)
-    {
-        for (int j=1; j<N_Y-1; j++)
-        {
-            double lapl0 = kap *( - Py0_[i][j] * (2.0 / (dx * dx) + 2.0 / (dy * dy)) + 1.0 / (dx * dx) * (Py0_[i+1][j] + Py0_[i-1][j]) +  1.0 / (dy * dy) * (Py0_[i][j+1] + Py0_[i][j-1]));
-            double poly0 = p.C[0] * Py0_[i][j] +
-                    p.C[2] * Py0_[i][j] * Py0_[i][j] * Py0_[i][j] +
-                    p.C[4] * Py0_[i][j] * Py0_[i][j] * Py0_[i][j] * Py0_[i][j] * Py0_[i][j];
-            RHS_p[i][j]= /*1.4e7*(1.0-i*1.0/N_X)*/ -0.05*(Ey[i][j]+Ey0[i][j]) + lapl0  -poly0 +Py0_[i][j]/(dt_poly);
 
-        }
-    }
 
-    //  printf("emin=%e emax=%e \n",emin,emax);
-    time1 = get_time();
-     //   printf("beforePolyn = %f\n", time1 - time);
-    jacobi_polynomial( par_ferr, p,Py_,RHS_p, 4);
+    //    jacobi_polynomial( par_ferr, p,Py_,RHS_p, 4);
 
 }
 
 
-void pzSolver::solve_poly(int itn)
+void pzSolver::solvePz(int itn)
+{
+   getRHS();
+   poly poly_new;
+
+    double a,b_p,b_m,c_p,c_m;
+
+    a=m_par.a;//((2.0)/(dx*dx)+2.0/(dy*dy));
+    b_p=m_par.bp;//-1.0/(dx*dx);
+    b_m=m_par.bm;//-1.0/(dx*dx);
+    c_p=m_par.cp;//-1.0/(dy*dy);
+    c_m=m_par.cm;//-1.0/(dy*dy);
+
+    double rhs_;
+
+    //field_x*a+....+pol*fieldx^..=rhs
+
+    poly_new=m_poly;
+    poly_new.C[0]+=a;
+    for(int n=0;n<itn;n++)
+    {
+        for (int i=1; i<m_p_num-1; i++)
+        {
+            double f_xm=m_p[i-1].p;
+            double f_xp=m_p[i+1].p;
+
+            // if (i==1) f_xm=field[N_X-2][j];
+            // if (i==N_X-2) f_xp=field[1][j];
+
+            rhs_=m_p[i].RHS-(b_p*f_xp+b_m*f_xm);
+            m_p[i].p=m_p[i].p*0.7+0.3*solve_poly(poly_new,m_p[i].p,rhs_,3);
+        }
+    }
+
+    for (int i=1; i<m_p_num-1; i++)
+    {
+        m_p[i].p_prev=m_p[i].p;
+        m_p[i].E_prev=m_p[i].E;
+    }
+
+}
+
+void pzSolver::getRHS()
 {
 
+    for (int i=1; i<m_p_num-1; i++)
+    {
+        double p_prev=m_p[i].p_prev;
+        double pp_m,pp_p;
+        pp_m=m_p[i-1].p_prev;
+        pp_p=m_p[i+1].p_prev;
+
+        double lapl0 = kappa *(- p_prev * (2.0 / (m_dx * m_dx)) + 1.0 / (m_dx * m_dx) * (pp_m + pp_p));
+
+        double poly0 = m_poly.C[0] * p_prev +
+                m_poly.C[2] * p_prev * p_prev * p_prev +
+                m_poly.C[4] * p_prev * p_prev * p_prev * p_prev * p_prev;
+        m_p[i].RHS = -0.05 * (m_p[i].E+m_p[i].E_prev) + lapl0 - poly0 + p_prev/(m_dt);
+    }
 }
 
 void pzSolver::get_q()

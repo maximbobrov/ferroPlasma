@@ -110,6 +110,49 @@ double eFieldLagrangian::getPhi(double x, double y)
     return sum;
 }
 
+void eFieldLagrangian::setElectrodeAngle(double deg)
+{
+    double _x0,_y0;
+    double _x1,_y1;
+    double nx,ny;
+
+    nx=sin(deg*M_PI/180.0);
+    ny=cos(deg*M_PI/180.0);
+
+    double l = 0.5*(w_y1-w_y0);
+    _x0 = w_x0; _y0 = 0.5*(w_y0+w_y1);
+    _x1 = _x0+nx*l; _y1 = _y0+ny*l;
+
+
+    for (int i=0;i<m_elec_num/8;i++) //first electrode
+    {
+        double alpha=i*1.0/(m_elec_num/8-1);
+        double x1,y1,x2,y2;
+        x1 = _x0*(1.0-alpha) + _x1*alpha;
+        y1 = _y0*(1.0-alpha) + _y1*alpha;;
+
+        m_electrodes[i].r0.x=x1;
+        m_electrodes[i].r0.z=0.0;
+        m_electrodes[i].r0.y=y1;
+
+        alpha=(i+1)*1.0/(m_elec_num/8-1);
+        x2 = _x0*(1.0-alpha) + _x1*alpha;
+        y2 = _y0*(1.0-alpha) + _y1*alpha;;
+
+        m_electrodes[i].r1.x=x2;
+        m_electrodes[i].r1.z=0.0;
+        m_electrodes[i].r1.y=y2;
+
+        m_electrodes[i].rho1=0.1;
+        m_electrodes[i].rho2=0.1;
+
+        m_electrodes[i].dl=sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+        m_electrodes[i].phi_fix=-1.0;
+    }
+    updatePhi();
+    solvePhi(100);
+}
+
 vec3<double> eFieldLagrangian::getE(double x, double y)
 {
     vec3<double> sum;

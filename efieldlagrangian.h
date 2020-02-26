@@ -21,6 +21,9 @@ public:
     void solvePhi(int itn); //update potential
     vec3<double> getE(double x,double y);
     double getPhi(double x,double y);
+
+    void setElectrodeAngle(double deg);
+
 };
 
 

@@ -15,6 +15,7 @@
 #include <iostream>
 #include <vector>
 #include "efieldlagrangian.h"
+#include "pzsolver.h"
 
 #include "phi_mult.h"
 
@@ -66,7 +67,7 @@ std::vector <double>  T_;
 int i_tick=0;
 
 eFieldLagrangian* lagr_solver;
-
+pzSolver* pz_solver;
 
 void display(void)
 {
@@ -172,7 +173,7 @@ void display(void)
                 l_2=ck*(div_[i][j])/div_max;
 
             glColor3f(l_2,l_2,-l_2);
-            glVertex2f(w_x0+dx*(i),w_y0+dy*j);
+            glVertex2f(1.3*(w_x0+dx*(i)),1.3*(w_y0+dy*j));
 
             if (view==VIEW_PHI)
                 l_2=ck*(phi_[i+1][j])/phi_max;
@@ -186,7 +187,7 @@ void display(void)
                 l_2=ck*(div_[i+1][j])/div_max;
 
             glColor3f(l_2,l_2,-l_2);
-            glVertex2f(w_x0+dx*(i+1),w_y0+dy*j);
+            glVertex2f(1.3*(w_x0+dx*(i+1)),1.3*(w_y0+dy*j));
         }
         glEnd();
     }
@@ -810,6 +811,7 @@ void fmm_init()
     }
 }
 
+double angle=0.0;
 void kb(unsigned char key, int x, int y)
 {
     int i,j,k,nn,n;
@@ -826,14 +828,18 @@ void kb(unsigned char key, int x, int y)
    }
     if (key==']')
     {
-       dt*=1.1;
-        printf("dt=%e \n",dt);
+      // dt*=1.1;
+      //  printf("dt=%e \n",dt);
+        angle+=0.1;
+        lagr_solver->setElectrodeAngle(angle);
     }
 
     if (key=='[')
     {
-        dt/=1.1;
-        printf("dt=%e \n",dt);
+        angle-=0.1;
+        lagr_solver->setElectrodeAngle(angle);
+      //  dt/=1.1;
+      //  printf("dt=%e \n",dt);
     }
 
     if (key=='1')
@@ -1059,7 +1065,7 @@ void sweep()
     {
         for (int j=0;j<N_Y;j++)
         {
-            phi_[i][j]=lagr_solver->getPhi(w_x0+dx*(i),w_y0+dy*j);
+            phi_[i][j]=lagr_solver->getPhi(1.3*(w_x0+dx*(i)),1.3*(w_y0+dy*j));
         }
     }
 
@@ -1304,12 +1310,18 @@ void init()
     glColor3f(1.0, 1.0, 1.0);
     glMatrixMode (GL_PROJECTION);
     glLoadIdentity ();
-    glOrtho(w_x0-(w_x1-w_x0)*0.01, w_x1*1.01, w_y0*1.05,w_y1*1.05, -10.0, 10.0);
+    glOrtho(w_x0-(w_x1-w_x0)*0.3, w_x1*1.3, w_y0*1.3,w_y1*1.3, -10.0, 10.0);
     glMatrixMode (GL_MODELVIEW);
 
 
     lagr_solver= new eFieldLagrangian();
     lagr_solver->updatePhi();
+
+
+    pz_solver= new pzSolver();
+
+
+
 
     rand_init();
     sweep_init();

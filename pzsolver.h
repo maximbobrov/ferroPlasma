@@ -1,13 +1,14 @@
 #ifndef PZSOLVER_H
 #define PZSOLVER_H
 
-#include "globals.h"
+//#include "globals.h"
+#include "sse_sum.h"
 class pzSolver
 {
 public:
     struct pElem   //linear electrode elem
     {
-        double p, ds, dl,E;//C/m2, m, V
+        double p,p_prev, ds, dl,E,E_prev,RHS;//C/m2, m, V
         vec3<double> r;
         double q1,q2;
     };
@@ -18,10 +19,13 @@ public:
 
     double m_dx;
     double m_dt;
+    double kappa;
     pElem *m_p;
     int m_p_num;
-    void solve_poly(int itn);
+    void solvePz(int itn);
+    void getRHS();
     void get_q();
+
 
     pzSolver();
 
