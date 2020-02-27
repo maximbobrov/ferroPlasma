@@ -292,11 +292,13 @@ void display(void)
     {
         double c=ck*lagr_solver->m_electrodes[i].phi_ext/rhomax;
         printf("i=%d phi=%e  phi_fix=%e\n",i,lagr_solver->m_electrodes[i].phi_ext,lagr_solver->m_electrodes[i].phi_fix);
-        glColor3f(c,c,-c);
+        //glColor3f(c,c,-c);
+        glColor3f(1,1,1);
         double x=0.5*(lagr_solver->m_electrodes[i].r0.x+lagr_solver->m_electrodes[i].r1.x);
         double y=0.5*(lagr_solver->m_electrodes[i].r0.y+lagr_solver->m_electrodes[i].r1.y);
         glVertex3f(x,y,0.0);
     }
+    glEnd();
 
     glColor3f(0.5,0.5,0.5);
 
@@ -317,6 +319,13 @@ void display(void)
     glVertex3f(w_x1,w_y1,w_z1);
     glVertex3f(w_x0,w_y1,w_z1);
     glEnd();
+
+    for (int i=0;i<pz_solver->m_p_num;i++)
+    {
+        glColor3f(pz_solver->m_p[i].p/0.26,-pz_solver->m_p[i].p/0.26,0);
+    glRectf(pz_solver->m_p[i].r.x-pz_solver->m_dx*0.5,pz_solver->m_p[i].r.y -pz_solver->m_p[i].dl*0.5,
+            pz_solver->m_p[i].r.x+pz_solver->m_dx*0.5,pz_solver->m_p[i].r.y +pz_solver->m_p[i].dl*0.5);
+    }
 
     glPointSize(3.0);
 

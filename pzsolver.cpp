@@ -15,11 +15,11 @@ pzSolver::pzSolver()
 
     for (int i=0;i<m_p_num;i++) //first electrode
     {
-        m_p[i].dl=100.0e-9; //100 nm width;
+        m_p[i].dl=50.0e-9; //100 nm width;
         double alpha=i*1.0/(m_p_num-1);
         m_p[i].r.x = (w_x0)*(1.0-alpha)+w_x1*alpha;
-        m_p[i].r.y = (w_y0+m_p[i].dl+5e-9);
-        m_p[i].p = 0.0;
+        m_p[i].r.y = (w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
+        m_p[i].p = 0.13+rand()*0.13/RAND_MAX;
         m_p[i].E=0.0;
         m_p[i].ds=_dx*_dz;
     }
