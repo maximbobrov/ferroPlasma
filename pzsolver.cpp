@@ -4,7 +4,7 @@
 
 pzSolver::pzSolver()
 {
-    this->m_p_num=300;
+    this->m_p_num=100;
     m_p=new pElem[m_p_num];
     m_dt=1e-11;
 
@@ -20,7 +20,10 @@ pzSolver::pzSolver()
         m_p[i].r.x = (w_x0)*(1.0-alpha)+w_x1*alpha;
         m_p[i].r.y = (w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
         m_p[i].p = 0.13+rand()*0.13/RAND_MAX;
-        m_p[i].E=0.0;
+        m_p[i].p_prev = m_p[i].p;
+
+        m_p[i].E=1.0e9;
+        m_p[i].E_prev=m_p[i].E;
         m_p[i].ds=_dx*_dz;
     }
 

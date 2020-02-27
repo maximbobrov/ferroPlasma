@@ -320,12 +320,14 @@ void display(void)
     glVertex3f(w_x0,w_y1,w_z1);
     glEnd();
 
+    glBegin(GL_TRIANGLE_STRIP);
     for (int i=0;i<pz_solver->m_p_num;i++)
     {
-        glColor3f(pz_solver->m_p[i].p/0.26,-pz_solver->m_p[i].p/0.26,0);
-    glRectf(pz_solver->m_p[i].r.x-pz_solver->m_dx*0.5,pz_solver->m_p[i].r.y -pz_solver->m_p[i].dl*0.5,
-            pz_solver->m_p[i].r.x+pz_solver->m_dx*0.5,pz_solver->m_p[i].r.y +pz_solver->m_p[i].dl*0.5);
+         glColor3f(pz_solver->m_p[i].p/0.26,-pz_solver->m_p[i].p/0.26,0);
+        glVertex2f(pz_solver->m_p[i].r.x-pz_solver->m_dx*0.5,pz_solver->m_p[i].r.y -pz_solver->m_p[i].dl*0.5);
+        glVertex2f(pz_solver->m_p[i].r.x+pz_solver->m_dx*0.5,pz_solver->m_p[i].r.y +pz_solver->m_p[i].dl*0.5);
     }
+    glEnd();
 
     glPointSize(3.0);
 
@@ -898,6 +900,12 @@ void kb(unsigned char key, int x, int y)
     if (key=='s')
     {
         sweep();
+    }
+
+
+    if (key=='d')
+    {
+        pz_solver->solvePz(100);
     }
 
     if (key==' ')
