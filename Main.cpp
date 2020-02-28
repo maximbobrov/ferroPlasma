@@ -16,6 +16,7 @@
 #include <vector>
 #include "efieldlagrangian.h"
 #include "pzsolver.h"
+#include "multisolver.h"
 
 #include "phi_mult.h"
 
@@ -68,7 +69,7 @@ int i_tick=0;
 
 eFieldLagrangian* lagr_solver;
 pzSolver* pz_solver;
-
+multiSolver* multi_solver;
 void display(void)
 {
     double phi_max=1e-20;
@@ -325,7 +326,7 @@ void display(void)
     {
          glColor3f(pz_solver->m_p[i].p/0.26,-pz_solver->m_p[i].p/0.26,0);
         glVertex2f(pz_solver->m_p[i].r.x-pz_solver->m_dx*0.5,pz_solver->m_p[i].r.y -pz_solver->m_p[i].dl*0.5);
-        glVertex2f(pz_solver->m_p[i].r.x+pz_solver->m_dx*0.5,pz_solver->m_p[i].r.y +pz_solver->m_p[i].dl*0.5);
+        glVertex2f(pz_solver->m_p[i].r.x-pz_solver->m_dx*0.5,pz_solver->m_p[i].r.y +pz_solver->m_p[i].dl*0.5);
     }
     glEnd();
 
@@ -862,8 +863,8 @@ void kb(unsigned char key, int x, int y)
 
     if (key=='2')
     {
-        view=VIEW_E;
-        printf("viewing E \n");
+        view=VIEW_P;
+        printf("viewing P \n");
     }
 
     if (key=='f')
@@ -1074,7 +1075,7 @@ void sweep_init()
 void sweep()
 {
     lagr_solver->updatePhi();
-    lagr_solver->solvePhi(100);
+//    lagr_solver->solvePhi(100);
 
 
 
@@ -1083,6 +1084,9 @@ void sweep()
         for (int j=0;j<N_Y;j++)
         {
             phi_[i][j]=lagr_solver->getPhi(1.3*(w_x0+dx*(i)),1.3*(w_y0+dy*j));
+
+            pz_solver->get_q();
+            Py_[i][j]=pz_solver->getPhidepol(1.3*(w_x0+dx*(i)),1.3*(w_y0+dy*j));
         }
     }
 
@@ -1337,7 +1341,9 @@ void init()
 
     pz_solver= new pzSolver();
 
-
+    multi_solver = new multiSolver();
+    multi_solver->m_Esolver=lagr_solver;
+    multi_solver->m_pzSolver=pz_solver;
 
 
     rand_init();

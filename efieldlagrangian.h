@@ -8,7 +8,7 @@ class eFieldLagrangian
 public:
     struct eElem   //linear electrode elem
     {
-        double rho1, rho2,dl,phi_ext,phi_fix;//C/m2, m, V
+        double rho1, rho2,dl,phi_ext,phi_fix,phi_fix_charges;//C/m2, m, V
         vec3<double> r0,r1;
     };
 

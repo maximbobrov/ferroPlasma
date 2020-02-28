@@ -31,6 +31,8 @@ eFieldLagrangian::eFieldLagrangian()
         m_electrodes[i].dl=sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
 
         m_electrodes[i].phi_fix=-1.0;
+        m_electrodes[i].phi_fix_charges=0.0;
+
     }
 
     for (int j=m_elec_num/8;j<m_elec_num;j++) //second electrode
@@ -59,6 +61,7 @@ eFieldLagrangian::eFieldLagrangian()
 
         m_electrodes[j].dl=sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
         m_electrodes[j].phi_fix=1.0;
+        m_electrodes[i].phi_fix_charges=0.0;
     }
 }
 
@@ -80,11 +83,10 @@ void eFieldLagrangian::solvePhi(int itn)
         updatePhi();
         for (int i=0;i<m_elec_num;i++)
         {
-            m_electrodes[i].rho1+=1e-2*(m_electrodes[i].phi_fix-m_electrodes[i].phi_ext);
+            m_electrodes[i].rho1+=1e-2*(m_electrodes[i].phi_fix+m_electrodes[i].phi_fix_charges-m_electrodes[i].phi_ext);
             m_electrodes[i].rho2=m_electrodes[i].rho1;
         }
     }
-
 }
 
 double eFieldLagrangian::getPhi(double x, double y)
@@ -103,8 +105,8 @@ double eFieldLagrangian::getPhi(double x, double y)
         r2=sqrt(dx*dx+dy*dy);
         q=(m_electrodes[i].rho1+m_electrodes[i].rho2)*0.5;
 
-       // sum+=q*log(r2+delta)/log(delta);//q*delta/(r2+delta);
-        sum+=q*pow(delta/(r2+delta),0.25);
+      sum+=q*log(r2+delta)/log(delta);//q*delta/(r2+delta);
+     //   sum+=q*pow(delta/(r2+delta),0.25);
 
     }
     return sum;
@@ -167,8 +169,8 @@ vec3<double> eFieldLagrangian::getE(double x, double y)
 
         dx = (m_electrodes[i].r0.x + m_electrodes[i].r1.x)*0.5 - x;
         dy = (m_electrodes[i].r0.y + m_electrodes[i].r1.y)*0.5 - y;
-        r2=(dx*dx+dy*dy);
-        q=(m_electrodes[i].rho1+m_electrodes[i].rho2)*0.5;
+        r2=sqrt(dx*dx+dy*dy);
+        q=(m_electrodes[i].rho1+m_electrodes[i].rho2)*0.5;    
 
         sum.x+=q*delta*dx/(r2+delta);
         sum.y+=q*delta*dy/(r2+delta);

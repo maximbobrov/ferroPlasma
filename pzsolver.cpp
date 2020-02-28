@@ -90,11 +90,6 @@ void pzSolver::solvePz(int itn)
         }
     }
 
-    for (int i=1; i<m_p_num-1; i++)
-    {
-        m_p[i].p_prev=m_p[i].p;
-        m_p[i].E_prev=m_p[i].E;
-    }
 
 }
 
@@ -117,7 +112,83 @@ void pzSolver::getRHS()
     }
 }
 
-void pzSolver::get_q()
+void pzSolver::get_q() //all charges are in elementary
 {
 
+    for (int i=0; i<m_p_num; i++)
+    {
+        m_p[i].q=m_p[i].p*m_p[i].ds/qe;
+    }
+
+}
+
+void pzSolver::step()
+{
+    for (int i=1; i<m_p_num-1; i++)
+    {
+        m_p[i].p_prev=m_p[i].p;
+        m_p[i].E_prev=m_p[i].E;
+    }
+
+}
+
+vec3<double> pzSolver::getEdepol(double x, double y)
+{
+     vec3 <double> sum;
+    sum.x=0.0; sum.y=0.0; sum.z=0.0;
+    for (int i=0;i<m_p_num;i++)
+    {
+        double r2;
+        double q;
+        double dx,dy;
+        double delta=1e-9;
+
+        dx = m_p[i].r.x - x;
+        dy = m_p[i].r.y + m_p[i].dl*0.5 - y;
+        r2=sqrt(dx*dx+dy*dy);
+        q=qe/eps0*m_p[i].q;
+
+        sum.x+=q*dx/(r2+delta);
+        sum.y+=q*dy/(r2+delta);
+
+        dx = m_p[i].r.x - x;
+        dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
+        r2=sqrt(dx*dx+dy*dy);
+
+        sum.x-=q*dx/(r2+delta);
+        sum.y-=q*dy/(r2+delta);
+    }
+    return sum;
+}
+
+double pzSolver::getPhidepol(double x, double y)
+{
+
+    double sum=0.0;
+    for (int i=0;i<m_p_num;i++)
+    {
+    //    int i=1;
+        double r2;
+        double q;
+        double dx,dy;
+        double delta=1e-9;
+
+        dx = m_p[i].r.x - x;
+        dy = m_p[i].r.y + m_p[i].dl*0.5 - y;
+        r2=sqrt(dx*dx+dy*dy);
+        q=qe/eps0*m_p[i].q;
+
+      sum+=q*log(r2+delta);
+       // sum+=q/(r2+delta);
+
+
+      dx = m_p[i].r.x - x;
+      dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
+      r2=sqrt(dx*dx+dy*dy);
+
+              sum-=q*log(r2+delta);
+             // sum-=q/(r2+delta);
+
+    }
+    return sum;
 }

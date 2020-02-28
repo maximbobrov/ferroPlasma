@@ -9,14 +9,16 @@ SOURCES += \
     phi_mult.cpp \
     sse_sum.cpp \
     efieldlagrangian.cpp \
-    pzsolver.cpp
+    pzsolver.cpp \
+    multisolver.cpp
 
 HEADERS += \
     phi_mult.h \
     globals.h \
     sse_sum.h \
     efieldlagrangian.h \
-    pzsolver.h
+    pzsolver.h \
+    multisolver.h
 #QMAKE_CXXFLAGS += -O2
 QMAKE_CXXFLAGS_RELEASE += -O3 -ffast-math  -msse -std=c++11
 #LIBS += -lopenGL32 -lGLU32 -lm

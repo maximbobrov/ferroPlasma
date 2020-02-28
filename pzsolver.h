@@ -10,7 +10,7 @@ public:
     {
         double p,p_prev, ds, dl,E,E_prev,RHS;//C/m2, m, V
         vec3<double> r;
-        double q1,q2;
+        double q;
     };
 public:
     poly m_poly;
@@ -25,7 +25,9 @@ public:
     void solvePz(int itn);
     void getRHS();
     void get_q();
-
+    void step();
+    vec3<double> getEdepol(double x, double y);
+    double getPhidepol(double x, double y);
 
     pzSolver();
 
