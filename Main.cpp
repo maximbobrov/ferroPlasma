@@ -64,6 +64,7 @@ std::vector <double>  area_;
 std::vector <double>  T_;
 
 
+bool view_px=true;
 
 int i_tick=0;
 
@@ -86,11 +87,13 @@ void display(void)
             p_max=fmax(p_max,fabs(Py_[i][j]));
             px_max=fmax(px_max,fabs(Px_[i][j]));
             e_max=fmax(e_max,fabs(Ey[i][j]));
-            div_max=fmax(div_max,fabs(div_[i][j]));
+            div_max=fmax(div_max,fabs(Ex[i][j]));
         }
     }
 
- /*   double bmax=0.0;
+    printf("phi_max=%e Phi_p_max=%e Ey_max=%e Ep_max=%e\n",phi_max,p_max,e_max,div_max);
+
+    /*   double bmax=0.0;
     double Emax=0.0001;
     for(int i=0; i<N_X; i++ )
     {
@@ -134,7 +137,7 @@ void display(void)
     if (redr==1)
     {
         for (int i=0;i<5;i++)
-        sweep();
+            sweep();
     }
 
 
@@ -171,7 +174,7 @@ void display(void)
             if (view==VIEW_E)
                 l_2=ck*(Ey[i][j])/e_max;
             if (view==VIEW_DIV)
-                l_2=ck*(div_[i][j])/div_max;
+                l_2=ck*(Ex[i][j])/div_max;
 
             glColor3f(l_2,l_2,-l_2);
             glVertex2f(1.3*(w_x0+dx*(i)),1.3*(w_y0+dy*j));
@@ -185,7 +188,7 @@ void display(void)
             if (view==VIEW_E)
                 l_2=ck*(Ey[i+1][j])/e_max;
             if (view==VIEW_DIV)
-                l_2=ck*(div_[i+1][j])/div_max;
+                l_2=ck*(Ex[i+1][j])/div_max;
 
             glColor3f(l_2,l_2,-l_2);
             glVertex2f(1.3*(w_x0+dx*(i+1)),1.3*(w_y0+dy*j));
@@ -193,7 +196,7 @@ void display(void)
         glEnd();
     }
 
-/*    glEnable(GL_BLEND);
+    /*    glEnable(GL_BLEND);
 
     glEnable(GL_POINT_SMOOTH);
     glPointSize(1.5);
@@ -288,11 +291,11 @@ void display(void)
     }
 
 
-    printf("phimax=%e \n",rhomax);
+    //printf("phimax=%e \n",rhomax);
     for (int i=0;i<lagr_solver->m_elec_num;i++)
     {
         double c=ck*lagr_solver->m_electrodes[i].phi_ext/rhomax;
-        printf("i=%d phi=%e  phi_fix=%e\n",i,lagr_solver->m_electrodes[i].phi_ext,lagr_solver->m_electrodes[i].phi_fix);
+        //printf("i=%d phi=%e  phi_fix=%e\n",i,lagr_solver->m_electrodes[i].phi_ext,lagr_solver->m_electrodes[i].phi_fix);
         //glColor3f(c,c,-c);
         glColor3f(1,1,1);
         double x=0.5*(lagr_solver->m_electrodes[i].r0.x+lagr_solver->m_electrodes[i].r1.x);
@@ -321,15 +324,18 @@ void display(void)
     glVertex3f(w_x0,w_y1,w_z1);
     glEnd();
 
-    glBegin(GL_TRIANGLE_STRIP);
-    for (int i=0;i<pz_solver->m_p_num;i++)
-    {
-         glColor3f(pz_solver->m_p[i].p/0.26,-pz_solver->m_p[i].p/0.26,0);
-        glVertex2f(pz_solver->m_p[i].r.x-pz_solver->m_dx*0.5,pz_solver->m_p[i].r.y -pz_solver->m_p[i].dl*0.5);
-        glVertex2f(pz_solver->m_p[i].r.x-pz_solver->m_dx*0.5,pz_solver->m_p[i].r.y +pz_solver->m_p[i].dl*0.5);
-    }
-    glEnd();
 
+    if (view_px)
+    {
+        glBegin(GL_TRIANGLE_STRIP);
+        for (int i=0;i<pz_solver->m_p_num;i++)
+        {
+            glColor3f(pz_solver->m_p[i].p/0.26,-pz_solver->m_p[i].p/0.26,0);
+            glVertex2f(pz_solver->m_p[i].r.x-pz_solver->m_dx*0.5,pz_solver->m_p[i].r.y -pz_solver->m_p[i].dl*0.5);
+            glVertex2f(pz_solver->m_p[i].r.x-pz_solver->m_dx*0.5,pz_solver->m_p[i].r.y +pz_solver->m_p[i].dl*0.5);
+        }
+        glEnd();
+    }
     glPointSize(3.0);
 
     glLineWidth(1.0);
@@ -440,7 +446,7 @@ double calcJ(double E)
 
 void create_random_particles(int threadIdx, vec4<float> *bodyPos_, vec3<float> *bodyVel_,vec3<float> *bodyAccel_)
 {
-       for (int i = (N_Y-1)/2+2; i < (N_Y-1); i+=1)
+    for (int i = (N_Y-1)/2+2; i < (N_Y-1); i+=1)
     {
 
 
@@ -467,7 +473,7 @@ void create_random_particles(int threadIdx, vec4<float> *bodyPos_, vec3<float> *
             numToAdd++;
 
 
-           // numToAdd=(rand()*1.0/RAND_MAX>0.95);
+        // numToAdd=(rand()*1.0/RAND_MAX>0.95);
         //    printf("numtoadd=%d %e \n",numToAdd, E.x);
         numParticles += numToAdd;
 
@@ -512,12 +518,6 @@ void wall_collision(int threadIdx, int particlesIdx, vec3<float> *bodyAccel_, ve
         // double v2_y=(bodyVel[particlesIdx].y*bodyVel[particlesIdx].y); //for a potential
 
         double E = 0.5*(me/Ev_in_J)*v2;
-
-
-
-
-
-
         //simple deletion
         //double v2y=bodyVel[particlesIdx].y*bodyVel[particlesIdx].y;
         //double phi
@@ -525,9 +525,7 @@ void wall_collision(int threadIdx, int particlesIdx, vec3<float> *bodyAccel_, ve
 
         //if(ev.y>0)
         {
-
             q[xIdx]+=bodyPos_[particlesIdx].w/2.75;
-
             double addit=0.5;
             for (int i=xIdx-1;i>=fmax(xIdx-3,0);i--)
             {
@@ -546,8 +544,8 @@ void wall_collision(int threadIdx, int particlesIdx, vec3<float> *bodyAccel_, ve
         //else
         {
 
-         //   bodyPos[particlesIdx].y -= dt*bodyVel[particlesIdx].y;
-         //   bodyVel[particlesIdx].y=fabs(bodyVel[particlesIdx].y);
+            //   bodyPos[particlesIdx].y -= dt*bodyVel[particlesIdx].y;
+            //   bodyVel[particlesIdx].y=fabs(bodyVel[particlesIdx].y);
         }
 
 
@@ -736,7 +734,7 @@ void wall_collision(int threadIdx, int particlesIdx, vec3<float> *bodyAccel_, ve
 void fmm_step(double dt)
 {
 
-        printf("part_num=%d \n",numParticles);
+    //printf("part_num=%d \n",numParticles);
     int i;
     double tic,toc,timeFMM;
 
@@ -756,7 +754,7 @@ void fmm_step(double dt)
     {
         lay_num+=fabs(BoundaryLayer[i]);
     }
-   //  printf("fmm    : %g  pnum=%d bnum=%f ck=%e\n",timeFMM, numParticles,lay_num,ck);
+    //  printf("fmm    : %g  pnum=%d bnum=%f ck=%e\n",timeFMM, numParticles,lay_num,ck);
     for( i=0; i<numParticles; i++ ) {
         float magn=qe/Me;//1e-1;
         vec3<float> ev=getE(bodyPos[i].x,bodyPos[i].y);
@@ -837,11 +835,11 @@ void kb(unsigned char key, int x, int y)
     if (key==',')
     {
         ck/=1.1;
-   }
+    }
     if (key==']')
     {
-      // dt*=1.1;
-      //  printf("dt=%e \n",dt);
+        // dt*=1.1;
+        //  printf("dt=%e \n",dt);
         angle+=0.1;
         lagr_solver->setElectrodeAngle(angle);
     }
@@ -850,8 +848,8 @@ void kb(unsigned char key, int x, int y)
     {
         angle-=0.1;
         lagr_solver->setElectrodeAngle(angle);
-      //  dt/=1.1;
-      //  printf("dt=%e \n",dt);
+        //  dt/=1.1;
+        //  printf("dt=%e \n",dt);
     }
 
     if (key=='1')
@@ -867,9 +865,22 @@ void kb(unsigned char key, int x, int y)
         printf("viewing P \n");
     }
 
+    if (key=='3')
+    {
+        view=VIEW_E;
+        printf("viewing E\n");
+    }
+
+    if (key=='4')
+    {
+        view=VIEW_DIV;
+        view_px=!view_px;
+        printf("viewing E\n");
+    }
+
     if (key=='f')
     {
-         sasign*=-1.0;
+        sasign*=-1.0;
         for(int i=0;i<20;i++)
             sweep();
     }
@@ -878,20 +889,6 @@ void kb(unsigned char key, int x, int y)
     {
         move_particles=!move_particles;
     }
-
-    if (key=='3')
-    {
-        view=VIEW_P;
-        printf("viewing P \n");
-    }
-
-    if (key=='4')
-    {
-
-        view=VIEW_PX;
-        printf("viewing PX \n");
-    }
-
 
     if (key=='5')
     {
@@ -906,7 +903,14 @@ void kb(unsigned char key, int x, int y)
 
     if (key=='d')
     {
-        pz_solver->solvePz(100);
+        // pz_solver->solvePz(100);
+        multi_solver->solve(5);
+        double pzmax=0.0;
+        for (int i=0;i<pz_solver->m_p_num;i++)
+        {
+            if (fabs(pz_solver->m_p[i].p)>pzmax) pzmax=fabs(pz_solver->m_p[i].p);
+        }
+        printf(" pzmax =%e \n",pzmax);
     }
 
     if (key==' ')
@@ -925,7 +929,6 @@ double check_frequency()
         int imax=avPy_.size()-1;
         if ((avPy_[imax]<=0)&&(avPy_[imax-1]>0))
         {
-
             double alpha=fabs(avPy_[imax-1])/fabs(avPy_[imax-1]-avPy_[imax]);
             double e=avEy_[imax-1]*(1.0-alpha)+avEy_[imax]*(alpha);
             printf("!!!!!!!!!!!!!!!!!!!!!!!!!!! freq= %e Ec= %e \n", frequency,e);
@@ -937,12 +940,8 @@ double check_frequency()
             frequency/=1.3;
             // avEy_.clear();
             // avPy_.clear();
-
         }
     }
-
-
-
 }
 
 double tt_prev=0.0;
@@ -1008,8 +1007,8 @@ void sweep_init()
         q[i]=-1e-16;
 
     }
-        q[0]=-1e-16;
-        q[1]=-1e-16;
+    q[0]=-1e-16;
+    q[1]=-1e-16;
 
     float gsum=0.0;
     for (int i=0; i<N_Y; i++)
@@ -1061,7 +1060,7 @@ void sweep_init()
 
             phi_[i][j]=0;
             if (i>2)
-            Py_[i][j]=0.26;//0 for freq//rand()*0.52/RAND_MAX - 0.26;//0.26 * sin(6.28*i*20.0/N_X + 3.14); //* sin(6.28*i*15.0/N_X /*+ 6.28*/);//rand()*0.52/RAND_MAX - 0.26;
+                Py_[i][j]=0.26;//0 for freq//rand()*0.52/RAND_MAX - 0.26;//0.26 * sin(6.28*i*20.0/N_X + 3.14); //* sin(6.28*i*15.0/N_X /*+ 6.28*/);//rand()*0.52/RAND_MAX - 0.26;
             else
                 Py_[i][j]=-0.26;
             Py0_[i][j]=Py_[i][j];
@@ -1075,9 +1074,7 @@ void sweep_init()
 void sweep()
 {
     lagr_solver->updatePhi();
-//    lagr_solver->solvePhi(100);
-
-
+    lagr_solver->solvePhi(100);
 
     for (int i=0;i<N_X;i++)
     {
@@ -1085,18 +1082,23 @@ void sweep()
         {
             phi_[i][j]=lagr_solver->getPhi(1.3*(w_x0+dx*(i)),1.3*(w_y0+dy*j));
 
+
+
+            Ey[i][j]=lagr_solver->getE(1.3*(w_x0+dx*(i)),1.3*(w_y0+dy*j)).y;
+
+
+            Ex[i][j]=pz_solver->getEdepol(1.3*(w_x0+dx*(i)),1.3*(w_y0+dy*j)).y;
+
             pz_solver->get_q();
             Py_[i][j]=pz_solver->getPhidepol(1.3*(w_x0+dx*(i)),1.3*(w_y0+dy*j));
         }
     }
-
-
 }
 
 void sweep_eul()
 {
     double time = get_time();
-//    printf("StartTime = %f\n", time);
+    //    printf("StartTime = %f\n", time);
     double rho_min=1e30;
     double rho_max=-1e30;
     tt+=dt;
@@ -1157,7 +1159,7 @@ void sweep_eul()
     multigrid_N(par,phi_,RHS,3,6);
     multigrid_N(par,phi_,RHS,3,6);
     time1 = get_time();
-   //     printf("AfterMultigr = %f\n", time1 - time);
+    //     printf("AfterMultigr = %f\n", time1 - time);
 
 
     double mu=1.0;
@@ -1269,10 +1271,10 @@ void sweep_eul()
 
     //  printf("emin=%e emax=%e \n",emin,emax);
     time1 = get_time();
-     //   printf("beforePolyn = %f\n", time1 - time);
+    //   printf("beforePolyn = %f\n", time1 - time);
     jacobi_polynomial( par_ferr, p,Py_,RHS_p, 4);
     time1 = get_time();
-     //   printf("AfterPolyn = %f\n", time1 - time);
+    //   printf("AfterPolyn = %f\n", time1 - time);
     emin=1e23;
     emax=-1e23;
     double avPy = 0;
@@ -1321,7 +1323,7 @@ void sweep_eul()
     time1 = get_time();
     //    printf("EndTime = %f\n",  time1 - time);
 
-            check_area();
+    check_area();
 }
 
 

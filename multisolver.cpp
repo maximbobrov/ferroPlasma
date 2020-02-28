@@ -28,7 +28,7 @@ void multiSolver::solve(int itn)
 
             m_Esolver->m_electrodes[i].phi_fix_charges=m_pzSolver->getPhidepol(x,y);
         }
-        m_Esolver->solvePhi(50);
+        m_Esolver->solvePhi(20);
         updateEforPz();
         m_pzSolver->solvePz(5);
     }

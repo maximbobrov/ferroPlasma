@@ -19,7 +19,7 @@ pzSolver::pzSolver()
         double alpha=i*1.0/(m_p_num-1);
         m_p[i].r.x = (w_x0)*(1.0-alpha)+w_x1*alpha;
         m_p[i].r.y = (w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
-        m_p[i].p = 0.13+rand()*0.13/RAND_MAX;
+        m_p[i].p = 0.0;//0.13+rand()*0.13/RAND_MAX;
         m_p[i].p_prev = m_p[i].p;
 
         m_p[i].E=1.0e9;
@@ -49,10 +49,7 @@ pzSolver::pzSolver()
     m_poly.C[4]=6.0*gam *0.5; //o.5 from crank-nikolson
 
     //-(fiy*0.0033- 2.0*alp*81*P1 - 4*bet*P1^3 +6*gam*P1^5)
-
-
     //    jacobi_polynomial( par_ferr, p,Py_,RHS_p, 4);
-
 }
 
 
@@ -90,6 +87,7 @@ void pzSolver::solvePz(int itn)
         }
     }
 
+   // step();
 
 }
 
@@ -108,7 +106,8 @@ void pzSolver::getRHS()
         double poly0 = m_poly.C[0] * p_prev +
                 m_poly.C[2] * p_prev * p_prev * p_prev +
                 m_poly.C[4] * p_prev * p_prev * p_prev * p_prev * p_prev;
-        m_p[i].RHS = -0.05 * (m_p[i].E+m_p[i].E_prev) + lapl0 - poly0 + p_prev/(m_dt);
+        //m_p[i].RHS = -0.05 * (m_p[i].E+m_p[i].E_prev) + lapl0 - poly0 + p_prev/(m_dt);
+        m_p[i].RHS = 0.05 * (m_p[i].E+m_p[i].E_prev) + lapl0 - poly0 + p_prev/(m_dt);
     }
 }
 
@@ -148,15 +147,19 @@ vec3<double> pzSolver::getEdepol(double x, double y)
         r2=sqrt(dx*dx+dy*dy);
         q=qe/eps0*m_p[i].q;
 
-        sum.x+=q*dx/(r2+delta);
-        sum.y+=q*dy/(r2+delta);
+        sum.x-=q*dx*40000*0.5e6/(r2+delta);
+        sum.y-=q*dy*40000*0.5e6/(r2+delta);
 
         dx = m_p[i].r.x - x;
         dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
         r2=sqrt(dx*dx+dy*dy);
 
-        sum.x-=q*dx/(r2+delta);
-        sum.y-=q*dy/(r2+delta);
+        //sum.x-=q*500.0*dx/(r2+delta);
+        //sum.y-=q*500.0*dy/(r2+delta);
+
+
+        sum.x+=q*dx*40000*0.5e6/(r2+delta);
+        sum.y+=q*dy*40000*0.5e6/(r2+delta);
     }
     return sum;
 }
@@ -178,7 +181,7 @@ double pzSolver::getPhidepol(double x, double y)
         r2=sqrt(dx*dx+dy*dy);
         q=qe/eps0*m_p[i].q;
 
-      sum+=q*log(r2+delta);
+      sum+=q*40000*log(r2+delta);
        // sum+=q/(r2+delta);
 
 
@@ -186,7 +189,7 @@ double pzSolver::getPhidepol(double x, double y)
       dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
       r2=sqrt(dx*dx+dy*dy);
 
-              sum-=q*log(r2+delta);
+              sum-=q*40000*log(r2+delta);
              // sum-=q/(r2+delta);
 
     }
