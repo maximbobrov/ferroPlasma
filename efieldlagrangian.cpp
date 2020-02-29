@@ -64,19 +64,19 @@ eFieldLagrangian::eFieldLagrangian()
         m_electrodes[i].phi_fix_charges=0.0;
     }*/
 
-
-    for (int i=0;i<m_elec_num/2;i++) //first electrode
+    int elec_len=m_elec_num/2;
+    for (int i=0;i<elec_len;i++) //first electrode
        {
-           double alpha=i*1.0/(m_elec_num/2-1);
+           double alpha=i*1.0/(elec_len-1);
            double x1,y1,x2,y2;
            x1 = w_x0*(1.0-alpha)+w_x1*alpha;
            y1 = 0.5*(w_y1+w_y0)+5e-9;
 
            m_electrodes[i].r0.x=x1;
            m_electrodes[i].r0.z=0.0;
-           m_electrodes[i].r0.y=y1;
+           m_electrodes[i].r0.y=y1+((rand()*1.0/RAND_MAX)-0.5)*1e-8;
 
-           alpha=(i+1)*1.0/(m_elec_num/2-1);
+           alpha=(i+1)*1.0/(elec_len-1);
            x2 = w_x0*(1.0-alpha)+w_x1*alpha;
            y2 = 0.5*(w_y1+w_y0)+5e-9;
 
@@ -89,7 +89,7 @@ eFieldLagrangian::eFieldLagrangian()
 
            m_electrodes[i].dl=sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
 
-           m_electrodes[i].phi_fix=-1.0;
+           m_electrodes[i].phi_fix=-10.0;
            m_electrodes[i].phi_fix_charges=0.0;
 
        }
@@ -105,7 +105,7 @@ eFieldLagrangian::eFieldLagrangian()
 
            m_electrodes[j].r0.x=x1;
            m_electrodes[j].r0.z=0.0;
-           m_electrodes[j].r0.y=y1;
+           m_electrodes[j].r0.y=y1+((rand()*1.0/RAND_MAX)-0.5)*1e-8;
 
            alpha=(i+1)*1.0/(m_elec_num/2-1);
            x2 = w_x0*(1.0-alpha)+w_x1*alpha;
@@ -119,7 +119,7 @@ eFieldLagrangian::eFieldLagrangian()
            m_electrodes[j].rho2=0.1;
 
            m_electrodes[j].dl=sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
-           m_electrodes[j].phi_fix=1.0;
+           m_electrodes[j].phi_fix=10.0;
            m_electrodes[i].phi_fix_charges=0.0;
        }
 
@@ -229,11 +229,11 @@ vec3<double> eFieldLagrangian::getE(double x, double y)
 
         dx = (m_electrodes[i].r0.x + m_electrodes[i].r1.x)*0.5 - x;
         dy = (m_electrodes[i].r0.y + m_electrodes[i].r1.y)*0.5 - y;
-        r2=sqrt(dx*dx+dy*dy);
+        r2=(dx*dx+dy*dy);
         q=(m_electrodes[i].rho1+m_electrodes[i].rho2)*0.5;    
 
-        sum.x-=q*dx*0.5e6/(r2+delta)/log(delta);
-        sum.y-=q*dy*0.5e6/(r2+delta)/log(delta);
+        sum.x+=q*dx/(r2+delta*delta)/log(delta);
+        sum.y+=q*dy/(r2+delta*delta)/log(delta);
     }
     return sum;
 }

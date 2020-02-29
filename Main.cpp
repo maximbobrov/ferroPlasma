@@ -79,6 +79,7 @@ void display(void)
     double px_max=1e-20;
     double div_max=1e-20;
 
+    double Ec,Epc,phic,phipc,dphic,dphicp;
     for (int i=1;i<N_X-1;i++)
     {
         for (int j=1;j<N_Y-1;j++)
@@ -88,10 +89,29 @@ void display(void)
             px_max=fmax(px_max,fabs(Px_[i][j]));
             e_max=fmax(e_max,fabs(Ey[i][j]));
             div_max=fmax(div_max,fabs(Ex[i][j]));
+
+
         }
     }
 
-    printf("phi_max=%e Phi_p_max=%e Ey_max=%e Ep_max=%e\n",phi_max,p_max,e_max,div_max);
+    double xc,yc,yp,ym;
+    xc=(w_x0+w_x1)*0.5;
+    yc=w_y0+(w_y1-w_y0)*0.25;
+    yp=yc+0.5e-9;
+    ym=yc-0.5e-9;
+
+    Ec=lagr_solver->getE(xc,yc).y;
+    phic=lagr_solver->getPhi(xc,yc);
+    dphic=-(lagr_solver->getPhi(xc,yp)-lagr_solver->getPhi(xc,ym))/(yp-ym);
+
+
+    Epc=pz_solver->getEdepol(xc,yc).y;
+    phipc=pz_solver->getPhidepol(xc,yc);
+    dphicp=-(pz_solver->getPhidepol(xc,yp)-pz_solver->getPhidepol(xc,ym))/(yp-ym);
+
+    //printf("phi_max=%e Phi_p_max=%e Ey_max=%e Ep_max=%e\n",phi_max,p_max,e_max,div_max);
+    printf("phi_c=%e Phi_p_c=%e Ey_c=%e fphic=%e Ep_c=%e ffp=%e \n",phic,phipc,Ec,dphic,Epc,dphicp);
+
 
     /*   double bmax=0.0;
     double Emax=0.0001;
@@ -136,8 +156,14 @@ void display(void)
 
     if (redr==1)
     {
-        for (int i=0;i<5;i++)
-            sweep();
+       // for (int i=0;i<5;i++)
+        multi_solver->solve(2);
+        double pzmax=0.0;
+        for (int i=0;i<pz_solver->m_p_num;i++)
+        {
+            if (fabs(pz_solver->m_p[i].p)>fabs(pzmax)) pzmax=(pz_solver->m_p[i].p);
+        }
+          //  sweep();
     }
 
 
@@ -336,6 +362,15 @@ void display(void)
         }
         glEnd();
     }
+
+
+    glBegin(GL_POINTS);
+        glColor3f(1,0.5,0);
+        glVertex2f(xc, yc);
+
+
+    glEnd();
+
     glPointSize(3.0);
 
     glLineWidth(1.0);
@@ -874,7 +909,7 @@ void kb(unsigned char key, int x, int y)
     if (key=='4')
     {
         view=VIEW_DIV;
-        view_px=!view_px;
+
         printf("viewing E\n");
     }
 
@@ -892,7 +927,8 @@ void kb(unsigned char key, int x, int y)
 
     if (key=='5')
     {
-        clearc=!clearc;
+       // clearc=!clearc;
+        view_px=!view_px;
     }
 
     if (key=='s')
@@ -903,12 +939,12 @@ void kb(unsigned char key, int x, int y)
 
     if (key=='d')
     {
-        // pz_solver->solvePz(100);
-        multi_solver->solve(5);
+       //  pz_solver->solvePz(100);
+        multi_solver->solve(2);
         double pzmax=0.0;
         for (int i=0;i<pz_solver->m_p_num;i++)
         {
-            if (fabs(pz_solver->m_p[i].p)>pzmax) pzmax=fabs(pz_solver->m_p[i].p);
+            if (fabs(pz_solver->m_p[i].p)>fabs(pzmax)) pzmax=(pz_solver->m_p[i].p);
         }
         printf(" pzmax =%e \n",pzmax);
     }
@@ -974,7 +1010,6 @@ double check_area()
         area_.push_back(ar_m/(ar_p+ar_m+ar_z));
         T_.push_back(tt);
         tt_prev=tt;
-
     }
 }
 

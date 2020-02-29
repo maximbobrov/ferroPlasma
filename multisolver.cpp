@@ -8,9 +8,15 @@ void multiSolver::updateEforPz()
 {
     for (int i=0;i<m_pzSolver->m_p_num;i++)
     {
-        vec3<double> E=m_Esolver->getE(m_pzSolver->m_p[i].r.x,m_pzSolver->m_p[i].r.y);
-        vec3<double> Ep=m_pzSolver->getEdepol(m_pzSolver->m_p[i].r.x,m_pzSolver->m_p[i].r.y);
+        double x,y;
+        x=m_pzSolver->m_p[i].r.x;
+        y=m_pzSolver->m_p[i].r.x+m_pzSolver->m_p[i].dl*0.4;
+
+        vec3<double> E=m_Esolver->getE(x,y);
+        vec3<double> Ep=m_pzSolver->getEdepol(x,y);
         m_pzSolver->m_p[i].E=E.y+Ep.y;
+
+
     }
 }
 
@@ -18,7 +24,6 @@ void multiSolver::solve(int itn)
 {
     for (int nn=0;nn<itn;nn++)
     {
-
         m_pzSolver->get_q();
         for (int i=0;i<m_Esolver->m_elec_num;i++)
         {
