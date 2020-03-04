@@ -4,7 +4,7 @@
 
 pzSolver::pzSolver()
 {
-    this->m_p_num=180;
+    this->m_p_num=380;
     m_p=new pElem[m_p_num];
     m_dt=5e-11;;//1e-11;
 
@@ -38,7 +38,7 @@ pzSolver::pzSolver()
     }
 
 
-    kappa=1.38e-10*0.15;
+    kappa=1.38e-10*0.15;//1.38e-10*0.15;
     m_par.a=(1.0/(m_dt))+(kappa*2.0/(m_dx*m_dx));
     m_par.bp=-kappa/(m_dx*m_dx);
     m_par.bm=-kappa/(m_dx*m_dx);
@@ -157,7 +157,13 @@ void pzSolver::get_q() //all charges are in elementary
 
     for (int i=0; i<m_p_num; i++)
     {
-        m_p[i].q=-m_p[i].p*m_p[i].ds/qe;
+        m_p[i].q=0.0;//-(m_p[i].p+0.26)*m_p[i].ds/qe;
+    }
+
+
+    for (int i=60;i<70;i++) //first electrode
+    {
+        m_p[i].q=0.0;//-(m_p[i].p-0.26)*m_p[i].ds/qe;
     }
 
 }
