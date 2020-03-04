@@ -3,7 +3,7 @@
 
 eFieldLagrangian::eFieldLagrangian()
 {
-    m_elec_num=160;
+    m_elec_num=200;
     m_electrodes=new eElem[m_elec_num];
 
 /*    for (int i=0;i<m_elec_num/8;i++) //first electrode
@@ -74,7 +74,7 @@ eFieldLagrangian::eFieldLagrangian()
 
            m_electrodes[i].r0.x=x1;
            m_electrodes[i].r0.z=0.0;
-           m_electrodes[i].r0.y=y1+((rand()*1.0/RAND_MAX)-0.5)*1e-8;
+           m_electrodes[i].r0.y=y1-pow((rand()*1.0/RAND_MAX),10.0)*1e-8;
 
            alpha=(i+1)*1.0/(elec_len-1);
            x2 = w_x0*(1.0-alpha)+w_x1*alpha;
@@ -89,7 +89,7 @@ eFieldLagrangian::eFieldLagrangian()
 
            m_electrodes[i].dl=sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
 
-           m_electrodes[i].phi_fix=-10.0;
+           m_electrodes[i].phi_fix=-1.0;
            m_electrodes[i].phi_fix_charges=0.0;
 
        }
@@ -105,7 +105,7 @@ eFieldLagrangian::eFieldLagrangian()
 
            m_electrodes[j].r0.x=x1;
            m_electrodes[j].r0.z=0.0;
-           m_electrodes[j].r0.y=y1+((rand()*1.0/RAND_MAX)-0.5)*1e-8;
+           m_electrodes[j].r0.y=y1+pow((rand()*1.0/RAND_MAX),10.0)*1e-8;;//+((rand()*1.0/RAND_MAX)-0.5)*1e-8;
 
            alpha=(i+1)*1.0/(m_elec_num/2-1);
            x2 = w_x0*(1.0-alpha)+w_x1*alpha;
@@ -119,7 +119,7 @@ eFieldLagrangian::eFieldLagrangian()
            m_electrodes[j].rho2=0.1;
 
            m_electrodes[j].dl=sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
-           m_electrodes[j].phi_fix=10.0;
+           m_electrodes[j].phi_fix=1.0;
            m_electrodes[i].phi_fix_charges=0.0;
        }
 

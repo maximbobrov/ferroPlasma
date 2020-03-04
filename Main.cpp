@@ -875,16 +875,23 @@ void kb(unsigned char key, int x, int y)
     {
         // dt*=1.1;
         //  printf("dt=%e \n",dt);
-        angle+=0.1;
-        lagr_solver->setElectrodeAngle(angle);
+        //angle+=0.1;
+        //lagr_solver->setElectrodeAngle(angle);
+        pz_solver->m_dt*=1.1;
+       // pz_solver->solvePz(100);
+        printf("dt=%e \n",pz_solver->m_dt);
     }
 
     if (key=='[')
     {
-        angle-=0.1;
-        lagr_solver->setElectrodeAngle(angle);
+        //angle-=0.1;
+        //lagr_solver->setElectrodeAngle(angle);
         //  dt/=1.1;
         //  printf("dt=%e \n",dt);
+        pz_solver->m_dt/=1.1;
+        //pz_solver->solvePz(100);
+        printf("dt=%e \n",pz_solver->m_dt);
+
     }
 
     if (key=='1')
@@ -1121,10 +1128,11 @@ void sweep()
 
             Ey[i][j]=lagr_solver->getE(1.3*(w_x0+dx*(i)),1.3*(w_y0+dy*j)).y;
 
+            pz_solver->get_q();
 
             Ex[i][j]=pz_solver->getEdepol(1.3*(w_x0+dx*(i)),1.3*(w_y0+dy*j)).y;
 
-            pz_solver->get_q();
+
             Py_[i][j]=pz_solver->getPhidepol(1.3*(w_x0+dx*(i)),1.3*(w_y0+dy*j));
         }
     }

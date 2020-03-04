@@ -4,7 +4,7 @@
 
 pzSolver::pzSolver()
 {
-    this->m_p_num=150;
+    this->m_p_num=180;
     m_p=new pElem[m_p_num];
     m_dt=5e-11;;//1e-11;
 
@@ -19,7 +19,7 @@ pzSolver::pzSolver()
         double alpha=i*1.0/(m_p_num-1);
         m_p[i].r.x = (w_x0)*(1.0-alpha)+w_x1*alpha;
         m_p[i].r.y = (w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
-        m_p[i].p = -0.26+rand()*0.043/RAND_MAX;
+        m_p[i].p = -0.26;//+rand()*0.043/RAND_MAX;
         m_p[i].p_prev = m_p[i].p;
 
         m_p[i].E=1.0e8;
@@ -28,8 +28,14 @@ pzSolver::pzSolver()
     }
 
 
-    m_p[0].p = 0.26;
-    m_p[0].p_prev = m_p[0].p;
+   /* m_p[0].p = 0.26;
+    m_p[0].p_prev = m_p[0].p;*/
+
+    for (int i=60;i<70;i++) //first electrode
+    {
+    m_p[i].p = 0.26;
+        m_p[i].p_prev = m_p[i].p;
+    }
 
 
     kappa=1.38e-10*0.15;
@@ -60,6 +66,36 @@ pzSolver::pzSolver()
 
 void pzSolver::solvePz(int itn)
 {
+
+
+
+   //euler:
+
+  /*  double alp,bet,gam,T,T0,rh;
+    alp=3.324e5;
+    bet=6.381e8;
+    gam=7.89e9;
+    T=300;
+    T0=381;
+    rh=0.0;
+
+    double x0=-0.3;
+    m_poly.order=5;
+    m_poly.C[0]=2*alp*(T-T0);//(T-T0); //x
+    m_poly.C[1]=0.0;         //xx
+    m_poly.C[2]=-4.0*bet;   //xxx
+    m_poly.C[3]=0.0;        //x^4
+    m_poly.C[4]=6.0*gam; //o.5 from crank-nikolson*/
+
+
+    m_par.a=(1.0/(m_dt))+(kappa*2.0/(m_dx*m_dx));
+    m_par.bp=-kappa/(m_dx*m_dx);
+    m_par.bm=-kappa/(m_dx*m_dx);
+   ////////////
+
+
+
+
    getRHS();
    poly poly_new;
 
@@ -111,8 +147,8 @@ void pzSolver::getRHS()
         double poly0 = m_poly.C[0] * p_prev +
                 m_poly.C[2] * p_prev * p_prev * p_prev +
                 m_poly.C[4] * p_prev * p_prev * p_prev * p_prev * p_prev;
-        m_p[i].RHS = 0.05 * (m_p[i].E+m_p[i].E_prev) + lapl0 - poly0 + p_prev/(m_dt);
-        //m_p[i].RHS = 0.05 * (m_p[i].E+m_p[i].E_prev) + lapl0 - poly0 + p_prev/(m_dt);
+        m_p[i].RHS = 0.05 * (m_p[i].E+m_p[i].E_prev) + lapl0 - poly0 + p_prev/(m_dt); //crank-nikolson
+       // m_p[i].RHS = 0.05 * (m_p[i].E) + p_prev/(m_dt); //euler
     }
 }
 

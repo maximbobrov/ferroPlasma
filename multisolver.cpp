@@ -10,7 +10,7 @@ void multiSolver::updateEforPz()
     {
         double x,y;
         x=m_pzSolver->m_p[i].r.x;
-        y=m_pzSolver->m_p[i].r.x+m_pzSolver->m_p[i].dl*0.4;
+        y=m_pzSolver->m_p[i].r.y+m_pzSolver->m_p[i].dl*0.4;
 
         vec3<double> E=m_Esolver->getE(x,y);
         vec3<double> Ep=m_pzSolver->getEdepol(x,y);
