@@ -38,6 +38,7 @@ void multiSolver::solve(int itn)
         m_pzSolver->solvePz(5);
     }
     m_pzSolver->step();
+    m_elecSolver->step(5e-13);
 }
 
 void multiSolver::step()

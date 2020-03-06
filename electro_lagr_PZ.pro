@@ -4,6 +4,7 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
+    electronlagrangian.cpp \
     globals.cpp \
     Main.cpp \
     phi_mult.cpp \
@@ -13,6 +14,7 @@ SOURCES += \
     multisolver.cpp
 
 HEADERS += \
+    electronlagrangian.h \
     phi_mult.h \
     globals.h \
     sse_sum.h \

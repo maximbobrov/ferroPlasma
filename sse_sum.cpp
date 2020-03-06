@@ -178,12 +178,6 @@ typedef struct jpdata{
 }
 */
 
-
-
-
-vec3<float> *bodyAccel;
-vec3<float> *bodyVel;
-vec4<float> *bodyPos;
 double get_time(void) {                          // a simple timer
   struct timeval tv;
   struct timezone tz;
@@ -206,6 +200,7 @@ void direct_wall(vec3<float> *bodyAccel_, vec4<float> *bodyPos_, int n) {
       dist.x = bodyPos_[i].x-(w_x0+ dx*j);
       dist.y = bodyPos_[i].y-w_y0;
       dist.z = 0.0;//bodyPos_[i].z-wallP[j].z;
+      float eps = 1e-7;
       invDist = 1.0/sqrtf(dist.x*dist.x+dist.y*dist.y+eps*eps);
       invDistCube =10.0* BoundaryLayerGauss[j]*invDist*invDist*invDist;
       ai.x -= dist.x*invDistCube;
@@ -282,39 +277,19 @@ double get_nearwall_potential(float x, float y)
   //direct_wall(bodyAccel,bodyPos,n);
 }*/
 
-void getEFromElectrons(vec3<float> &bodyAccel_, double x, double y, double z,  int n) {
-    vec3<float> dist;
-    float invDist,invDistCube;
-      vec3<float> ai = {0.0, 0.0, 0.0};
-      for( int j=0; j<n; j++ ){
-        dist.x = bodyPos[j].x-x;
-        dist.y = bodyPos[j].y-y;
-        dist.z = bodyPos[j].z-z;
-        invDist = 1.0/sqrtf(dist.x*dist.x+dist.y*dist.y+dist.z*dist.z+1e-14);
-        invDistCube = bodyPos[j].w*invDist*invDist*invDist;
-        ai.x -= dist.x*invDistCube;
-        ai.y -= dist.y*invDistCube;
-        ai.z -= dist.z*invDistCube;
-      }
-
-      bodyAccel_.x = inv4PI*ai.x/eps0;
-      bodyAccel_.y = inv4PI*ai.y/eps0;
-      bodyAccel_.z = inv4PI*ai.z/eps0;
-}
-
 // direct summation kernel
-void direct_seq(int n) {
+void direct_seq(vec3<float> *iBodyAccel,  vec3<float> *iBodyVel, vec4<float> *iBodyPos, int n) {
   int i,j;
   vec3<float> dist;
   float invDist,invDistCube;
   for( i=0; i<n; i++ ) {
     vec3<float> ai = {0.0, 0.0, 0.0};
     for( j=0; j<n; j++ ){
-      dist.x = bodyPos[i].x-bodyPos[j].x;
-      dist.y = bodyPos[i].y-bodyPos[j].y;
-      dist.z = bodyPos[i].z-bodyPos[j].z;
+      dist.x = iBodyPos[i].x-iBodyPos[j].x;
+      dist.y = iBodyPos[i].y-iBodyPos[j].y;
+      dist.z = iBodyPos[i].z-iBodyPos[j].z;
       invDist = 1.0/sqrtf(dist.x*dist.x+dist.y*dist.y+dist.z*dist.z+1e-18/*+eps*/);
-      invDistCube = bodyPos[j].w*invDist*invDist*invDist;
+      invDistCube = iBodyPos[j].w*invDist*invDist*invDist;
       ai.x -= dist.x*invDistCube;
       ai.y -= dist.y*invDistCube;
       ai.z -= dist.z*invDistCube;
@@ -331,9 +306,9 @@ void direct_seq(int n) {
     }*/
 
 
-    bodyAccel[i].x = inv4PI*ai.x/eps0;
-    bodyAccel[i].y = inv4PI*ai.y/eps0;
-    bodyAccel[i].z = inv4PI*ai.z/eps0;
+    iBodyAccel[i].x = inv4PI*ai.x/eps0;
+    iBodyAccel[i].y = inv4PI*ai.y/eps0;
+    iBodyAccel[i].z = inv4PI*ai.z/eps0;
   }
 
 //    direct_wall(bodyAccel_, bodyPos_, n);

@@ -4,6 +4,7 @@
 #include "sse_sum.h"
 #include "efieldlagrangian.h"
 #include "pzsolver.h"
+#include "electronlagrangian.h"
 
 class multiSolver
 {   
@@ -11,6 +12,7 @@ public:
 
     eFieldLagrangian* m_Esolver;
     pzSolver* m_pzSolver;
+    electronLagrangian* m_elecSolver;
 
 
 

@@ -17,6 +17,7 @@
 #include "efieldlagrangian.h"
 #include "pzsolver.h"
 #include "multisolver.h"
+#include "electronlagrangian.h"
 
 #include "phi_mult.h"
 
@@ -35,7 +36,7 @@ void display(void);
 void sweep_init();
 void init();
 
-void fmm_step(double dt);
+//void fmm_step(double dt);
 void sweep();
 //void sweep_old();
 int view=VIEW_PHI;
@@ -55,8 +56,6 @@ bool clearc=true;
 #undef MAIN
 */
 #include "sse_sum.h"
-const int maxParticles=81920;
-int numParticles=0;//4096;
 
 std::vector <double>  avPy_;
 std::vector <double>  avEy_;
@@ -70,6 +69,7 @@ int i_tick=0;
 
 eFieldLagrangian* lagr_solver;
 pzSolver* pz_solver;
+electronLagrangian* elec_solver;
 multiSolver* multi_solver;
 void display(void)
 {
@@ -156,14 +156,14 @@ void display(void)
 
     if (redr==1)
     {
-       // for (int i=0;i<5;i++)
+        // for (int i=0;i<5;i++)
         multi_solver->solve(2);
         double pzmax=0.0;
         for (int i=0;i<pz_solver->m_p_num;i++)
         {
             if (fabs(pz_solver->m_p[i].p)>fabs(pzmax)) pzmax=(pz_solver->m_p[i].p);
         }
-          //  sweep();
+        //  sweep();
     }
 
 
@@ -330,6 +330,15 @@ void display(void)
     }
     glEnd();
 
+    glBegin(GL_POINTS);
+
+    for( i=0; i<elec_solver->m_numParticles; i++ )
+    {
+        glColor3f(1.0,1.0,1.0);
+        glVertex3f(elec_solver->m_bodyPos[i].x,elec_solver->m_bodyPos[i].y,elec_solver->m_bodyPos[i].z);
+    }
+    glEnd();
+
     glColor3f(0.5,0.5,0.5);
 
     glBegin(GL_LINE_LOOP);
@@ -365,8 +374,8 @@ void display(void)
 
 
     glBegin(GL_POINTS);
-        glColor3f(1,0.5,0);
-        glVertex2f(xc, yc);
+    glColor3f(1,0.5,0);
+    glVertex2f(xc, yc);
 
 
     glEnd();
@@ -424,24 +433,6 @@ int iglob=0;
 //FmmSystem tre;
 
 
-vec3<float> getE(float x, float y)
-{
-
-    double a0=fmax(fmin(N_X-1,(N_X-1)*(x-w_x0)/(w_x1-w_x0)),0);
-    int i0=(int)a0;
-    a0-=i0;
-
-    double b0=fmax(fmin(N_Y-1,(N_Y-1)*(y-w_y0)/(w_y1-w_y0)),0);
-    int j0=(int)b0;
-    b0-=j0;
-
-    vec3<float> ret;
-
-    ret.x=(1.0-b0)*((1.0-a0)*Ex[i0][j0]+(a0)*Ex[i0+1][j0]) + (b0)*((1.0-a0)*Ex[i0][j0+1]+(a0)*Ex[i0+1][j0+1]);
-    ret.y=(1.0-b0)*((1.0-a0)*Ey[i0][j0]+(a0)*Ey[i0+1][j0]) + (b0)*((1.0-a0)*Ey[i0][j0+1]+(a0)*Ey[i0+1][j0+1]);
-    ret.z;
-    return ret;
-}
 
 vec4<float> init_pos()
 {
@@ -469,386 +460,11 @@ vec3<float> init_vel()
     return vel;
 }
 
-double calcJ(double E)
-{
-    double t = 1.1;
-    double B = 10.0;
-    double phi = 4.0;
-    double y = 3.79 * 1e-4 * sqrt(fabs(B * E)) / phi;
-    double tetta = 0.95 - 1.03 * y * y;
-    return (1.54 * 1e-6 * B * B * E * E / (t *t  * phi)) * exp( - 6.83 * 1e7 * pow(phi, 1.5) * tetta / fabs( B * E));
-}
-
-void create_random_particles(int threadIdx, vec4<float> *bodyPos_, vec3<float> *bodyVel_,vec3<float> *bodyAccel_)
-{
-    for (int i = (N_Y-1)/2+2; i < (N_Y-1); i+=1)
-    {
-
-
-        double dz = w_z1 - w_z0;
-        double x_ = w_x0 + 0.001 * (w_x1-w_x0);//- N_X * dx / 2;
-        double y_ =w_y0 + i * (w_y1 - w_y0) / (N_Y-1);//i * dy - N_Y * dy / 2;
-        double z_ = my_rand(0) * dz - dz / 2;
-        //vec3 E = getE(x_, y_);
-        vec3<float> E;
-        getEFromElectrons(E, x_, y_, z_, numParticles);
-        //printf("Ex=%e Ey = %e\n", E.x, E.y);
-        E.x = Ex[0][i];
-        E.y = Ey[0][i];
-        E.x = fmax(0, -E.x);
-        //printf("Ex=%e Ey = %e\n", E.x, E.y);
-        double J =calcJ(0.02 * E.x);
-        int chargeNum = 1e0;
-        //printf("JJJJ = %f jjj = %e E = %e \n", (dt * J * dy * dz * 1e4  * 6.24151 * 1e18 / chargeNum), J , 0.01 *E.x);
-        int curNum = numParticles;
-        int numToAdd =  std::min(int(dt * J * dy * dz * 1e4 * 6.24151 * 1e18 / chargeNum), maxParticles - numParticles-2);
-        numToAdd = numToAdd > 5 ? 5 : numToAdd;
-
-        if(my_rand(threadIdx) < (dt * J * dy * dz * 1e4 * 6.24151 * 1e18 / chargeNum) - int(dt * J * dy * dz * 1e4  * 6.24151 * 1e18 / chargeNum))
-            numToAdd++;
-
-
-        // numToAdd=(rand()*1.0/RAND_MAX>0.95);
-        //    printf("numtoadd=%d %e \n",numToAdd, E.x);
-        numParticles += numToAdd;
-
-        for (int n = curNum; n < curNum + numToAdd; ++n)
-        {
-            bodyPos_[n].x = x_;
-            bodyPos_[n].y = y_;
-            bodyPos_[n].z = z_;
-            bodyPos_[n].w = 1.6e-19 * chargeNum;
-            double angle =  0.98 * acos(1 - 2 * my_rand(threadIdx)) - M_PI / 2;
-            //printf("Ey = %f\n", angle);
-            if (y_ < w_y0 + 0.1 * (w_y1 - w_y0) && angle < 0)
-                angle *= -1;
-            double en = getVms_from_Ev(0.00002);
-            bodyVel_[n].x = 0.0;//en * cos(angle);
-            bodyVel_[n].y = 0.0;//en * sin(angle);
-            bodyVel_[n].z = 0;
-            bodyAccel_[n].x = 0.0;
-            bodyAccel_[n].y = 0.0;
-            bodyAccel_[n].z = 0.0;
-        }
-    }
-}
-
-void delete_particle(int threadIdx, int particlesIdx, vec3<float> *bodyAccel_, vec4<float> *bodyPos_, vec3<float> *bodyVel_)
-{
-    bodyPos_[particlesIdx] = bodyPos_[numParticles-1];
-    bodyVel_[particlesIdx] = bodyVel_[numParticles-1];
-    bodyAccel_[particlesIdx] = bodyAccel_[numParticles-1];
-    numParticles -= 1;
-}
-
-void wall_collision(int threadIdx, int particlesIdx, vec3<float> *bodyAccel_, vec4<float> *bodyPos_, vec3<float> *bodyVel_)
-{
-    int xIdx = (bodyPos[particlesIdx].x - w_x0)/dx;
-    int yIdx = (bodyPos[particlesIdx].y - w_y0)/dy;
-    if ((xIdx>=0)&&(xIdx<N_X))
-    {
-        double me=9.1e-31*1e8;
-        double Ev_in_J=1.6e-19;
-        double v2=((bodyVel[particlesIdx].x*bodyVel[particlesIdx].x)+(bodyVel[particlesIdx].y*bodyVel[particlesIdx].y)+(bodyVel[particlesIdx].z*bodyVel[particlesIdx].z));
-        // double v2_y=(bodyVel[particlesIdx].y*bodyVel[particlesIdx].y); //for a potential
-
-        double E = 0.5*(me/Ev_in_J)*v2;
-        //simple deletion
-        //double v2y=bodyVel[particlesIdx].y*bodyVel[particlesIdx].y;
-        //double phi
-        vec3<float> ev=getE(bodyPos[particlesIdx].x, dy);
-
-        //if(ev.y>0)
-        {
-            q[xIdx]+=bodyPos_[particlesIdx].w/2.75;
-            double addit=0.5;
-            for (int i=xIdx-1;i>=fmax(xIdx-3,0);i--)
-            {
-                q[i]+=addit*bodyPos_[particlesIdx].w/2.75;
-                addit*=0.5;
-            }
-
-            addit=0.5;
-            for (int i=xIdx+1;i<=fmin(xIdx+3,N_X-1);i++)
-            {
-                q[i]+=addit*bodyPos_[particlesIdx].w/2.75;
-                addit*=0.5;
-            }
-            delete_particle( threadIdx, particlesIdx, bodyAccel_, bodyPos_, bodyVel_);
-        }
-        //else
-        {
-
-            //   bodyPos[particlesIdx].y -= dt*bodyVel[particlesIdx].y;
-            //   bodyVel[particlesIdx].y=fabs(bodyVel[particlesIdx].y);
-        }
-
-
-
-        /*if(my_rand(0)>0.9)
-        {
-            int curNum = numParticles;
-            int numToAdd = std::min(int(my_rand(threadIdx) * 3.0), maxParticles - numParticles-1);
-            numParticles += numToAdd;
-            for (int i = curNum; i < curNum + numToAdd; ++i)
-            {
-                bodyPos_[i].x= bodyPos_[particlesIdx].x+(my_rand(threadIdx)*dx*2-dx);
-                bodyPos_[i].y= 0.0+0.0151*(w_y1);//bodyPos_[particlesIdx].y;
-                bodyPos_[i].z= bodyPos_[particlesIdx].z+(my_rand(threadIdx)*dx*2-dx);
-                bodyPos_[i].w= bodyPos_[particlesIdx].w;
-                double angleNew = 0.98*acos(1-2*my_rand(threadIdx))+0.01*M_PI;
-                double En = my_rand(0)*0.4e2 ;
-                bodyVel_[i].x =En * cos(angleNew);//0.5*sqrt(fabs(E/(num))) * cos(angleNew);
-                bodyVel_[i].y =En * sin(angleNew); //0.5*sqrt(fabs(E/(num))) * sin(angleNew);
-
-                bodyVel_[i].z = 0.0;
-            }
-            delete_particle( threadIdx, particlesIdx, bodyAccel_, bodyPos_, bodyVel_);
-        }
-        else
-            delete_particle( threadIdx, particlesIdx, bodyAccel_, bodyPos_, bodyVel_);*/
-
-        /*
-        //BoundaryLayer[xIdx] += 1.0;
-
-
-        //double delta= delta_f(E, phi);
-
-///till here
-
-        double phi  = fabs(atan2(bodyVel[particlesIdx].x, bodyVel[particlesIdx].y));
-
-        double delta= delta_f(E, phi);
-
-        int num = (int)(fabs(delta));
-
-        if(my_rand(threadIdx) < (delta - 1.0 * num))
-            num++;
-
-
-        if (E<1e-5*WallEnergy[xIdx])
-        {
-            delete_particle( threadIdx, particlesIdx, bodyAccel_, bodyPos_, bodyVel_);
-            BoundaryLayer[xIdx] += 1.0;
-        }else
-        {
-
-            //  printf("collison occured xIdx=%d E=%e n=%d \n",xIdx,E,num);
-
-            if((maxParticles - numParticles> num)&&(delta>0))
-            {
-                int size = std::min(maxParticles - numParticles, num);
-                //for (int i = 0; i < size; ++i) {
-                int i=numParticles;
-                int n=0;
-                while((i<maxParticles)&&(n<num))
-                {
-
-                    bodyPos_[i].x= bodyPos_[particlesIdx].x+3.0*(my_rand(threadIdx)*dx*2-dx);
-                    bodyPos_[i].y= 0+0.001*(w_y1-0);//bodyPos_[particlesIdx].y;
-                    bodyPos_[i].z= bodyPos_[particlesIdx].z+3.0*(my_rand(threadIdx)*dx*2-dx);
-                    bodyPos_[i].w= bodyPos_[particlesIdx].w;
-                    double angleNew = 0.98*acos(1-2*my_rand(threadIdx))+0.01*M_PI;
-
-                    double v_new=0.6*sqrt(my_rand(threadIdx)*v2/(num));
-                    bodyVel_[i].x =v_new * cos(angleNew);//0.5*sqrt(fabs(E/(num))) * cos(angleNew);
-                    bodyVel_[i].y =v_new * sin(angleNew); //0.5*sqrt(fabs(E/(num))) * sin(angleNew);
-
-                    bodyVel_[i].z = 0.0;
-
-                    //BoundaryLayer[xIdx] -= 1.0;
-
-                    q[xIdx]-=1.0/2.75;
-
-                    double addit=0.5;
-                    for (int i=xIdx-1;i>=fmax(xIdx-3,0);i--)
-                    {
-                        q[i]-=addit/2.75;
-                        addit*=0.5;
-                    }
-
-                     addit=0.5;
-                    for (int i=xIdx+1;i<=fmin(xIdx+3,N_X-1);i++)
-                    {
-                        q[i]-=addit/2.75;
-                        addit*=0.5;
-                    }
-
-                    i++;
-                    n++;
-
-                    numParticles=i;
-                }
-
-                delete_particle( threadIdx, particlesIdx, bodyAccel_, bodyPos_, bodyVel_);
-
-
-                        q[xIdx]+=1.0/2.75;
-
-                        double addit=0.5;
-                        for (int i=xIdx-1;i>=fmax(xIdx-3,0);i--)
-                        {
-                            q[i]+=addit/2.75;
-                            addit*=0.5;
-                        }
-
-                         addit=0.5;
-                        for (int i=xIdx+1;i<=fmin(xIdx+3,N_X-1);i++)
-                        {
-                            q[i]+=addit/2.75;
-                            addit*=0.5;
-                        }
-
-            }else
-            {
-                bodyPos_[particlesIdx].y -= dt*bodyPos_[particlesIdx].y;
-                bodyVel_[particlesIdx].y=fabs(bodyVel_[particlesIdx].y);
-            }
-        }
-
-        /* double Em = 650;// in ev
-
-        double phi  = atan2(bodyVel[particlesIdx].y, bodyVel[particlesIdx].x);
-        double Z = 1.284 * E / (Em * (1 + phi * phi/(M_PI*M_PI)));
-        double sigma_m = 6.4;
-        double sigma = 1.526 * (1 + phi * phi/(4*M_PI*M_PI)) * (1 - exp(-pow(Z, 1.725))) * sigma_m /(pow(Z, 1.725)+0.1);
-
-        int num = (int)(fabs(sigma));
-
-        if(my_rand(threadIdx) < (sigma - 1.0 * num))
-            num++;
-
-         printf("eeee=%e num=%d \n",E,num);
-
-
-        if(maxParticles - numParticles> num)
-        {
-            int size = std::min(maxParticles - numParticles, num);
-            //for (int i = 0; i < size; ++i) {
-            int i=numParticles;
-            int n=0;
-            while((i<maxParticles)&&(n<num))
-            {
-
-                bodyPos_[i].x= bodyPos_[particlesIdx].x+3.0*(my_rand(threadIdx)*dx*2-dx);
-                bodyPos_[i].y= -0.15+0.001;//bodyPos_[particlesIdx].y;
-                bodyPos_[i].z= bodyPos_[particlesIdx].z+3.0*(my_rand(threadIdx)*dx*2-dx);
-                bodyPos_[i].w= bodyPos_[particlesIdx].w;
-                double angleNew = 0.98*acos(1-2*my_rand(threadIdx))+0.01*M_PI;
-
-                bodyVel_[i].x =sqrt(fabs(v2/(num))) * cos(angleNew);//0.5*sqrt(fabs(E/(num))) * cos(angleNew);
-                bodyVel_[i].y =sqrt(fabs(v2/(num))) * sin(angleNew); //0.5*sqrt(fabs(E/(num))) * sin(angleNew);
-
-                bodyVel_[i].z = 0.0;
-
-                BoundaryLayer[xIdx] -= 1.0;
-                i++;
-                n++;
-
-                numParticles=i;
-            }
-
-            delete_particle( threadIdx, particlesIdx, bodyAccel_, bodyPos_, bodyVel_);
-            BoundaryLayer[xIdx] += 1.0;
-
-        }else
-        {
-            bodyPos_[particlesIdx].y -= dt*bodyPos_[particlesIdx].y;
-            bodyVel_[particlesIdx].y=fabs(bodyVel_[particlesIdx].y);
-        }*/
-
-
-
-    }
-    /*else
-    {
-        delete_particle( threadIdx, particlesIdx, bodyAccel_, bodyPos_, bodyVel_);
-    }*/
-}
-
-void fmm_step(double dt)
-{
-
-    //printf("part_num=%d \n",numParticles);
-    int i;
-    double tic,toc,timeFMM;
-
-    static float BoundaryLayerGauss2[N_X];
-
-    create_random_particles(0, bodyPos, bodyVel,bodyAccel);
-    //create_random_particles(0, bodyPos, bodyVel,bodyAccel);
-
-    tic = get_time();
-    //tre.fmmMain(numParticles,1);//treeOrFMM);
-    //direct_seq(numParticles);                            //!!!!!HERE
-    toc = get_time();
-    timeFMM = toc-tic;
-
-    double lay_num=0;
-    for (i=0;i<N_X;i++)
-    {
-        lay_num+=fabs(BoundaryLayer[i]);
-    }
-    //  printf("fmm    : %g  pnum=%d bnum=%f ck=%e\n",timeFMM, numParticles,lay_num,ck);
-    for( i=0; i<numParticles; i++ ) {
-        float magn=qe/Me;//1e-1;
-        vec3<float> ev=getE(bodyPos[i].x,bodyPos[i].y);
-        bodyVel[i].x -= magn*(ev.x /*+bodyAccel[i].x*/)*dt;
-        bodyVel[i].y -= magn*(ev.y /*+bodyAccel[i].y*/)*dt;
-        bodyVel[i].z -=0.0;//magn*dtbodyAccel[i].z;
-    }
-
-    for( i=0; i<numParticles; i++ )
-    {
-        bodyPos[i].x += dt*bodyVel[i].x;
-        bodyPos[i].y += dt*bodyVel[i].y;
-        bodyPos[i].z += dt*bodyVel[i].z;
-
-        if (bodyPos[i].y<0)
-        {
-            // bodyPos[i].y -= dt*bodyVel[i].y;
-            // bodyVel[i].y=fabs(bodyVel[i].y);
-            wall_collision( 0, i, bodyAccel, bodyPos, bodyVel);
-        }
-
-        if (bodyPos[i].y>w_y1 || bodyPos[i].x < w_x0 || bodyPos[i].x>w_x1)
-        {
-            delete_particle( 0, i, bodyAccel, bodyPos, bodyVel);
-        }
-
-        /////////////
-        if (bodyPos[i].z<w_z0) //periodic
-        {
-            bodyPos[i].z +=w_z1-w_z0 ;//dt*bodyVel[i].z;
-            // bodyVel[i].z=fabs(bodyVel[i].z);
-        }
-
-        if (bodyPos[i].z>w_z1)
-        {
-            bodyPos[i].z -=w_z1-w_z0 ;//dt*bodyVel[i].z;
-            //bodyVel[i].z=-fabs(bodyVel[i].z);
-        }
-    }
-}
 
 void fmm_init()
 {
     int i;
     rand_init();
-    bodyAccel = new vec3<float>[maxParticles];
-    bodyVel = new vec3<float>[maxParticles];
-    bodyPos = new vec4<float>[maxParticles];
-
-    for( i=0; i<maxParticles; i++ ) {
-        bodyPos[i].x = /*0.5*(w_x1-w_x0)+*/rand()/(float) RAND_MAX*(w_x1-w_x0)*0.95+w_x0;
-        bodyPos[i].y = rand()/(float) RAND_MAX*(w_y1-0)*0.95+0;
-        bodyPos[i].z = rand()/(float) RAND_MAX*(w_z1-w_z0)+w_z0;
-        bodyPos[i].w = 1.0;
-
-        bodyVel[i].x = 300.0*(0.4+rand()/(float) RAND_MAX*0.1);
-        bodyVel[i].y = 300.0*(-0.005+rand()/(float) RAND_MAX*0.01-0.005);
-        bodyVel[i].z = 300.0*(rand()/(float) RAND_MAX*0.01-0.005);
-    }
 
     for (i=0; i<N_X;i++)
     {
@@ -878,7 +494,7 @@ void kb(unsigned char key, int x, int y)
         //angle+=0.1;
         //lagr_solver->setElectrodeAngle(angle);
         pz_solver->m_dt*=1.1;
-       // pz_solver->solvePz(100);
+        // pz_solver->solvePz(100);
         printf("dt=%e \n",pz_solver->m_dt);
     }
 
@@ -934,7 +550,7 @@ void kb(unsigned char key, int x, int y)
 
     if (key=='5')
     {
-       // clearc=!clearc;
+        // clearc=!clearc;
         view_px=!view_px;
     }
 
@@ -946,7 +562,7 @@ void kb(unsigned char key, int x, int y)
 
     if (key=='d')
     {
-       //  pz_solver->solvePz(100);
+        //  pz_solver->solvePz(100);
         multi_solver->solve(2);
         double pzmax=0.0;
         for (int i=0;i<pz_solver->m_p_num;i++)
@@ -1359,7 +975,7 @@ void sweep_eul()
     if (move_particles)
     {
         //for (int i=1;i<10;i++)
-        fmm_step(dt);
+        //fmm_step(dt);
     }
     //check_frequency();
 
@@ -1386,9 +1002,12 @@ void init()
 
     pz_solver= new pzSolver();
 
+    elec_solver = new electronLagrangian();
+
     multi_solver = new multiSolver();
-    multi_solver->m_Esolver=lagr_solver;
-    multi_solver->m_pzSolver=pz_solver;
+    multi_solver->m_Esolver = lagr_solver;
+    multi_solver->m_pzSolver = pz_solver;
+    multi_solver->m_elecSolver = elec_solver;
 
 
     rand_init();

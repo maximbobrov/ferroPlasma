@@ -52,6 +52,27 @@
 #define VIEW_PX 3
 #define VIEW_DIV 4
 
+
+
+const float inv4PI             = 0.25/M_PI;  // Laplace kernel coefficient
+
+template<typename T>
+class vec3 {
+public:
+  T x;
+  T y;
+  T z;
+};
+
+template<typename T>
+class vec4 {
+public:
+  T x;
+  T y;
+  T z;
+  T w;
+};
+
 typedef struct
 {
     double a,bm,bp,cm,cp;
