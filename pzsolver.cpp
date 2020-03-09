@@ -6,7 +6,7 @@ pzSolver::pzSolver()
 {
     this->m_p_num=380;
     m_p=new pElem[m_p_num];
-    m_dt=5e-11;;//1e-11;
+    m_dt=5e-11;//1e-11;
 
     double _dx,_dz;
     _dz=w_z1-w_z0;
@@ -19,7 +19,7 @@ pzSolver::pzSolver()
         double alpha=i*1.0/(m_p_num-1);
         m_p[i].r.x = (w_x0)*(1.0-alpha)+w_x1*alpha;
         m_p[i].r.y = (w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
-        m_p[i].p = -0.26;//+rand()*0.043/RAND_MAX;
+        m_p[i].p = 0.0;//-0.26;//+rand()*0.043/RAND_MAX;
         m_p[i].p_prev = m_p[i].p;
 
         m_p[i].E=1.0e8;
@@ -31,11 +31,11 @@ pzSolver::pzSolver()
    /* m_p[0].p = 0.26;
     m_p[0].p_prev = m_p[0].p;*/
 
-    for (int i=60;i<70;i++) //first electrode
+   /* for (int i=60;i<70;i++) //first electrode
     {
-    m_p[i].p = 0.26;
+    m_p[i].p = 0.26;// 0.26;
         m_p[i].p_prev = m_p[i].p;
-    }
+    }*/
 
 
     kappa=1.38e-10*0.15;//1.38e-10*0.15;
@@ -157,14 +157,14 @@ void pzSolver::get_q() //all charges are in elementary
 
     for (int i=0; i<m_p_num; i++)
     {
-        m_p[i].q=0.0;//-(m_p[i].p+0.26)*m_p[i].ds/qe;
+        m_p[i].q=-(m_p[i].p)*m_p[i].ds/qe;
     }
 
 
-    for (int i=60;i<70;i++) //first electrode
+ /*   for (int i=60;i<70;i++) //first electrode
     {
-        m_p[i].q=0.0;//-(m_p[i].p-0.26)*m_p[i].ds/qe;
-    }
+        m_p[i].q=-(m_p[i].p)*m_p[i].ds/qe;
+    }*/
 
 }
 

@@ -18,6 +18,8 @@ public:
 
     multiSolver();
     void updateEforPz();
+    void updateEforElec();
+    void electronEmission(double dt);
     void solve(int itn);
     void step();
     void preparePz();

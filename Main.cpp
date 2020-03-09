@@ -330,14 +330,38 @@ void display(void)
     }
     glEnd();
 
+
+ glPointSize(2.5);
     glBegin(GL_POINTS);
 
     for( i=0; i<elec_solver->m_numParticles; i++ )
     {
-        glColor3f(1.0,1.0,1.0);
+        glColor3f(0.0,0.0,1.0);
         glVertex3f(elec_solver->m_bodyPos[i].x,elec_solver->m_bodyPos[i].y,elec_solver->m_bodyPos[i].z);
     }
     glEnd();
+
+    double vel_scale=10.0;//sqrt(vel_scale/numParticles+0.0001);
+    double leng_sacle=0.01*(w_x1-w_x0);
+    glBegin(GL_LINES);
+
+    for( i=0; i<elec_solver->m_numParticles; i++ )
+    {
+        // float pot=get_nearwall_potential(bodyPos[i].x,bodyPos[i].y);
+        glColor3f(1.0*fabs(elec_solver->m_bodyVel[i].x)/vel_scale,4.0*fabs(elec_solver->m_bodyVel[i].y)/vel_scale,3.0*fabs(elec_solver->m_bodyVel[i].z)/vel_scale);
+        // glColor3f(ck*pot,ck*pot,-ck*pot);
+        glVertex3f(elec_solver->m_bodyPos[i].x,elec_solver->m_bodyPos[i].y,elec_solver->m_bodyPos[i].z);
+        glColor3f(0.0,0.0,0.0);
+        glVertex3f(elec_solver->m_bodyPos[i].x+leng_sacle*elec_solver->m_bodyVel[i].x/vel_scale,
+                   elec_solver->m_bodyPos[i].y+leng_sacle*elec_solver->m_bodyVel[i].y/vel_scale,
+                   elec_solver->m_bodyPos[i].z+leng_sacle*elec_solver->m_bodyVel[i].z/vel_scale);
+    }
+    glEnd();
+
+
+
+
+
 
     glColor3f(0.5,0.5,0.5);
 
@@ -491,22 +515,21 @@ void kb(unsigned char key, int x, int y)
     {
         // dt*=1.1;
         //  printf("dt=%e \n",dt);
-        //angle+=0.1;
-        //lagr_solver->setElectrodeAngle(angle);
-        pz_solver->m_dt*=1.1;
-        // pz_solver->solvePz(100);
-        printf("dt=%e \n",pz_solver->m_dt);
+        angle+=10.;
+        lagr_solver->setElectrodeAngle(angle);
+        //pz_solver->m_dt*=1.1;
+
+        //printf("dt=%e \n",pz_solver->m_dt);
     }
 
     if (key=='[')
     {
-        //angle-=0.1;
-        //lagr_solver->setElectrodeAngle(angle);
+        angle-=10.;
+        lagr_solver->setElectrodeAngle(angle);
         //  dt/=1.1;
         //  printf("dt=%e \n",dt);
-        pz_solver->m_dt/=1.1;
-        //pz_solver->solvePz(100);
-        printf("dt=%e \n",pz_solver->m_dt);
+       // pz_solver->m_dt/=1.1;
+       // printf("dt=%e \n",pz_solver->m_dt);
 
     }
 

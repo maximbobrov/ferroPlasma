@@ -1,26 +1,62 @@
 #include "electronlagrangian.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include "sse_sum.h"
 electronLagrangian::electronLagrangian()
 {
     m_threadIdx = 0;
     m_maxParticles = 81920;
     m_numParticles = 0;
-    m_bodyAccel = new vec3<float>[m_maxParticles];
-    m_bodyVel = new vec3<float>[m_maxParticles];
-    m_bodyPos = new vec4<float>[m_maxParticles];
+    m_bodyAccel = new vec3<double>[m_maxParticles];
+    m_bodyVel = new vec3<double>[m_maxParticles];
+    m_bodyE = new vec3<double>[m_maxParticles];
+    m_bodyPos = new vec4<double>[m_maxParticles];
 }
 
-double calcJ(double E)
+
+double electronLagrangian::calcJ(double Ein)
 {
+
+    double E=Ein/100;//from V/m to V/cm
     double t = 1.1;
     double B = 10.0;
     double phi = 4.0;
     double y = 3.79 * 1e-4 * sqrt(fabs(B * E)) / phi;
     double tetta = 0.95 - 1.03 * y * y;
-    return (1.54 * 1e-6 * B * B * E * E / (t *t  * phi)) * exp( - 6.83 * 1e7 * pow(phi, 1.5) * tetta / fabs( B * E));
+    return 1e4*(1.54 * 1e-6 * B * B * E * E / (t *t  * phi)) * exp( - 6.83 * 1e7 * pow(phi, 1.5) * tetta / fabs( B * E)); //in A/m^2
 }
+
+
+int electronLagrangian::create_electron(vec3<double> &pos, double Emag, double Dt, double ds)
+{
+    int num_in_pack=10.0;
+    double el_to_add=1e-9*calcJ(Emag*100)*Dt*ds/(qe*num_in_pack);
+
+    int ne=(int) el_to_add;
+    ne+=((rand()*1.0)/RAND_MAX < (el_to_add - ne)); //extra electron
+
+
+
+    printf("Emag=%e el_to_ad=%e ne=%d \n",Emag,el_to_add,ne);
+    int upto=MIN(m_numParticles+ne,m_maxParticles);
+    for (int n = m_numParticles; n < upto; ++n)
+    {
+        m_bodyPos[n].x = pos.x+(rand()*2e-9/RAND_MAX);
+        m_bodyPos[n].y = pos.y+(rand()*2e-9/RAND_MAX-1e-9);
+        m_bodyPos[n].z = 0.0;
+        m_bodyPos[n].w = num_in_pack;
+        m_bodyVel[n].x = 0.0;
+        m_bodyVel[n].y = 0.0;
+        m_bodyVel[n].z = 0;
+        m_bodyAccel[n].x = 0.0;
+        m_bodyAccel[n].y = 0.0;
+        m_bodyAccel[n].z = 0.0;
+    }
+    m_numParticles=upto;
+    return num_in_pack*ne;
+}
+
 
 void electronLagrangian::create_random_particles()
 {
@@ -83,8 +119,8 @@ void electronLagrangian::create_random_particles()
         if (y_ < w_y0 + 0.1 * (w_y1 - w_y0) && angle < 0)
             angle *= -1;
         double en = getVms_from_Ev(0.00002);
-        m_bodyVel[n].x = en * cos(angle);
-        m_bodyVel[n].y = en * sin(angle);
+        m_bodyVel[n].x = 0.0;//en * cos(angle);
+        m_bodyVel[n].y = 0.0;//en * sin(angle);
         m_bodyVel[n].z = 0;
         m_bodyAccel[n].x = 0.0;
         m_bodyAccel[n].y = 0.0;
@@ -150,11 +186,11 @@ void electronLagrangian::wall_collision(int particlesIdx)
 void electronLagrangian::step(double dt)
 {
     int i;
-    create_random_particles();
+   // create_random_particles();
 
     for( i=0; i<m_numParticles; i++ ) {
-        float magn=0.01;//qe/Me;//1e-1;
-        vec3<float> ev=getE(m_bodyPos[i].x,m_bodyPos[i].y);
+        float magn=100.0;//qe/Me;//1e-1;
+        vec3<double> ev=m_bodyE[i];
         m_bodyVel[i].x -= magn*(ev.x)*dt;
         m_bodyVel[i].y -= magn*(ev.y)*dt;
         m_bodyVel[i].z -= 0.0;//magn*dtbodyAccel[i].z;
@@ -171,7 +207,7 @@ void electronLagrangian::step(double dt)
             wall_collision(i);
         }
 
-        if (m_bodyPos[i].y>w_y1 || m_bodyPos[i].x < w_x0 || m_bodyPos[i].x>w_x1)
+      /*  if (m_bodyPos[i].y>w_y1 || m_bodyPos[i].x < w_x0 || m_bodyPos[i].x>w_x1)
         {
             delete_particle(i);
         }
@@ -185,11 +221,11 @@ void electronLagrangian::step(double dt)
         if (m_bodyPos[i].z>w_z1)
         {
             m_bodyPos[i].z -=w_z1-w_z0;
-        }
+        }*/
     }
 }
 
-void electronLagrangian::getEFromElectrons(vec3<float> &bodyAccel_, double x, double y, double z,  int n) {
+void electronLagrangian::getEFromElectrons(vec3<double> &bodyAccel_, double x, double y, double z,  int n) {
     vec3<float> dist;
     float invDist,invDistCube;
       vec3<float> ai = {0.0, 0.0, 0.0};

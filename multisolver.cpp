@@ -20,6 +20,43 @@ void multiSolver::updateEforPz()
     }
 }
 
+void multiSolver::updateEforElec()
+{
+    for (int i=0;i<m_elecSolver->m_numParticles;i++)
+    {
+        double x,y;
+        x=m_elecSolver->m_bodyPos[i].x;
+        y=m_elecSolver->m_bodyPos[i].y;
+
+        vec3<double> E=m_Esolver->getE(x,y);
+        vec3<double> Ep=m_pzSolver->getEdepol(x,y);
+        m_elecSolver->m_bodyE[i].x=E.x+Ep.x;
+        m_elecSolver->m_bodyE[i].y=E.y+Ep.y;
+
+
+    }
+}
+
+void multiSolver::electronEmission(double d_t)
+{
+    double eMean=0.0;
+    double emass=0.0;
+    for (int i=0;i<m_Esolver->m_elec_num;i++)
+    {
+
+        if (m_Esolver->m_electrodes[i].canEmit)
+        {
+        vec3<double> E=m_Esolver->getE(m_Esolver->m_electrodes[i].r1.x+1e-9,m_Esolver->m_electrodes[i].r1.y);
+        double l=sqrt(E.x*E.x +E.y*E.y);
+        eMean+=l;
+        emass+=1.0;
+       m_elecSolver->create_electron(m_Esolver->m_electrodes[i].r1,l,d_t,m_Esolver->m_electrodes[i].dl*m_Esolver->m_dz);
+        }
+
+    }
+    printf("curr_elec_num=%d mass=%f E=%e\n",m_elecSolver->m_numParticles,emass, eMean/emass);
+}
+
 void multiSolver::solve(int itn)
 {
     for (int nn=0;nn<itn;nn++)
@@ -35,10 +72,15 @@ void multiSolver::solve(int itn)
         }
         m_Esolver->solvePhi(20);
         updateEforPz();
+
         m_pzSolver->solvePz(5);
+
     }
+    double dt_elec=15e-11;
+    electronEmission(dt_elec*10);
+    updateEforElec();
     m_pzSolver->step();
-    m_elecSolver->step(5e-13);
+    m_elecSolver->step(dt_elec);
 }
 
 void multiSolver::step()

@@ -15,8 +15,8 @@
 #define N_Y 129
 #define N_Y_DIEL 64
 
-
-
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 #define w_x0 -0.25e-6
 #define w_x1 0.25e-6

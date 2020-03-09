@@ -6,7 +6,8 @@ eFieldLagrangian::eFieldLagrangian()
     m_elec_num=200;
     m_electrodes=new eElem[m_elec_num];
 
-/*    for (int i=0;i<m_elec_num/8;i++) //first electrode
+    m_dz=1e-7;//100 nm
+    for (int i=0;i<m_elec_num/8;i++) //first electrode
     {
         double alpha=i*1.0/(m_elec_num/8-1);
         double x1,y1,x2,y2;
@@ -33,6 +34,10 @@ eFieldLagrangian::eFieldLagrangian()
         m_electrodes[i].phi_fix=-1.0;
         m_electrodes[i].phi_fix_charges=0.0;
 
+        if (alpha<0.5)
+            m_electrodes[i].canEmit=true;
+        else
+            m_electrodes[i].canEmit=false;
     }
 
     for (int j=m_elec_num/8;j<m_elec_num;j++) //second electrode
@@ -61,10 +66,11 @@ eFieldLagrangian::eFieldLagrangian()
 
         m_electrodes[j].dl=sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
         m_electrodes[j].phi_fix=1.0;
-        m_electrodes[i].phi_fix_charges=0.0;
-    }*/
+        m_electrodes[j].phi_fix_charges=0.0;
+        m_electrodes[j].canEmit=false;
+    }
 
-    int elec_len=m_elec_num/2;
+   /* int elec_len=m_elec_num/2;
     for (int i=0;i<elec_len;i++) //first electrode
        {
            double alpha=i*1.0/(elec_len-1);
@@ -121,7 +127,7 @@ eFieldLagrangian::eFieldLagrangian()
            m_electrodes[j].dl=sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
            m_electrodes[j].phi_fix=1.0;
            m_electrodes[i].phi_fix_charges=0.0;
-       }
+       }*/
 
 }
 
