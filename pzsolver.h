@@ -10,7 +10,7 @@ public:
     {
         double p,p_prev, ds, dl,E,E_prev,RHS;//C/m2, m, V
         vec3<double> r;
-        double q;
+        double q, q_ext;
     };
 public:
     poly m_poly;

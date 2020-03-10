@@ -81,6 +81,7 @@ void multiSolver::solve(int itn)
     updateEforElec();
     m_pzSolver->step();
     m_elecSolver->step(dt_elec);
+    electronExchange(dt_elec);
 }
 
 void multiSolver::step()
@@ -95,5 +96,48 @@ void multiSolver::preparePz()
 
 void multiSolver::getExtChargeField()
 {
+
+}
+
+void multiSolver::electronExchange(double dt)
+{
+
+    for (int i=0;i<m_elecSolver->m_numParticles;i++)
+    {
+
+
+
+        double x,y;
+        x=m_elecSolver->m_bodyPos[i].x;
+        y=m_elecSolver->m_bodyPos[i].y;
+
+
+
+        if (y<m_pzSolver->m_p[0].r.y+m_pzSolver->m_p[0].dl*0.5)
+        {
+            int p_n=(int) ((x-m_pzSolver->m_p[0].r.x)/m_pzSolver->m_dx);
+            if ((p_n>=0)&&(p_n<m_pzSolver->m_p_num))
+            {
+                if (m_pzSolver->m_p[p_n].q_ext+m_elecSolver->m_bodyPos[i].w<1.7e+2)
+                {
+                    m_pzSolver->m_p[p_n].q_ext+=m_elecSolver->m_bodyPos[i].w;
+                    m_elecSolver->delete_particle(i);
+                }else
+                {
+                    m_elecSolver->m_bodyPos[i].y+=2.0*(m_pzSolver->m_p[0].r.y+m_pzSolver->m_p[0].dl*0.5-m_elecSolver->m_bodyPos[i].y);
+                    m_elecSolver->m_bodyVel[i].y=fabs(m_elecSolver->m_bodyVel[i].y);
+                }
+
+            }else
+            {
+                m_elecSolver->delete_particle(i);
+            }
+
+
+        }
+
+
+
+    }
 
 }

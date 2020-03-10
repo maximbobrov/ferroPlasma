@@ -19,14 +19,24 @@ pzSolver::pzSolver()
         double alpha=i*1.0/(m_p_num-1);
         m_p[i].r.x = (w_x0)*(1.0-alpha)+w_x1*alpha;
         m_p[i].r.y = (w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
-        m_p[i].p = 0.0;//-0.26;//+rand()*0.043/RAND_MAX;
+        m_p[i].p = -0.26;//+rand()*0.043/RAND_MAX;
         m_p[i].p_prev = m_p[i].p;
 
         m_p[i].E=1.0e8;
         m_p[i].E_prev=m_p[i].E;
         m_p[i].ds=_dx*_dz;
+
+        m_p[i].q_ext=0.0;
     }
 
+    m_p[0].p = 0.26;
+    get_q();
+    for (int i=0;i<m_p_num;i++) //first electrode
+    {
+        m_p[i].q_ext=-m_p[i].q;
+
+        printf("i=%d q=%e q_ext=%e \n",i,m_p[i].q,m_p[i].q_ext);
+    }
 
    /* m_p[0].p = 0.26;
     m_p[0].p_prev = m_p[0].p;*/
@@ -192,7 +202,7 @@ vec3<double> pzSolver::getEdepol(double x, double y)
         dx = m_p[i].r.x - x;
         dy = m_p[i].r.y + m_p[i].dl*0.5 - y;
         r2=(dx*dx+dy*dy);
-        q=qe/eps0*m_p[i].q;
+        q=qe/eps0*(m_p[i].q+m_p[i].q_ext);
 
         sum.x+=q*dx*40000/(r2+delta*delta);
         sum.y+=q*dy*40000/(r2+delta*delta);
@@ -247,7 +257,7 @@ double pzSolver::getPhidepol(double x, double y)
         dx = m_p[i].r.x - x;
         dy = m_p[i].r.y + m_p[i].dl*0.5 - y;
         r2=sqrt(dx*dx+dy*dy);
-        q=qe/eps0*m_p[i].q;
+        q=qe/eps0*(m_p[i].q+m_p[i].q_ext);
 
       sum+=q*40000*log(r2+delta);
        // sum+=q/(r2+delta);

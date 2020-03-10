@@ -31,7 +31,7 @@ double electronLagrangian::calcJ(double Ein)
 int electronLagrangian::create_electron(vec3<double> &pos, double Emag, double Dt, double ds)
 {
     int num_in_pack=10.0;
-    double el_to_add=1e-9*calcJ(Emag*100)*Dt*ds/(qe*num_in_pack);
+    double el_to_add=1e-9*calcJ(Emag*20)*Dt*ds/(qe*num_in_pack);
 
     int ne=(int) el_to_add;
     ne+=((rand()*1.0)/RAND_MAX < (el_to_add - ne)); //extra electron
@@ -42,7 +42,7 @@ int electronLagrangian::create_electron(vec3<double> &pos, double Emag, double D
     int upto=MIN(m_numParticles+ne,m_maxParticles);
     for (int n = m_numParticles; n < upto; ++n)
     {
-        m_bodyPos[n].x = pos.x+(rand()*2e-9/RAND_MAX);
+        m_bodyPos[n].x = pos.x+(rand()*2e-9/RAND_MAX)+1e-9;
         m_bodyPos[n].y = pos.y+(rand()*2e-9/RAND_MAX-1e-9);
         m_bodyPos[n].z = 0.0;
         m_bodyPos[n].w = num_in_pack;
@@ -202,26 +202,16 @@ void electronLagrangian::step(double dt)
         m_bodyPos[i].y += dt*m_bodyVel[i].y;
         m_bodyPos[i].z += dt*m_bodyVel[i].z;
 
-        if (m_bodyPos[i].y<0)
+     /*   if (m_bodyPos[i].y<0)
         {
             wall_collision(i);
         }
-
-      /*  if (m_bodyPos[i].y>w_y1 || m_bodyPos[i].x < w_x0 || m_bodyPos[i].x>w_x1)
+*/
+        if (m_bodyPos[i].y>2.0*w_y1 || m_bodyPos[i].x < w_x0-1e-7 || m_bodyPos[i].x>w_x1)
         {
             delete_particle(i);
         }
 
-        /////////////
-        if (m_bodyPos[i].z<w_z0)
-        {
-            m_bodyPos[i].z +=w_z1-w_z0;
-        }
-
-        if (m_bodyPos[i].z>w_z1)
-        {
-            m_bodyPos[i].z -=w_z1-w_z0;
-        }*/
     }
 }
 

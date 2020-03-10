@@ -24,7 +24,7 @@ public:
     void step();
     void preparePz();
     void getExtChargeField();
-
+    void electronExchange(double dt);
 };
 
 #endif // MULTISOLVER_H
