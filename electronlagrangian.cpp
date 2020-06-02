@@ -31,7 +31,7 @@ double electronLagrangian::calcJ(double Ein)
 int electronLagrangian::create_electron(vec3<double> &pos, double Emag, double Dt, double ds)
 {
     int num_in_pack=10.0;
-    double el_to_add=1e-9*calcJ(Emag*20)*Dt*ds/(qe*num_in_pack);
+    double el_to_add=1e-9*calcJ(Emag*30)*Dt*ds/(qe*num_in_pack);
 
     int ne=(int) el_to_add;
     ne+=((rand()*1.0)/RAND_MAX < (el_to_add - ne)); //extra electron
@@ -186,7 +186,7 @@ void electronLagrangian::wall_collision(int particlesIdx)
 void electronLagrangian::step(double dt)
 {
     int i;
-   // create_random_particles();
+    // create_random_particles();
 
     for( i=0; i<m_numParticles; i++ ) {
         float magn=100.0;//qe/Me;//1e-1;
@@ -202,7 +202,7 @@ void electronLagrangian::step(double dt)
         m_bodyPos[i].y += dt*m_bodyVel[i].y;
         m_bodyPos[i].z += dt*m_bodyVel[i].z;
 
-     /*   if (m_bodyPos[i].y<0)
+        /*   if (m_bodyPos[i].y<0)
         {
             wall_collision(i);
         }
@@ -215,11 +215,34 @@ void electronLagrangian::step(double dt)
     }
 }
 
-void electronLagrangian::getEFromElectrons(vec3<double> &bodyAccel_, double x, double y, double z,  int n) {
+vec3<double> electronLagrangian::getEe(double x, double y)
+{
+    vec3<double> dist;
+    float invDist2;
+    vec3<double> ai = {0.0, 0.0, 0.0};
+    for( int j=0; j<m_numParticles; j++ ){
+        dist.x = m_bodyPos[j].x-x;
+        dist.y = m_bodyPos[j].y-y;
+
+        invDist2 = m_bodyPos[j].w/(dist.x*dist.x+dist.y*dist.y+1e-14);
+
+        ai.x -= dist.x*invDist2;
+        ai.y -= dist.y*invDist2;
+
+    }
+
+    ai.x/=eps0;
+    ai.y/=eps0;
+    return ai;
+}
+
+
+void electronLagrangian::getEFromElectrons(vec3<double> &bodyAccel_, double x, double y, double z,  int n)
+{
     vec3<float> dist;
     float invDist,invDistCube;
-      vec3<float> ai = {0.0, 0.0, 0.0};
-      for( int j=0; j<n; j++ ){
+    vec3<float> ai = {0.0, 0.0, 0.0};
+    for( int j=0; j<n; j++ ){
         dist.x = m_bodyPos[j].x-x;
         dist.y = m_bodyPos[j].y-y;
         dist.z = m_bodyPos[j].z-z;
@@ -228,9 +251,9 @@ void electronLagrangian::getEFromElectrons(vec3<double> &bodyAccel_, double x, d
         ai.x -= dist.x*invDistCube;
         ai.y -= dist.y*invDistCube;
         ai.z -= dist.z*invDistCube;
-      }
+    }
 
-      bodyAccel_.x = inv4PI*ai.x/eps0;
-      bodyAccel_.y = inv4PI*ai.y/eps0;
-      bodyAccel_.z = inv4PI*ai.z/eps0;
+    bodyAccel_.x = inv4PI*ai.x/eps0;
+    bodyAccel_.y = inv4PI*ai.y/eps0;
+    bodyAccel_.z = inv4PI*ai.z/eps0;
 }

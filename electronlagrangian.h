@@ -21,6 +21,7 @@ public:
     double calcJ(double Ein);
     void step(double dt);
     void create_random_particles();
+    vec3<double> getEe(double x, double y);
     void getEFromElectrons(vec3<double> &bodyAccel_, double x, double y, double z,  int n);
 
 };
