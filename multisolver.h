@@ -1,7 +1,7 @@
 #ifndef MULTISOLVER_H
 #define MULTISOLVER_H
 
-#include "sse_sum.h"
+
 #include "efieldlagrangian.h"
 #include "pzsolver.h"
 #include "electronlagrangian.h"

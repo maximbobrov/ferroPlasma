@@ -12,9 +12,9 @@ void multiSolver::updateEforPz()
         x=m_pzSolver->m_p[i].r.x;
         y=m_pzSolver->m_p[i].r.y+m_pzSolver->m_p[i].dl*0.4;
 
-        vec3<double> E=m_Esolver->getE(x,y);
-        vec3<double> Ep=m_pzSolver->getEdepol(x,y);
-        vec3<double> Ee=m_elecSolver->getEe(x,y);
+        vec2 E=m_Esolver->getE(x,y);
+        vec2 Ep=m_pzSolver->getEdepol(x,y);
+        vec2 Ee=m_elecSolver->getEe(x,y);
         m_pzSolver->m_p[i].E=E.y+Ep.y;
     }
 }
@@ -27,8 +27,8 @@ void multiSolver::updateEforElec()
         x=m_elecSolver->m_bodyPos[i].x;
         y=m_elecSolver->m_bodyPos[i].y;
 
-        vec3<double> E=m_Esolver->getE(x,y);
-        vec3<double> Ep=m_pzSolver->getEdepol(x,y);
+        vec2 E=m_Esolver->getE(x,y);
+        vec2 Ep=m_pzSolver->getEdepol(x,y);
         m_elecSolver->m_bodyE[i].x=E.x+Ep.x;
         m_elecSolver->m_bodyE[i].y=E.y+Ep.y;
     }
@@ -42,7 +42,7 @@ void multiSolver::electronEmission(double d_t)
     {
         if (m_Esolver->m_electrodes[i].canEmit)
         {
-            vec3<double> E=m_Esolver->getE(m_Esolver->m_electrodes[i].r1.x+1e-9,m_Esolver->m_electrodes[i].r1.y);
+            vec2 E=m_Esolver->getE(m_Esolver->m_electrodes[i].r1.x+1e-9,m_Esolver->m_electrodes[i].r1.y);
             double l=sqrt(E.x*E.x +E.y*E.y);
             eMean+=l;
             emass+=1.0;
@@ -122,9 +122,9 @@ void multiSolver::electronExchange(double dt)
             int p_n=(int) ((x-m_pzSolver->m_p[0].r.x)/m_pzSolver->m_dx);
             if ((p_n>=0)&&(p_n<m_pzSolver->m_p_num))
             {
-                if (m_pzSolver->m_p[p_n].q_ext+m_elecSolver->m_bodyPos[i].w<1.7e+2)
+                if (m_pzSolver->m_p[p_n].q_ext+m_elecSolver->m_bodyPos[i].charge<1.7e+2)
                 {
-                    m_pzSolver->m_p[p_n].q_ext+=m_elecSolver->m_bodyPos[i].w;
+                    m_pzSolver->m_p[p_n].q_ext+=m_elecSolver->m_bodyPos[i].charge;
                     m_elecSolver->delete_particle(i);
                 }else
                 {

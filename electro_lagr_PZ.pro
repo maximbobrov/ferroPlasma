@@ -7,18 +7,16 @@ SOURCES += \
     electronlagrangian.cpp \
     globals.cpp \
     Main.cpp \
-    phi_mult.cpp \
-    sse_sum.cpp \
     efieldlagrangian.cpp \
+    lagrangiansolver.cpp \
     pzsolver.cpp \
     multisolver.cpp
 
 HEADERS += \
     electronlagrangian.h \
-    phi_mult.h \
     globals.h \
-    sse_sum.h \
     efieldlagrangian.h \
+    lagrangiansolver.h \
     pzsolver.h \
     multisolver.h
 #QMAKE_CXXFLAGS += -O2

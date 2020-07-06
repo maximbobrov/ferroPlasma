@@ -6,11 +6,12 @@ pzSolver::pzSolver()
 {
     this->m_p_num=380;
     m_p=new pElem[m_p_num];
+    m_rCentre=new vec2[2 * m_p_num];
     m_dt=5e-11;//1e-11;
 
     double _dx,_dz;
     _dz=w_z1-w_z0;
-    _dx=(w_z1-w_z0)/(m_p_num-1);
+    _dx=(w_x1-w_x0)/(m_p_num-1);
     m_dx=_dx;
 
     for (int i=0;i<m_p_num;i++) //first electrode
@@ -38,10 +39,10 @@ pzSolver::pzSolver()
         printf("i=%d q=%e q_ext=%e \n",i,m_p[i].q,m_p[i].q_ext);
     }
 
-   /* m_p[0].p = 0.26;
+    /* m_p[0].p = 0.26;
     m_p[0].p_prev = m_p[0].p;*/
 
-   /* for (int i=60;i<70;i++) //first electrode
+    /* for (int i=60;i<70;i++) //first electrode
     {
     m_p[i].p = 0.26;// 0.26;
         m_p[i].p_prev = m_p[i].p;
@@ -64,13 +65,14 @@ pzSolver::pzSolver()
     double x0=-0.3;
     m_poly.order=5;
     m_poly.C[0]=2*alp*(T-T0) *0.5;//(T-T0); //x
-    m_poly.C[1]=0.0;         //xx
-    m_poly.C[2]=-4.0*bet *0.5;   //xxx
-    m_poly.C[3]=0.0;        //x^4
-    m_poly.C[4]=6.0*gam *0.5; //o.5 from crank-nikolson
+    m_poly.C[1]=0.0;              //xx
+    m_poly.C[2]=-4.0*bet *0.5;    //xxx
+    m_poly.C[3]=0.0;              //x^4
+    m_poly.C[4]=6.0*gam *0.5;     //o.5 from crank-nikolson
 
     //-(fiy*0.0033- 2.0*alp*81*P1 - 4*bet*P1^3 +6*gam*P1^5)
     //    jacobi_polynomial( par_ferr, p,Py_,RHS_p, 4);
+    updateGridProp();
 }
 
 
@@ -79,9 +81,9 @@ void pzSolver::solvePz(int itn)
 
 
 
-   //euler:
+    //euler:
 
-  /*  double alp,bet,gam,T,T0,rh;
+    /*  double alp,bet,gam,T,T0,rh;
     alp=3.324e5;
     bet=6.381e8;
     gam=7.89e9;
@@ -101,13 +103,13 @@ void pzSolver::solvePz(int itn)
     m_par.a=(1.0/(m_dt))+(kappa*2.0/(m_dx*m_dx));
     m_par.bp=-kappa/(m_dx*m_dx);
     m_par.bm=-kappa/(m_dx*m_dx);
-   ////////////
+    ////////////
 
 
 
 
-   getRHS();
-   poly poly_new;
+    getRHS();
+    poly poly_new;
 
     double a,b_p,b_m,c_p,c_m;
 
@@ -158,7 +160,7 @@ void pzSolver::getRHS()
                 m_poly.C[2] * p_prev * p_prev * p_prev +
                 m_poly.C[4] * p_prev * p_prev * p_prev * p_prev * p_prev;
         m_p[i].RHS = 0.05 * (m_p[i].E+m_p[i].E_prev) + lapl0 - poly0 + p_prev/(m_dt); //crank-nikolson
-       // m_p[i].RHS = 0.05 * (m_p[i].E) + p_prev/(m_dt); //euler
+        // m_p[i].RHS = 0.05 * (m_p[i].E) + p_prev/(m_dt); //euler
     }
 }
 
@@ -171,7 +173,7 @@ void pzSolver::get_q() //all charges are in elementary
     }
 
 
- /*   for (int i=60;i<70;i++) //first electrode
+    /*   for (int i=60;i<70;i++) //first electrode
     {
         m_p[i].q=-(m_p[i].p)*m_p[i].ds/qe;
     }*/
@@ -185,13 +187,108 @@ void pzSolver::step()
         m_p[i].p_prev=m_p[i].p;
         m_p[i].E_prev=m_p[i].E;
     }
-
+    updateCharge();
 }
 
-vec3<double> pzSolver::getEdepol(double x, double y)
+void pzSolver::updateCharge()
 {
-     vec3 <double> sum;
-    sum.x=0.0; sum.y=0.0; sum.z=0.0;
+    for( int i=0; i< m_p_num; i++ ){
+        m_rCentre[i].charge = -m_p[i].q;
+        m_rCentre[m_p_num + i].charge = m_p[i].q + m_p[i].q_ext;
+    }
+}
+
+void pzSolver::updateGridProp()
+{
+    m_gridProp.NX = 30;
+    m_gridProp.NY = 2;
+    m_gridProp.startx = w_x0 - (w_x1-w_x0)*0.01;
+    m_gridProp.starty = w_y0 - (w_y1-w_y0)*0.01;
+    m_gridProp.endx = w_x1 + (w_x1-w_x0)*0.01;
+    m_gridProp.endy =  w_y0 + (w_y1-w_y0)*0.501;
+    m_gridProp.dx = (m_gridProp.endx - m_gridProp.startx) / (m_gridProp.NX  - 1);
+    m_gridProp.dy = (m_gridProp.endy - m_gridProp.starty) / (m_gridProp.NY  - 1);
+
+    for (int i = 0; i < m_gridProp.NX; i++)
+        for (int j = 0; j < m_gridProp.NY; j++) {
+            m_gridProp.gridCenters[i][j].x = 0.0;
+            m_gridProp.gridCenters[i][j].y = 0.0;
+            m_gridProp.gridCenters[i][j].charge = 0.0;
+            m_gridProp.gridNeighbors[i][j].clear();
+        }
+    for( int i=0; i< m_p_num; i++ ){
+        vec2 pos1(m_p[i].r.x, m_p[i].r.y - m_p[i].dl*0.5, -m_p[i].q);
+        m_rCentre[i] = pos1;
+        int x1Idx = fmin(int((pos1.x - m_gridProp.startx) / m_gridProp.dx), m_gridProp.NX - 1);
+        int y1Idx = fmin(int((pos1.y - m_gridProp.starty) / m_gridProp.dy), m_gridProp.NY - 1);
+        m_gridProp.gridCenters[x1Idx][y1Idx].charge += pos1.charge;
+        m_gridProp.gridCenters[x1Idx][y1Idx].x += pos1.charge * pos1.x;
+        m_gridProp.gridCenters[x1Idx][y1Idx].y += pos1.charge * pos1.y;
+        m_gridProp.gridNeighbors[x1Idx][y1Idx].push_back(i);
+
+        vec2 pos2(m_p[i].r.x, m_p[i].r.y + m_p[i].dl*0.5, m_p[i].q + m_p[i].q_ext);
+        m_rCentre[m_p_num + i] = pos2;
+        int x2Idx = fmin(int((pos2.x - m_gridProp.startx) / m_gridProp.dx), m_gridProp.NX - 1);
+        int y2Idx = fmin(int((pos2.y - m_gridProp.starty) / m_gridProp.dy), m_gridProp.NY - 1);
+        m_gridProp.gridCenters[x2Idx][y2Idx].charge += pos2.charge;
+        m_gridProp.gridCenters[x2Idx][y2Idx].x += pos2.charge * pos2.x;
+        m_gridProp.gridCenters[x2Idx][y2Idx].y += pos2.charge * pos2.y;
+        m_gridProp.gridNeighbors[x2Idx][y2Idx].push_back(i);
+    }
+    for (int i = 0; i < m_gridProp.NX; i++)
+        for (int j = 0; j < m_gridProp.NY; j++) {
+            if(m_gridProp.gridNeighbors[i][j].size() == 0)
+                continue;
+            m_gridProp.gridCenters[i][j].x /= m_gridProp.gridCenters[i][j].charge;
+            m_gridProp.gridCenters[i][j].y /= m_gridProp.gridCenters[i][j].charge;
+        }
+}
+
+vec2 pzSolver::getEField(const vec2& iCenterPos, const vec2& iFarPos)
+{
+    vec2 E;
+    vec2 dist;
+
+    double r2;
+    double q;
+    double dx,dy;
+    double delta=1e-9;
+
+    dx = iFarPos.x - iCenterPos.x;
+    dy = iFarPos.y - iCenterPos.y;
+    r2=(dx*dx+dy*dy);
+    q=qe/eps0*(iFarPos.charge);
+
+    E.x=q*dx*40000/(r2+delta*delta);
+    E.y=q*dy*40000/(r2+delta*delta);
+
+    return  E;
+}
+
+vec2 pzSolver::getPhiField(const vec2& iCenterPos, const vec2& iFarPos)
+{
+    vec2 E;
+    vec2 dist;
+    float invDist2;
+    double delta=1e-9;
+
+    dist.x = iCenterPos.x - iFarPos.x;
+    dist.y = iCenterPos.y - iFarPos.y;
+
+    invDist2 = iFarPos.charge / (dist.x*dist.x+dist.y*dist.y+1e-14)/log(delta);
+
+    E.x = iFarPos.charge*log((dist.x*dist.x+dist.y*dist.y+1e-14)+delta)/log(delta);
+    return  E;
+}
+
+vec2 pzSolver::getEdepol(double x, double y)
+{
+    vec2 EField;
+    vec2 pos(x,y,0.0);
+    //getFieldFast(pos, m_rCentre, getEField, EField);
+    //return EField;
+    vec2 sum;
+    sum.x=0.0; sum.y=0.0;
     for (int i=0;i<m_p_num;i++)
     {
         double r2;
@@ -210,6 +307,7 @@ vec3<double> pzSolver::getEdepol(double x, double y)
         dx = m_p[i].r.x - x;
         dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
         r2=(dx*dx+dy*dy);
+        q=qe/eps0*(m_p[i].q);
 
         //sum.x-=q*500.0*dx/(r2+delta);
         //sum.y-=q*500.0*dy/(r2+delta);
@@ -218,7 +316,8 @@ vec3<double> pzSolver::getEdepol(double x, double y)
         sum.x-=q*dx*40000/(r2+delta*delta);
         sum.y-=q*dy*40000/(r2+delta*delta);
     }
-
+    //printf("ex = %e ex2 = %e  ey = %e ey2 = %e\n", EField.x, sum.x, EField.y, sum.y );
+    return sum;
     /*
 
     for (int i=0;i<m_elec_num;i++)
@@ -239,16 +338,19 @@ vec3<double> pzSolver::getEdepol(double x, double y)
     return sum;
      */
 
-    return sum;
+
 }
 
 double pzSolver::getPhidepol(double x, double y)
 {
-
+    vec2 PhiField;
+    vec2 pos(x,y,0.0);
+    //getFieldFast(pos, m_rCentre, getPhiField, PhiField);
+    //return PhiField.x;
     double sum=0.0;
     for (int i=0;i<m_p_num;i++)
     {
-    //    int i=1;
+        //    int i=1;
         double r2;
         double q;
         double dx,dy;
@@ -259,16 +361,16 @@ double pzSolver::getPhidepol(double x, double y)
         r2=sqrt(dx*dx+dy*dy);
         q=qe/eps0*(m_p[i].q+m_p[i].q_ext);
 
-      sum+=q*40000*log(r2+delta);
-       // sum+=q/(r2+delta);
+        sum+=q*40000*log(r2+delta);
+        // sum+=q/(r2+delta);
 
 
-      dx = m_p[i].r.x - x;
-      dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
-      r2=sqrt(dx*dx+dy*dy);
+        dx = m_p[i].r.x - x;
+        dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
+        r2=sqrt(dx*dx+dy*dy);
 
-              sum-=q*40000*log(r2+delta);
-             // sum-=q/(r2+delta);
+        sum-=q*40000*log(r2+delta);
+        // sum-=q/(r2+delta);
 
     }
     return sum;

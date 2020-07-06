@@ -4,9 +4,9 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
- //for multigrid
- //#define N_X 1025
- //#define N_Y 513
+//for multigrid
+//#define N_X 1025
+//#define N_Y 513
 //#define N_Y_DIEL 255
 
 #define M_PI 3.1415926535
@@ -33,7 +33,7 @@
 #define Y_WALL (w_y0+DY_WALL)
 
 
- #define U_TAU 1.0
+#define U_TAU 1.0
 
 #define qe 1.6e-19
 #define Me 9.11e-31
@@ -41,10 +41,10 @@
 #define pi4 12.5663706144
 
 
- #define W_WIDTH 600
- #define W_HEIGHT 300
+#define W_WIDTH 600
+#define W_HEIGHT 300
 
- #define RES2_MIN 0.000001
+#define RES2_MIN 0.000001
 
 #define VIEW_PHI  0
 #define VIEW_E  1
@@ -52,25 +52,33 @@
 #define VIEW_PX 3
 #define VIEW_DIV 4
 
-
-
+#include <vector>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <math.h>
+#include <sys/time.h>
+using namespace std;
 const float inv4PI             = 0.25/M_PI;  // Laplace kernel coefficient
 
-template<typename T>
-class vec3 {
-public:
-  T x;
-  T y;
-  T z;
+
+struct vec2 {
+    vec2(): x(0.0), y(0.0), charge(0.0){}
+    vec2(double ix, double iy, double icharge) : x(ix), y(iy), charge(icharge){}
+    double x;
+    double y;
+    double charge;
 };
 
-template<typename T>
-class vec4 {
-public:
-  T x;
-  T y;
-  T z;
-  T w;
+struct gridProp {
+    vec2 gridCenters[30][30];
+    vector<int> gridNeighbors[30][30];
+    int NX;
+    int NY;
+    double startx, endx;
+    double starty, endy;
+    double dx;
+    double dy;
 };
 
 typedef struct
@@ -91,7 +99,6 @@ typedef struct
 }poly;
 
 
-
 double calc_poly(poly &p, double r, double x); //возвращает значение функции f(x) = x^2-2
 double calc_d_poly(poly &p, double x); //возвращает значение производной
 double calc_d2_poly(poly &p, double x); // значение второй производной
@@ -104,7 +111,7 @@ float my_rand(int i);
 float getVms_from_Ev(float eps_in_ev);
 
 void get_div(double f_x[N_X][N_Y],double f_y[N_X][N_Y],double out[N_X][N_Y]);
-
+double get_time(void);
 
 
 double delta_f(double E, double phi);

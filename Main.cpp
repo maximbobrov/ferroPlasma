@@ -19,7 +19,7 @@
 #include "multisolver.h"
 #include "electronlagrangian.h"
 
-#include "phi_mult.h"
+
 
 
 //#include <sys/time.h>
@@ -52,7 +52,7 @@ double conv1[100];
 
 bool clearc=true;
 
-#include "sse_sum.h"
+
 
 std::vector <double>  avPy_;
 std::vector <double>  avEy_;
@@ -139,8 +139,8 @@ void display(void)
 
     if (redr==1)
     {
-       for (int i=0;i<5;i++)
-        multi_solver->solve(2);
+        for (int i=0;i<5;i++)
+            multi_solver->solve(2);
         double pzmax=0.0;
         for (int i=0;i<pz_solver->m_p_num;i++)
         {
@@ -232,14 +232,13 @@ void display(void)
     }
     glEnd();
 
-
- glPointSize(2.5);
+    glPointSize(2.5);
     glBegin(GL_POINTS);
 
     for( i=0; i<elec_solver->m_numParticles; i++ )
     {
         glColor3f(0.0,0.0,1.0);
-        glVertex3f(elec_solver->m_bodyPos[i].x,elec_solver->m_bodyPos[i].y,elec_solver->m_bodyPos[i].z);
+        glVertex2f(elec_solver->m_bodyPos[i].x,elec_solver->m_bodyPos[i].y);
     }
     glEnd();
 
@@ -250,20 +249,37 @@ void display(void)
     for( i=0; i<elec_solver->m_numParticles; i++ )
     {
         // float pot=get_nearwall_potential(bodyPos[i].x,bodyPos[i].y);
-        glColor3f(1.0*fabs(elec_solver->m_bodyVel[i].x)/vel_scale,4.0*fabs(elec_solver->m_bodyVel[i].y)/vel_scale,3.0*fabs(elec_solver->m_bodyVel[i].z)/vel_scale);
+        glColor3f(1.0*fabs(elec_solver->m_bodyVel[i].x)/vel_scale,4.0*fabs(elec_solver->m_bodyVel[i].y)/vel_scale, 0.0);
         // glColor3f(ck*pot,ck*pot,-ck*pot);
-        glVertex3f(elec_solver->m_bodyPos[i].x,elec_solver->m_bodyPos[i].y,elec_solver->m_bodyPos[i].z);
+        glVertex2f(elec_solver->m_bodyPos[i].x,elec_solver->m_bodyPos[i].y);
         glColor3f(0.0,0.0,0.0);
-        glVertex3f(elec_solver->m_bodyPos[i].x+leng_sacle*elec_solver->m_bodyVel[i].x/vel_scale,
-                   elec_solver->m_bodyPos[i].y+leng_sacle*elec_solver->m_bodyVel[i].y/vel_scale,
-                   elec_solver->m_bodyPos[i].z+leng_sacle*elec_solver->m_bodyVel[i].z/vel_scale);
+        glVertex2f(elec_solver->m_bodyPos[i].x+leng_sacle*elec_solver->m_bodyVel[i].x/vel_scale,
+                   elec_solver->m_bodyPos[i].y+leng_sacle*elec_solver->m_bodyVel[i].y/vel_scale);
     }
     glEnd();
 
 
 
 
+   /* glPointSize(5);
+    glBegin(GL_POINTS);
 
+    for (int i=0;i<lagr_solver->m_elec_num;i++)
+    {
+        glColor3f(lagr_solver->m_rCentre[i].charge,0,1 - lagr_solver->m_rCentre[i].charge);
+        glVertex3f(lagr_solver->m_rCentre[i].x,lagr_solver->m_rCentre[i].y,0.0);
+    }
+    glEnd();*/
+
+    /*glPointSize(5);
+       glBegin(GL_POINTS);
+
+       for (int i=0;i<2 * pz_solver->m_p_num;i++)
+       {
+           glColor3f(pz_solver->m_rCentre[i].charge,0,1 - pz_solver->m_rCentre[i].charge);
+           glVertex3f(pz_solver->m_rCentre[i].x,pz_solver->m_rCentre[i].y,0.0);
+       }
+       glEnd();*/
 
     glColor3f(0.5,0.5,0.5);
 
@@ -292,8 +308,8 @@ void display(void)
         for (int i=0;i<pz_solver->m_p_num;i++)
         {
             glColor3f(pz_solver->m_p[i].p/0.26,-pz_solver->m_p[i].p/0.26,0);
-            glVertex2f(pz_solver->m_p[i].r.x-pz_solver->m_dx*0.5,pz_solver->m_p[i].r.y -pz_solver->m_p[i].dl*0.5);
-            glVertex2f(pz_solver->m_p[i].r.x-pz_solver->m_dx*0.5,pz_solver->m_p[i].r.y +pz_solver->m_p[i].dl*0.5);
+            glVertex2f(pz_solver->m_p[i].r.x/*-pz_solver->m_dx*0.5*/,pz_solver->m_p[i].r.y -pz_solver->m_p[i].dl*0.5);
+            glVertex2f(pz_solver->m_p[i].r.x/*-pz_solver->m_dx*0.5*/,pz_solver->m_p[i].r.y +pz_solver->m_p[i].dl*0.5);
         }
         glEnd();
     }
@@ -385,8 +401,8 @@ void kb(unsigned char key, int x, int y)
         lagr_solver->setElectrodeAngle(angle);
         //  dt/=1.1;
         //  printf("dt=%e \n",dt);
-       // pz_solver->m_dt/=1.1;
-       // printf("dt=%e \n",pz_solver->m_dt);
+        // pz_solver->m_dt/=1.1;
+        // printf("dt=%e \n",pz_solver->m_dt);
 
     }
 

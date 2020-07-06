@@ -1,15 +1,20 @@
 
 #include "globals.h"
 #include<xmmintrin.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <math.h>
+
+
 
 double RHS[N_X][N_Y],RHS_p[N_X][N_Y],E_x[N_X][N_Y],E_y[N_X][N_Y];
 
 int num_thread=1;
 uint32_t xr[32],yr[32],zr[32],wr[32];
+
+double get_time(void) {
+    struct timeval tv;
+    struct timezone tz;
+    gettimeofday(&tv, &tz);
+    return ((double)(tv.tv_sec+tv.tv_usec*1.0e-6));
+}
 
 void rand_init()
 {
@@ -75,7 +80,7 @@ double calc_poly(poly &p, double r, double x) //возвращает значе�
         xn*=x;
     }
 
-       return sum-r;
+    return sum-r;
 }
 
 double calc_d_poly(poly &p, double x) //возвращает значение производной
@@ -87,7 +92,7 @@ double calc_d_poly(poly &p, double x) //возвращает значение п
         sum+=xn*p.C[i+1]*(i+2);
         xn*=x;
     }
-   return sum;
+    return sum;
 }
 
 double calc_d2_poly(poly &p, double x) // значение второй производной
@@ -99,7 +104,7 @@ double calc_d2_poly(poly &p, double x) // значение второй прои
         sum+=xn*p.C[i+1]*(i+2)*(i+3);
         xn*=x;
     }
-   return sum;
+    return sum;
 }
 
 double solve_poly(poly &p,double _x0, double rhs,int itn)
@@ -107,9 +112,9 @@ double solve_poly(poly &p,double _x0, double rhs,int itn)
     double x0,x,xn,eps;// вычисляемые приближения для корня
     double a, b,deltax;// границы отрезка и необходимая точность
 
-   // deltax=deltax0;
+    // deltax=deltax0;
     x=_x0;
-   /* a=x0-deltax;
+    /* a=x0-deltax;
     b=x0+deltax;
 
     int nn=0;
@@ -131,10 +136,10 @@ double solve_poly(poly &p,double _x0, double rhs,int itn)
 */
     for (int i=0; i<itn; ++i)
     {
-      x = x-calc_poly(p,rhs,x)/calc_d_poly(p,x); // считаем первое приближение
+        x = x-calc_poly(p,rhs,x)/calc_d_poly(p,x); // считаем первое приближение
     }
 
-       // printf("x = %lf f(x)=%e \n",x*1000.0,calc_poly(p,rhs,x));
+    // printf("x = %lf f(x)=%e \n",x*1000.0,calc_poly(p,rhs,x));
 
     return x;
 
@@ -147,13 +152,13 @@ double tt=0.0; //curr time
 
 double q[N_X],gau[N_Y]; //wall charge
 
- double BoundaryLayer[N_X],WallEnergy[N_X];
+double BoundaryLayer[N_X],WallEnergy[N_X];
 
- double BoundaryLayerGauss[N_X];
- int gaussL = 5;
+double BoundaryLayerGauss[N_X];
+int gaussL = 5;
 
 
- bool move_particles=false;
+bool move_particles=false;
 int shift = 0;
 double div_[N_X][N_Y],div_J[N_X][N_Y],rho_[N_X][N_Y],phi_[N_X][N_Y],Ex[N_X][N_Y],Ey[N_X][N_Y],Ey0[N_X][N_Y], p_in[N_X][N_Y],rho_in[N_X][N_Y];
 //double flow_1[N_X][N_Y];
