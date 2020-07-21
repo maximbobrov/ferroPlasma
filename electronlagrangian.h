@@ -21,9 +21,7 @@ public:
     void wall_collision(int particlesIdx);
     double calcJ(double Ein);
     void step(double dt);
-    void create_random_particles();
     vec2 getEe(double x, double y);
-    void getEFromElectrons(vec2 &bodyAccel_, double x, double y, double z,  int n);
     static vec2 getEField(const vec2& iPos1, const vec2& iPos2);
     void updateGridProp();
 

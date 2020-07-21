@@ -2,13 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include  <GL/gl.h>
-#include  <GL/glu.h>
-#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+//#include  <GL/gl.h>
+//#include  <GL/glu.h>
+//#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
 
-//#include <my_include/gl.h>
-//#include <my_include/glu.h>
-//#include <my_include/glut.h>
+#include <my_include/gl.h>
+#include <my_include/glu.h>
+#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -259,8 +259,6 @@ void display(void)
     glEnd();
 
 
-
-
    /* glPointSize(5);
     glBegin(GL_POINTS);
 
@@ -326,6 +324,35 @@ void display(void)
 
     glLineWidth(1.0);
 
+
+    glDisable(GL_DEPTH_TEST);
+    glLineWidth(3.5);
+    glBegin(GL_LINE_STRIP);
+
+    for( i=0; i < pz_solver->m_p_num; i++ )
+    {
+        glColor3f(1.0,0.0,0.0);
+        glVertex2f(pz_solver->m_p[i].r.x, 1e-3 * scale * pz_solver->m_p[i].q_ext * (w_y1 - w_y0));
+    }
+    glEnd();
+
+    glLineWidth(3.5);
+    glBegin(GL_LINE_STRIP);
+
+    for( i=0; i < pz_solver->m_p_num; i++ )
+    {
+        glColor3f(1.0,0.0,1.0);
+        glVertex2f(pz_solver->m_p[i].r.x, 1e-3 * scale * pz_solver->m_p[i].q * (w_y1 - w_y0));
+    }
+    glEnd();
+
+    glLineWidth(3.5);
+    glBegin(GL_LINE_STRIP);
+    glColor3f(1.0,1.0,1.0);
+    glVertex2f(pz_solver->m_p[0].r.x, 0);
+    glVertex2f(pz_solver->m_p[pz_solver->m_p_num - 1].r.x, 0);
+    glEnd();
+
     glutSwapBuffers();
     if (redr==1) glutPostRedisplay();
 
@@ -377,12 +404,14 @@ void kb(unsigned char key, int x, int y)
     double max_err=0.0;
     if (key=='.')
     {
-        ck*=1.1;
+        scale*=1.1;
+        printf("scale=%f \n", scale);
     }
 
     if (key==',')
     {
-        ck/=1.1;
+        scale/=1.1;
+        printf("scale=%f \n", scale);
     }
     if (key==']')
     {

@@ -12,10 +12,10 @@ void multiSolver::updateEforPz()
         x=m_pzSolver->m_p[i].r.x;
         y=m_pzSolver->m_p[i].r.y+m_pzSolver->m_p[i].dl*0.4;
 
-        vec2 E=m_Esolver->getE(x,y);
-        vec2 Ep=m_pzSolver->getEdepol(x,y);
-        vec2 Ee=m_elecSolver->getEe(x,y);
-        m_pzSolver->m_p[i].E=E.y+Ep.y;
+        vec2 E = m_Esolver->getE(x,y);
+        vec2 Ep = m_pzSolver->getEdepol(x,y);
+        vec2 Ee = m_elecSolver->getEe(x,y);
+        m_pzSolver->m_p[i].E = E.y+Ep.y;
     }
 }
 
@@ -72,7 +72,7 @@ void multiSolver::solve(int itn)
 
     }
     double dt_elec=15e-11;
-    electronEmission(dt_elec*10);
+    electronEmission(dt_elec);
     updateEforElec();
     m_pzSolver->step();
     m_elecSolver->step(dt_elec);

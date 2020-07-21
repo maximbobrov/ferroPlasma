@@ -29,15 +29,15 @@ double electronLagrangian::calcJ(double Ein)
 
 int electronLagrangian::create_electron(vec2 &pos, double Emag, double Dt, double ds)
 {
-    int num_in_pack=10.0;
-    double el_to_add=1e-9*calcJ(Emag*30)*Dt*ds/(qe*num_in_pack);
+    int num_in_pack=1.0;
+    double el_to_add = calcJ(Emag*5)*Dt*ds/(qe*num_in_pack);
 
     int ne=(int) el_to_add;
     ne+=((rand()*1.0)/RAND_MAX < (el_to_add - ne)); //extra electron
 
 
 
-    printf("Emag=%e el_to_ad=%e ne=%d \n",Emag,el_to_add,ne);
+    printf("Emag=%e j=%e el_to_ad=%e ne=%d \n", Emag, calcJ(Emag*5), el_to_add,ne);
     int upto=MIN(m_numParticles+ne,m_maxParticles);
     for (int n = m_numParticles; n < upto; ++n)
     {
@@ -51,73 +51,6 @@ int electronLagrangian::create_electron(vec2 &pos, double Emag, double Dt, doubl
     }
     m_numParticles=upto;
     return num_in_pack*ne;
-}
-
-
-void electronLagrangian::create_random_particles()
-{
-    /*for (int i = (N_Y-1)/2+2; i < (N_Y-1); i+=1)
-    {
-        double dz = w_z1 - w_z0;
-        double x_ = w_x0 + 0.01 * (w_x1-w_x0);//- N_X * dx / 2;
-        double y_ =w_y0 + i * (w_y1 - w_y0) / (N_Y-1);//i * dy - N_Y * dy / 2;
-        double z_ = my_rand(0) * dz - dz / 2;
-        vec3<float> E;
-        getEFromElectrons(E, x_, y_, z_, m_numParticles);
-        //printf("Ex=%e Ey = %e\n", E.x, E.y);
-        E.x = Ex[0][i];
-        E.y = Ey[0][i];
-        E.x = fmax(0, -E.x);
-        double J =calcJ(0.02 * E.x);
-        int chargeNum = 1e0;
-        int curNum = m_numParticles;
-        int numToAdd =  std::min(int(dt * J * dy * dz * 1e4 * 6.24151 * 1e18 / chargeNum), m_maxParticles - m_numParticles-2);
-        numToAdd = numToAdd > 5 ? 5 : numToAdd;
-
-        if(my_rand(m_threadIdx) < (dt * J * dy * dz * 1e4 * 6.24151 * 1e18 / chargeNum) - int(dt * J * dy * dz * 1e4  * 6.24151 * 1e18 / chargeNum))
-            numToAdd++;
-        m_numParticles += numToAdd;
-
-        for (int n = curNum; n < curNum + numToAdd; ++n)
-        {
-            m_bodyPos[n].x = x_;
-            m_bodyPos[n].y = y_;
-            m_bodyPos[n].z = z_;
-            m_bodyPos[n].w = 1.6e-19 * chargeNum;
-            double angle =  0.98 * acos(1 - 2 * my_rand(m_threadIdx)) - M_PI / 2;
-            //printf("Ey = %f\n", angle);
-            if (y_ < w_y0 + 0.1 * (w_y1 - w_y0) && angle < 0)
-                angle *= -1;
-            double en = getVms_from_Ev(0.00002);
-            m_bodyVel[n].x = 0.0;//en * cos(angle);
-            m_bodyVel[n].y = 0.0;//en * sin(angle);
-            m_bodyVel[n].z = 0;
-            m_bodyAccel[n].x = 0.0;
-            m_bodyAccel[n].y = 0.0;
-            m_bodyAccel[n].z = 0.0;
-        }
-    }*/
-    double x_ = w_x0 + 0.01 * (w_x1-w_x0);
-    double y_ = my_rand(m_threadIdx) * (w_y1);
-
-    int curNum = m_numParticles;
-    int numToAdd =  std::min(5, m_maxParticles - m_numParticles-2);
-    m_numParticles += numToAdd;
-
-    for (int n = curNum; n < curNum + numToAdd; ++n)
-    {
-        m_bodyPos[n].x = x_;
-        m_bodyPos[n].y = y_;
-        m_bodyPos[n].charge = qe;
-        double angle =  0.98 * acos(1 - 2 * my_rand(m_threadIdx)) - M_PI / 2;
-        if (y_ < w_y0 + 0.1 * (w_y1 - w_y0) && angle < 0)
-            angle *= -1;
-        double en = getVms_from_Ev(0.00002);
-        m_bodyVel[n].x = 0.0;//en * cos(angle);
-        m_bodyVel[n].y = 0.0;//en * sin(angle);
-        m_bodyAccel[n].x = 0.0;
-        m_bodyAccel[n].y = 0.0;
-    }
 }
 
 vec2 getE(float x, float y)
@@ -287,20 +220,3 @@ vec2 electronLagrangian::getEe(double x, double y)
     return ai;*/
 }
 
-void electronLagrangian::getEFromElectrons(vec2 &bodyAccel_, double x, double y, double z,  int n)
-{
-    vec2 dist;
-    float invDist,invDistCube;
-    vec2 ai = {0.0, 0.0, 0.0};
-    for( int j=0; j<n; j++ ){
-        dist.x = m_bodyPos[j].x-x;
-        dist.y = m_bodyPos[j].y-y;
-        invDist = 1.0/sqrtf(dist.x*dist.x+dist.y*dist.y+1e-14);
-        invDistCube = m_bodyPos[j].charge*invDist*invDist*invDist;
-        ai.x -= dist.x*invDistCube;
-        ai.y -= dist.y*invDistCube;
-    }
-
-    bodyAccel_.x = inv4PI*ai.x/eps0;
-    bodyAccel_.y = inv4PI*ai.y/eps0;
-}

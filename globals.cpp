@@ -156,8 +156,7 @@ double BoundaryLayer[N_X],WallEnergy[N_X];
 
 double BoundaryLayerGauss[N_X];
 int gaussL = 5;
-
-
+double scale = 1;
 bool move_particles=false;
 int shift = 0;
 double div_[N_X][N_Y],div_J[N_X][N_Y],rho_[N_X][N_Y],phi_[N_X][N_Y],Ex[N_X][N_Y],Ey[N_X][N_Y],Ey0[N_X][N_Y], p_in[N_X][N_Y],rho_in[N_X][N_Y];

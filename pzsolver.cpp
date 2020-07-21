@@ -7,7 +7,7 @@ pzSolver::pzSolver()
     this->m_p_num=380;
     m_p=new pElem[m_p_num];
     m_rCentre=new vec2[2 * m_p_num];
-    m_dt=5e-11;//1e-11;
+    m_dt=15e-11;//1e-11;
 
     double _dx,_dz;
     _dz=w_z1-w_z0;
@@ -159,7 +159,7 @@ void pzSolver::getRHS()
         double poly0 = m_poly.C[0] * p_prev +
                 m_poly.C[2] * p_prev * p_prev * p_prev +
                 m_poly.C[4] * p_prev * p_prev * p_prev * p_prev * p_prev;
-        m_p[i].RHS = 0.05 * (m_p[i].E+m_p[i].E_prev) + lapl0 - poly0 + p_prev/(m_dt); //crank-nikolson
+        m_p[i].RHS = (m_p[i].E+m_p[i].E_prev) + lapl0 - poly0 + p_prev/(m_dt); //crank-nikolson
         // m_p[i].RHS = 0.05 * (m_p[i].E) + p_prev/(m_dt); //euler
     }
 }
@@ -299,22 +299,22 @@ vec2 pzSolver::getEdepol(double x, double y)
         dx = m_p[i].r.x - x;
         dy = m_p[i].r.y + m_p[i].dl*0.5 - y;
         r2=(dx*dx+dy*dy);
-        q=qe/eps0*(m_p[i].q+m_p[i].q_ext);
+        q=qe/(eps0*pi4) * (m_p[i].q+m_p[i].q_ext);
 
-        sum.x+=q*dx*40000/(r2+delta*delta);
-        sum.y+=q*dy*40000/(r2+delta*delta);
+        sum.x+=q*dx*(w_z1 - w_z0)/(r2+delta*delta);
+        sum.y+=q*dy*(w_z1 - w_z0)/(r2+delta*delta);
 
         dx = m_p[i].r.x - x;
         dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
         r2=(dx*dx+dy*dy);
-        q=qe/eps0*(m_p[i].q);
+        q=qe/(eps0*pi4) * (m_p[i].q);
 
         //sum.x-=q*500.0*dx/(r2+delta);
         //sum.y-=q*500.0*dy/(r2+delta);
 
 
-        sum.x-=q*dx*40000/(r2+delta*delta);
-        sum.y-=q*dy*40000/(r2+delta*delta);
+        sum.x-=q*dx*(w_z1 - w_z0)/(r2+delta*delta);
+        sum.y-=q*dy*(w_z1 - w_z0)/(r2+delta*delta);
     }
     //printf("ex = %e ex2 = %e  ey = %e ey2 = %e\n", EField.x, sum.x, EField.y, sum.y );
     return sum;
@@ -359,17 +359,17 @@ double pzSolver::getPhidepol(double x, double y)
         dx = m_p[i].r.x - x;
         dy = m_p[i].r.y + m_p[i].dl*0.5 - y;
         r2=sqrt(dx*dx+dy*dy);
-        q=qe/eps0*(m_p[i].q+m_p[i].q_ext);
+        q=qe/(eps0*pi4) * (m_p[i].q+m_p[i].q_ext);
 
-        sum+=q*40000*log(r2+delta);
+        sum+=q*(w_z1 - w_z0)*log(r2+delta);
         // sum+=q/(r2+delta);
 
 
         dx = m_p[i].r.x - x;
         dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
         r2=sqrt(dx*dx+dy*dy);
-
-        sum-=q*40000*log(r2+delta);
+        q=qe/(eps0*pi4) * (m_p[i].q);
+        sum-=q*(w_z1 - w_z0)*log(r2+delta);
         // sum-=q/(r2+delta);
 
     }
