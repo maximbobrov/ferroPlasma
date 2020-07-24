@@ -79,17 +79,10 @@ void updateEulFields()
         for (int j=0;j<N_Y;j++)
         {
             phi_[i][j]=lagr_solver->getPhi(1.3*(w_x0+dx*(i)),1.3*(w_y0+dy*j));
-
-
-
             Ey[i][j]=lagr_solver->getE(1.3*(w_x0+dx*(i)),1.3*(w_y0+dy*j)).y;
-
             pz_solver->get_q();
-
             Ex[i][j]=pz_solver->getEdepol(1.3*(w_x0+dx*(i)),1.3*(w_y0+dy*j)).y;
-
-
-            Py_[i][j]=pz_solver->getPhidepol(1.3*(w_x0+dx*(i)),1.3*(w_y0+dy*j));
+            //Py_[i][j]=pz_solver->getPhidepol(1.3*(w_x0+dx*(i)),1.3*(w_y0+dy*j));
         }
     }
 }
@@ -130,8 +123,8 @@ void display(void)
 
 
     Epc=pz_solver->getEdepol(xc,yc).y;
-    phipc=pz_solver->getPhidepol(xc,yc);
-    dphicp=-(pz_solver->getPhidepol(xc,yp)-pz_solver->getPhidepol(xc,ym))/(yp-ym);
+    //phipc=pz_solver->getPhidepol(xc,yc);
+    //dphicp=-(pz_solver->getPhidepol(xc,yp)-pz_solver->getPhidepol(xc,ym))/(yp-ym);
 
     //printf("phi_max=%e Phi_p_max=%e Ey_max=%e Ep_max=%e\n",phi_max,p_max,e_max,div_max);
     printf("phi_c=%e Phi_p_c=%e Ey_c=%e fphic=%e Ep_c=%e ffp=%e \n",phic,phipc,Ec,dphic,Epc,dphicp);
@@ -146,31 +139,18 @@ void display(void)
         {
             if (fabs(pz_solver->m_p[i].p)>fabs(pzmax)) pzmax=(pz_solver->m_p[i].p);
         }
-
         updateEulFields();
         //  sweep();
     }
-
-
-
     int i,j;//,k,l;
-
-
     double l_2;//,tx,ty,tx0,ty0,vx,vy,v0x,v0y;
     /* clear window */
-
-
     if (clearc)
         glClear(GL_COLOR_BUFFER_BIT);
-
-
     glLoadIdentity();
-
     glRotatef(ry,1.0,0,0);
     glRotatef(rx,0.0,1.0,0);
-
     glColor3f(1,1,1);
-
     for (i=0;i<N_X-1;i++)
     {
         glBegin(GL_TRIANGLE_STRIP);
@@ -326,17 +306,17 @@ void display(void)
 
 
     glDisable(GL_DEPTH_TEST);
-    glLineWidth(3.5);
+    glLineWidth(2.5);
     glBegin(GL_LINE_STRIP);
 
     for( i=0; i < pz_solver->m_p_num; i++ )
     {
-        glColor3f(1.0,0.0,0.0);
+        glColor3f(1.0, 1.0, 1.0);
         glVertex2f(pz_solver->m_p[i].r.x, 1e-3 * scale * pz_solver->m_p[i].q_ext * (w_y1 - w_y0));
     }
     glEnd();
 
-    glLineWidth(3.5);
+    glLineWidth(2.5);
     glBegin(GL_LINE_STRIP);
 
     for( i=0; i < pz_solver->m_p_num; i++ )
@@ -346,7 +326,18 @@ void display(void)
     }
     glEnd();
 
-    glLineWidth(3.5);
+    glLineWidth(2.5);
+    glBegin(GL_LINE_STRIP);
+
+    for( i=0; i < pz_solver->m_p_num; i++ )
+    {
+        glColor3f(0.0,1.0,1.0);
+        glVertex2f(pz_solver->m_p[i].r.x, 1e-8 * scale * pz_solver->m_p[i].E * (w_y1 - w_y0));
+        printf("e=%f\n",pz_solver->m_p[i].E);
+    }
+    glEnd();
+
+    glLineWidth(2.5);
     glBegin(GL_LINE_STRIP);
     glColor3f(1.0,1.0,1.0);
     glVertex2f(pz_solver->m_p[0].r.x, 0);
