@@ -35,10 +35,11 @@
 
 #define U_TAU 1.0
 
-#define qe 1.6e-19
+#define qe -1.6e-19
 #define Me 9.11e-31
 #define eps0 8.85e-12
 #define pi4 12.5663706144
+#define pi2 6.28318530718
 
 
 #define W_WIDTH 600

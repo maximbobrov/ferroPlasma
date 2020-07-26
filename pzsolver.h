@@ -33,8 +33,9 @@ public:
     double getPhidepol(double x, double y);
     void updateCharge();
     void updateGridProp();
-    static vec2 getEField(const vec2& iCenterPos, const vec2& iFarPos);
-    static vec2 getPhiField(const vec2& iCenterPos, const vec2& iFarPos);
+    void setWallPos(double a);
+   // static vec2 getEField(const vec2& iCenterPos, const vec2& iFarPos);
+   // static vec2 getPhiField(const vec2& iCenterPos, const vec2& iFarPos);
 };
 
 #endif // PZSOLVER_H

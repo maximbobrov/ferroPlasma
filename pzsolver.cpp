@@ -34,9 +34,9 @@ pzSolver::pzSolver()
     get_q();
     for (int i=0;i<m_p_num;i++) //first electrode
     {
-        m_p[i].q_ext=-m_p[i].q;
+        m_p[i].q_ext=0.0;//-m_p[i].q;
 
-        printf("i=%d q=%e q_ext=%e \n",i,m_p[i].q,m_p[i].q_ext);
+       // printf("i=%d q=%e q_ext=%e \n",i,m_p[i].q,m_p[i].q_ext);
     }
 
     /* m_p[0].p = 0.26;
@@ -75,6 +75,18 @@ pzSolver::pzSolver()
     updateGridProp();
 }
 
+
+void  pzSolver::setWallPos(double a)
+{
+    for (int i=0;i<m_p_num;i++) //first electrode
+    {
+        if ((i*1.0)/(m_p_num-1)<a)
+        m_p[i].p = 0.26;//+rand()*0.043/RAND_MAX;
+        else
+        m_p[i].p = -0.26;
+    }
+    get_q();
+}
 
 void pzSolver::solvePz(int itn)
 {
@@ -169,7 +181,7 @@ void pzSolver::get_q() //all charges are in elementary
 
     for (int i=0; i<m_p_num; i++)
     {
-        m_p[i].q=-(m_p[i].p)*m_p[i].ds/qe;
+        m_p[i].q=(m_p[i].p)*m_p[i].ds/qe;
     }
 
 
@@ -243,7 +255,7 @@ void pzSolver::updateGridProp()
             m_gridProp.gridCenters[i][j].y /= m_gridProp.gridCenters[i][j].charge;
         }
 }
-
+/*
 vec2 pzSolver::getEField(const vec2& iCenterPos, const vec2& iFarPos)
 {
     vec2 E;
@@ -280,7 +292,7 @@ vec2 pzSolver::getPhiField(const vec2& iCenterPos, const vec2& iFarPos)
     E.x = iFarPos.charge*log((dist.x*dist.x+dist.y*dist.y+1e-14)+delta)/log(delta);
     return  E;
 }
-
+*/
 vec2 pzSolver::getEdepol(double x, double y)
 {
     vec2 EField;
@@ -299,46 +311,23 @@ vec2 pzSolver::getEdepol(double x, double y)
         dx = m_p[i].r.x - x;
         dy = m_p[i].r.y + m_p[i].dl*0.5 - y;
         r2=(dx*dx+dy*dy);
-        q=qe/(eps0*pi4) * (m_p[i].q+m_p[i].q_ext);
+        q=qe/(eps0*pi2) * (m_p[i].q+m_p[i].q_ext);
 
-        sum.x+=q*dx*(w_z1 - w_z0)/(r2+delta*delta);
-        sum.y+=q*dy*(w_z1 - w_z0)/(r2+delta*delta);
+        double c=q/((r2+delta*delta)*(w_z1 - w_z0));
+
+        sum.x+=c*dx;
+        sum.y+=c*dy;
 
         dx = m_p[i].r.x - x;
         dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
         r2=(dx*dx+dy*dy);
-        q=qe/(eps0*pi4) * (m_p[i].q);
+        q=qe/(eps0*pi4) * (-m_p[i].q);
 
-        //sum.x-=q*500.0*dx/(r2+delta);
-        //sum.y-=q*500.0*dy/(r2+delta);
-
-
-        sum.x-=q*dx*(w_z1 - w_z0)/(r2+delta*delta);
-        sum.y-=q*dy*(w_z1 - w_z0)/(r2+delta*delta);
-    }
-    //printf("ex = %e ex2 = %e  ey = %e ey2 = %e\n", EField.x, sum.x, EField.y, sum.y );
-    return sum;
-    /*
-
-    for (int i=0;i<m_elec_num;i++)
-    {
-        double r2;
-        double q;
-        double dx,dy;
-        double delta=1e-9;
-
-        dx = (m_electrodes[i].r0.x + m_electrodes[i].r1.x)*0.5 - x;
-        dy = (m_electrodes[i].r0.y + m_electrodes[i].r1.y)*0.5 - y;
-        r2=(dx*dx+dy*dy);
-        q=(m_electrodes[i].rho1+m_electrodes[i].rho2)*0.5;
-
-        sum.x+=q*dx/(r2+delta*delta)/log(delta);
-        sum.y+=q*dy/(r2+delta*delta)/log(delta);
+        c=q/((r2+delta*delta)*(w_z1 - w_z0));
+        sum.x+=dx*c;
+        sum.y+=dy*c; //zero charge at the bottom
     }
     return sum;
-     */
-
-
 }
 
 double pzSolver::getPhidepol(double x, double y)
@@ -351,25 +340,35 @@ double pzSolver::getPhidepol(double x, double y)
     for (int i=0;i<m_p_num;i++)
     {
         //    int i=1;
-        double r2;
+        double r;
         double q;
         double dx,dy;
         double delta=1e-9;
 
         dx = m_p[i].r.x - x;
         dy = m_p[i].r.y + m_p[i].dl*0.5 - y;
-        r2=sqrt(dx*dx+dy*dy);
-        q=qe/(eps0*pi4) * (m_p[i].q+m_p[i].q_ext);
+        r=sqrt(dx*dx+dy*dy);
+        q=qe/(eps0*pi2) * (m_p[i].q+m_p[i].q_ext);
 
-        sum+=q*(w_z1 - w_z0)*log(r2+delta);
-        // sum+=q/(r2+delta);
-
+        sum+=-q*log(r+delta)/(w_z1 - w_z0);
 
         dx = m_p[i].r.x - x;
         dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
+        r=sqrt(dx*dx+dy*dy);
+        q=qe/(eps0*pi2) * (-m_p[i].q);
+
+        sum+=-q*log(r+delta)/(w_z1 - w_z0);
+
+
+        // sum+=q/(r2+delta);
+
+//zero charge condition on the bottom of ferroelectric
+       /* dx = m_p[i].r.x - x;
+        dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
         r2=sqrt(dx*dx+dy*dy);
         q=qe/(eps0*pi4) * (m_p[i].q);
-        sum-=q*(w_z1 - w_z0)*log(r2+delta);
+        sum-=q*(w_z1 - w_z0)*log(r2+delta);*/
+
         // sum-=q/(r2+delta);
 
     }

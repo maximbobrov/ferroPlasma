@@ -42,11 +42,11 @@ void multiSolver::electronEmission(double d_t)
     {
         if (m_Esolver->m_electrodes[i].canEmit)
         {
-            vec2 E=m_Esolver->getE(m_Esolver->m_electrodes[i].r1.x+1e-9,m_Esolver->m_electrodes[i].r1.y);
+            vec2 E=m_Esolver->getE(m_Esolver->m_electrodes[i].r.x+1e-9,m_Esolver->m_electrodes[i].r.y);
             double l=sqrt(E.x*E.x +E.y*E.y);
             eMean+=l;
             emass+=1.0;
-            m_elecSolver->create_electron(m_Esolver->m_electrodes[i].r1,l,d_t,m_Esolver->m_electrodes[i].dl*m_Esolver->m_dz);
+            m_elecSolver->create_electron(m_Esolver->m_electrodes[i].r,l,d_t,m_Esolver->m_electrodes[i].dl*(w_z1-w_z0));
         }
     }
     printf("curr_elec_num=%d mass=%f E=%e\n",m_elecSolver->m_numParticles,emass, eMean/emass);
@@ -56,27 +56,30 @@ void multiSolver::solve(int itn)
 {
     for (int nn=0;nn<itn;nn++)
     {
-        m_pzSolver->get_q();
+     //   m_pzSolver->get_q();
+
+        double phi_depol0=m_pzSolver->getPhidepol(w_x0,w_y0);
+
         for (int i=0;i<m_Esolver->m_elec_num;i++)
         {
             double x,y;
-            x=(m_Esolver->m_electrodes[i].r0.x+m_Esolver->m_electrodes[i].r1.x)*0.5;
-            y=(m_Esolver->m_electrodes[i].r0.y+m_Esolver->m_electrodes[i].r1.y)*0.5;
+            x=m_Esolver->m_electrodes[i].r.x;
+            y=m_Esolver->m_electrodes[i].r.y;
 
-            m_Esolver->m_electrodes[i].phi_fix_charges=m_pzSolver->getPhidepol(x,y);
+            m_Esolver->m_electrodes[i].phi_fix_charges=0.0*(m_pzSolver->getPhidepol(x,y)-phi_depol0);
         }
-        m_Esolver->solvePhi(20);
-        updateEforPz();
+        m_Esolver->solvePhi(2);
+       // updateEforPz();
 
-        m_pzSolver->solvePz(5);
+       // m_pzSolver->solvePz(5);
 
     }
-    double dt_elec=15e-11;
-    electronEmission(dt_elec);
-    updateEforElec();
-    m_pzSolver->step();
-    m_elecSolver->step(dt_elec);
-    electronExchange(dt_elec);
+  //  double dt_elec=15e-11;
+  //  electronEmission(dt_elec);
+   // updateEforElec();
+   // m_pzSolver->step();
+  //  m_elecSolver->step(dt_elec);
+  //  electronExchange(dt_elec);
 
    /* //debug below
 

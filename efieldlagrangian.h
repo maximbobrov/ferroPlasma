@@ -9,15 +9,17 @@ class eFieldLagrangian : lagrangianSolver
 public:
     struct eElem   //linear electrode elem
     {
-        double rho1, rho2,dl,phi_ext,phi_fix,phi_fix_charges;//C/m2, m, V
-        vec2 r0,r1;
-
+        double phi_ext,phi_fix,phi_fix_charges;//C/m2, m, V
+        vec2 r;
         bool canEmit;
+        double dl;
     };
     vec2* m_rCentre;
     eElem * m_electrodes;
+
+    vec2 m_charges[4][1000];
+
     int m_elec_num;
-    double m_dz;
 
 public:
 
@@ -28,7 +30,14 @@ public:
     double getPhi(double x,double y);
     void setElectrodeAngle(double deg);
     void updateGridProp();
+    void addQuad(vec2 p[4], double dl, double phi, int emit);
     static vec2 getEField(const vec2& iPos1, const vec2& iPos2);
     static vec2 getPhiField(const vec2& iPos1, const vec2& iPos2);
+
+    void initW();
+    double getW(double s_x, double s_y, double t_x, double t_y);
+    void solve_ls();
+    void getInv();
+    void solve_ls_fast();
 };
 #endif // EFIELDLAGRANGIAN_H
