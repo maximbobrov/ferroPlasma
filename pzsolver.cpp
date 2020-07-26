@@ -7,7 +7,7 @@ pzSolver::pzSolver()
     this->m_p_num=380;
     m_p=new pElem[m_p_num];
     m_rCentre=new vec2[2 * m_p_num];
-    m_dt=15e-11;//1e-11;
+    m_dt=15e-13;//1e-11;
 
     double _dx,_dz;
     _dz=w_z1-w_z0;
@@ -34,7 +34,7 @@ pzSolver::pzSolver()
     get_q();
     for (int i=0;i<m_p_num;i++) //first electrode
     {
-        m_p[i].q_ext=0.0;//-m_p[i].q;
+        m_p[i].q_ext=-m_p[i].q;
 
        // printf("i=%d q=%e q_ext=%e \n",i,m_p[i].q,m_p[i].q_ext);
     }
@@ -321,7 +321,7 @@ vec2 pzSolver::getEdepol(double x, double y)
         dx = m_p[i].r.x - x;
         dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
         r2=(dx*dx+dy*dy);
-        q=qe/(eps0*pi4) * (-m_p[i].q);
+        q=qe/(eps0*pi2) * (-m_p[i].q);
 
         c=q/((r2+delta*delta)*(w_z1 - w_z0));
         sum.x+=dx*c;
@@ -359,17 +359,6 @@ double pzSolver::getPhidepol(double x, double y)
 
         sum+=-q*log(r+delta)/(w_z1 - w_z0);
 
-
-        // sum+=q/(r2+delta);
-
-//zero charge condition on the bottom of ferroelectric
-       /* dx = m_p[i].r.x - x;
-        dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
-        r2=sqrt(dx*dx+dy*dy);
-        q=qe/(eps0*pi4) * (m_p[i].q);
-        sum-=q*(w_z1 - w_z0)*log(r2+delta);*/
-
-        // sum-=q/(r2+delta);
 
     }
     return sum;

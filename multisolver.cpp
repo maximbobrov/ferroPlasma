@@ -56,7 +56,7 @@ void multiSolver::solve(int itn)
 {
     for (int nn=0;nn<itn;nn++)
     {
-     //   m_pzSolver->get_q();
+        m_pzSolver->get_q();
 
         double phi_depol0=m_pzSolver->getPhidepol(w_x0,w_y0);
 
@@ -66,22 +66,22 @@ void multiSolver::solve(int itn)
             x=m_Esolver->m_electrodes[i].r.x;
             y=m_Esolver->m_electrodes[i].r.y;
 
-            m_Esolver->m_electrodes[i].phi_fix_charges=0.0*(m_pzSolver->getPhidepol(x,y)-phi_depol0);
+            m_Esolver->m_electrodes[i].phi_fix_charges=(m_pzSolver->getPhidepol(x,y)-phi_depol0);
         }
-        m_Esolver->solvePhi(2);
-       // updateEforPz();
+        m_Esolver->solve_ls_fast();
+        updateEforPz();
 
-       // m_pzSolver->solvePz(5);
+        m_pzSolver->solvePz(5);
 
     }
-  //  double dt_elec=15e-11;
-  //  electronEmission(dt_elec);
-   // updateEforElec();
-   // m_pzSolver->step();
-  //  m_elecSolver->step(dt_elec);
-  //  electronExchange(dt_elec);
+    double dt_elec=15e-11;
+    electronEmission(dt_elec);
+    updateEforElec();
+    m_pzSolver->step();
+    m_elecSolver->step(dt_elec);
+    electronExchange(dt_elec);
 
-   /* //debug below
+    /* //debug below
 
     for (int nn=0;nn<itn;nn++)
     {

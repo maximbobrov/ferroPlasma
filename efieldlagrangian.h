@@ -16,9 +16,8 @@ public:
     };
     vec2* m_rCentre;
     eElem * m_electrodes;
-
-    vec2 m_charges[4][1000];
-
+    vec2 m_charges[1000];
+    int m_chargeNum;
     int m_elec_num;
 
 public:

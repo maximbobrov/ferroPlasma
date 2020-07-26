@@ -2,13 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include  <GL/gl.h>
-#include  <GL/glu.h>
-#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+//#include  <GL/gl.h>
+//#include  <GL/glu.h>
+//#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
 
-//#include <my_include/gl.h>
-//#include <my_include/glu.h>
-//#include <my_include/glut.h>
+#include <my_include/gl.h>
+#include <my_include/glu.h>
+#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -43,7 +43,7 @@ int view=VIEW_PHI;
 
 int redr=0;
 
-double ck=2.0;
+double ck=1.0;
 
 double cv=0.001;
 
@@ -79,6 +79,7 @@ void updateEulFields()
     double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
 
     pz_solver->get_q();
+    multi_solver->updateEforPz();
     for (int i=0;i<N_X;i++)
     {
         for (int j=0;j<N_Y;j++)
@@ -89,12 +90,12 @@ void updateEulFields()
 
             Py_[i][j]=pz_solver->getPhidepol(x,y)-phi_depol0;
 
-           // printf("P=%e \n",Py_[i][j]);
+            // printf("P=%e \n",Py_[i][j]);
             phi_[i][j]=lagr_solver->getPhi(x,y)+Py_[i][j];
 
 
 
-        /*    Ey[i][j]=lagr_solver->getE(x,y).y;
+            /*    Ey[i][j]=lagr_solver->getE(x,y).y;
 
             pz_solver->get_q();
 
@@ -152,7 +153,7 @@ void display(void)
     if (redr==1)
     {
         for (int i=0;i<1;i++)
-            multi_solver->solve(20);
+            multi_solver->solve(2);
         double pzmax=0.0;
         for (int i=0;i<pz_solver->m_p_num;i++)
         {
@@ -189,7 +190,7 @@ void display(void)
         for (j=0;j<N_Y;j++)
         {
             if (view==VIEW_PHI)
-                l_2=ck*(phi_[i][j])/phi_max;
+                l_2=0.02 * ck*(phi_[i][j]);
             if (view==VIEW_P)
                 l_2=ck*(Py_[i][j])/p_max;
             if (view==VIEW_PX)
@@ -203,7 +204,7 @@ void display(void)
             glVertex2f(1.3*(w_x0+dx*(i)),1.3*(w_y0+dy*j));
 
             if (view==VIEW_PHI)
-                l_2=ck*(phi_[i+1][j])/phi_max;
+                l_2=0.02 * ck*(phi_[i+1][j]);
             if (view==VIEW_P)
                 l_2=ck*(Py_[i+1][j])/p_max;
             if (view==VIEW_PX)
@@ -238,7 +239,7 @@ void display(void)
         //printf("i=%d phi=%e  phi_fix=%e\n",i,lagr_solver->m_electrodes[i].phi_ext,lagr_solver->m_electrodes[i].phi_fix);
         //glColor3f(c,c,-c);
         if (lagr_solver->m_electrodes[i].canEmit)
-        glColor3f(0.25,0.25,1);
+            glColor3f(0.25,0.25,1);
         else
             glColor3f(1,1,1);
 
@@ -247,11 +248,11 @@ void display(void)
         glVertex3f(x,y,0.0);
     }
 
-    for (int i=0;i<lagr_solver->m_elec_num/4;i++)
+    for (int i=0;i<lagr_solver->m_chargeNum;i++)
     {
         glColor3f(0,0.5,0);
-        double x=(lagr_solver->m_charges[0][i].x);
-        double y=(lagr_solver->m_charges[0][i].y);
+        double x=(lagr_solver->m_charges[i].x);
+        double y=(lagr_solver->m_charges[i].y);
         glVertex3f(x,y,0.0);
     }
     glEnd();
@@ -283,7 +284,7 @@ void display(void)
     glEnd();
 
 
- /*   glColor3f(0.5,0.5,0.5);
+    /*   glColor3f(0.5,0.5,0.5);
 
     glBegin(GL_LINE_LOOP);
 
@@ -329,7 +330,7 @@ void display(void)
     glLineWidth(1.0);
 
 
-   /* glDisable(GL_DEPTH_TEST);
+    glDisable(GL_DEPTH_TEST);
     glLineWidth(3.5);
     glBegin(GL_LINE_STRIP);
 
@@ -346,7 +347,7 @@ void display(void)
     for( i=0; i < pz_solver->m_p_num; i++ )
     {
         glColor3f(1.0,0.0,1.0);
-        glVertex2f(pz_solver->m_p[i].r.x, 1e-3 * scale * pz_solver->m_p[i].q * (w_y1 - w_y0));
+        glVertex2f(pz_solver->m_p[i].r.x, 1e-10 * scale * pz_solver->m_p[i].E * (w_y1 - w_y0));
     }
     glEnd();
 
@@ -355,7 +356,7 @@ void display(void)
     glColor3f(1.0,1.0,1.0);
     glVertex2f(pz_solver->m_p[0].r.x, 0);
     glVertex2f(pz_solver->m_p[pz_solver->m_p_num - 1].r.x, 0);
-    glEnd();*/
+    glEnd();
 
     glutSwapBuffers();
     if (redr==1) glutPostRedisplay();
@@ -409,36 +410,26 @@ void kb(unsigned char key, int x, int y)
     if (key=='.')
     {
         scale*=1.1;
-         ck*=1.1;
-        printf("scale=%f \n", scale);
+
+        printf("scale=%e \n", scale);
     }
 
     if (key==',')
     {
         scale/=1.1;
-        ck/=1.1;
-        printf("scale=%f \n", scale);
+
+        printf("scale=%e \n", scale);
     }
     if (key==']')
     {
-        // dt*=1.1;
-        //  printf("dt=%e \n",dt);
-        angle+=10.;
-        lagr_solver->setElectrodeAngle(angle);
-        //pz_solver->m_dt*=1.1;
-
-        //printf("dt=%e \n",pz_solver->m_dt);
+        ck*=1.1;
+        printf("ck=%e \n", ck);
     }
 
     if (key=='[')
     {
-        angle-=10.;
-        lagr_solver->setElectrodeAngle(angle);
-        //  dt/=1.1;
-        //  printf("dt=%e \n",dt);
-        // pz_solver->m_dt/=1.1;
-        // printf("dt=%e \n",pz_solver->m_dt);
-
+        ck/=1.1;
+        printf("ck=%e \n", ck);
     }
 
     if (key=='1')
@@ -497,7 +488,7 @@ void kb(unsigned char key, int x, int y)
     {
 
         double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
-printf("here i am ppp=%e \n",phi_depol0);
+        printf("here i am ppp=%e \n",phi_depol0);
         for (int i=0;i<lagr_solver->m_elec_num;i++)
         {
             double x,y;
@@ -557,7 +548,7 @@ void init()
     multi_solver->m_pzSolver = pz_solver;
     multi_solver->m_elecSolver = elec_solver;
 
-   //lagr_solver->solvePhi(10);
+    //lagr_solver->solvePhi(10);
 }
 
 

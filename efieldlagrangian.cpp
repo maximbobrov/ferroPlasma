@@ -134,7 +134,7 @@ eFieldLagrangian::eFieldLagrangian()
     m_elec_num=0;
     m_electrodes=new eElem[2000];
     m_rCentre=new vec2[2000];
-
+    m_chargeNum = 0 ;
 
     vec2 p[5];
 
@@ -150,11 +150,10 @@ eFieldLagrangian::eFieldLagrangian()
     p[0].x=w_x0;        p[0].y=w_y0;
     p[1].x=w_x1;        p[1].y=w_y0;
     p[2].x=w_x1;        p[2].y=w_y0-10e-9;
-    p[3].x=w_x0; p[3].y=w_y0-10e-9;
+    p[3].x=w_x0;        p[3].y=w_y0-10e-9;
     p[4].x=p[0].x;      p[4].y=p[0].y;
 
     addQuad(p,2e-9,1,-1);
-
 
     initW();
 
@@ -233,7 +232,7 @@ void eFieldLagrangian::addQuad(vec2 p[5], double dl,double phi, int emit) //last
     for (int i=0;i<4;i++)
     {
         l_[i]=sqrt((p[i+1].x-p[i].x)*(p[i+1].x-p[i].x)+(p[i+1].y-p[i].y)*(p[i+1].y-p[i].y));
-        n_[i]=4*(((int)(l_[i]/dl))/4);
+        n_[i]=(int)(l_[i]/dl);
         double dl_l=l_[i]/n_[i];
         for (int j=0;j<n_[i];j++)
         {
@@ -266,22 +265,35 @@ void eFieldLagrangian::addQuad(vec2 p[5], double dl,double phi, int emit) //last
 
     int n1=m_elec_num;
 
-    int nn=0;
+    for (int i=n0/2;i<n1/2;i++)
+    {
+        double x,y;
+        x = 0.975*((m_electrodes[i*2].r.x + m_electrodes[i*2+1].r.x)*0.5-c_m.x)+c_m.x;
+        y = 0.975*((m_electrodes[i*2].r.y + m_electrodes[i*2+1].r.y)*0.5-c_m.y)+c_m.y;
+
+        m_charges[m_chargeNum].x=x;
+        m_charges[m_chargeNum].y=y;
+        m_charges[m_chargeNum].charge=0.0;
+        m_chargeNum++;
+    }
+
     for (int i=n0/4;i<n1/4;i++)
     {
         double x,y;
-        x = 0.95*((m_electrodes[i*4].r.x + m_electrodes[i*4+1].r.x + m_electrodes[i*4+2].r.x + m_electrodes[i*4+3].r.x)*0.25-c_m.x)+c_m.x;
-        y = 0.95*((m_electrodes[i*4].r.y + m_electrodes[i*4+1].r.y + m_electrodes[i*4+2].r.y + m_electrodes[i*4+3].r.y)*0.25-c_m.y)+c_m.y;
-        nn++;
+        x = 0.75*((m_electrodes[i*4].r.x + m_electrodes[i*4+1].r.x + m_electrodes[i*4+2].r.x + m_electrodes[i*4+3].r.x)*0.25-c_m.x)+c_m.x;
+        y = 0.75*((m_electrodes[i*4].r.y + m_electrodes[i*4+1].r.y + m_electrodes[i*4+2].r.y + m_electrodes[i*4+3].r.y)*0.25-c_m.y)+c_m.y;
 
-        m_charges[0][i].x=x;
-        m_charges[0][i].y=y;
-        m_charges[0][i].charge=0.0;
+        m_charges[m_chargeNum].x=x;
+        m_charges[m_chargeNum].y=y;
+        m_charges[m_chargeNum].charge=0.0;
+        m_chargeNum++;
     }
 
-    printf("nn=%d \n",nn);
+    m_charges[m_chargeNum].x=c_m.x;
+    m_charges[m_chargeNum].y=c_m.y;
+    m_charges[m_chargeNum].charge=0.0;
+    m_chargeNum++;
 }
-
 
 double eFieldLagrangian::getW(double s_x, double s_y,double t_x, double t_y) //get Weight function ;//source (charge) and target (monitoring point)
 {
@@ -306,7 +318,7 @@ double eFieldLagrangian::getW(double s_x, double s_y,double t_x, double t_y) //g
 double eFieldLagrangian::getPhi(double x, double y)
 {
     double sum=0.0;
-    for (int i=0;i<m_elec_num/4;i++)
+    for (int i=0;i<m_chargeNum;i++)
     {
         //    int i=1;
         double r;
@@ -314,24 +326,23 @@ double eFieldLagrangian::getPhi(double x, double y)
         double dx,dy;
         double delta=1e-9;
 
-        dx = m_charges[0][i].x - x;
-        dy = m_charges[0][i].y - y;
+        dx = m_charges[i].x - x;
+        dy = m_charges[i].y - y;
         r=sqrt(dx*dx+dy*dy);
-        q=qe/(eps0*pi2) * (m_charges[0][i].charge);
+        q=qe/(eps0*pi2) * (m_charges[i].charge);
 
         sum+=-q*log(r+delta)/(w_z1 - w_z0);
     }
     return sum;
 }
 
-
 void eFieldLagrangian::initW()
 {
-    for(int i=0;i<m_elec_num/4;i++)
+    for(int i=0;i<m_chargeNum;i++)
     {
         for(int j=0;j<m_elec_num;j++)
         {
-            m_W[i][j]=getW(m_charges[0][i].x,m_charges[0][i].y,m_electrodes[j].r.x,m_electrodes[j].r.y);
+            m_W[i][j]=getW(m_charges[i].x,m_charges[i].y,m_electrodes[j].r.x,m_electrodes[j].r.y);
         }
     }
 }
@@ -340,7 +351,7 @@ void eFieldLagrangian::initW()
 
 void eFieldLagrangian::solve_ls()
 {
-    int var_num=m_elec_num/4;
+    int var_num=m_chargeNum;
     int eq_num=m_elec_num;
 
     for (int i=0;i<var_num;i++)
@@ -379,14 +390,14 @@ void eFieldLagrangian::solve_ls()
     for (int i=0;i<var_num;i++)
     {
 
-        m_charges[0][i].charge=x_m[i];
+        m_charges[i].charge=x_m[i];
     }
 }
 
 
 void eFieldLagrangian::getInv()
 {
-    int var_num=m_elec_num/4;
+    int var_num=m_chargeNum;
     int eq_num=m_elec_num;
 
     for (int i=0;i<var_num;i++)
@@ -408,7 +419,7 @@ void eFieldLagrangian::getInv()
 
 void eFieldLagrangian::solve_ls_fast()
 {
-    int var_num=m_elec_num/4;
+    int var_num=m_chargeNum;
     int eq_num=m_elec_num;
 
 
@@ -437,7 +448,7 @@ void eFieldLagrangian::solve_ls_fast()
     for (int i=0;i<var_num;i++)
     {
 
-        m_charges[0][i].charge=x_m[i];
+        m_charges[i].charge=x_m[i];
     }
 }
 
@@ -506,7 +517,7 @@ void eFieldLagrangian::setElectrodeAngle(double deg)
 
 vec2 eFieldLagrangian::getE(double x, double y)
 {
-    vec2 EField;
+    /*vec2 EField;
     vec2 pos(x,y,0.0);
     //getFieldFast(pos, m_rCentre, getEField, EField);
     //return EField;
@@ -529,5 +540,32 @@ vec2 eFieldLagrangian::getE(double x, double y)
         sum.y+=q*dyy/(r2+delta*delta)/log(delta);
     }
     //printf("ex = %e ex2 = %e  ey = %e ey2 = %e\n", EField.x, sum.x, EField.y, sum.y );
+    return sum;*/
+
+    vec2 EField;
+    vec2 pos(x,y,0.0);
+    //getFieldFast(pos, m_rCentre, getEField, EField);
+    //return EField;
+    vec2 sum;
+    sum.x=0.0; sum.y=0.0;
+    for (int i=0;i<m_chargeNum;i++)
+    {
+        double r2;
+        double q;
+        double dx,dy;
+        double delta=1e-9;
+
+        dx = m_charges[i].x - x;
+        dy = m_charges[i].y - y;
+        r2=(dx*dx+dy*dy);
+        q=qe/(eps0*pi2) * (m_charges[i].charge);
+
+        double c=q/((r2+delta*delta)*(w_z1 - w_z0));
+
+        sum.x+=c*dx;
+        sum.y+=c*dy;
+
+    }
     return sum;
 }
+
