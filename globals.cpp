@@ -9,6 +9,8 @@ double RHS[N_X][N_Y],RHS_p[N_X][N_Y],E_x[N_X][N_Y],E_y[N_X][N_Y];
 int num_thread=1;
 uint32_t xr[32],yr[32],zr[32],wr[32];
 
+double E_global=1e7;
+
 double get_time(void) {
     struct timeval tv;
     struct timezone tz;

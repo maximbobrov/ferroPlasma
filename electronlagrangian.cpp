@@ -29,16 +29,16 @@ double electronLagrangian::calcJ(double Ein)
 
 int electronLagrangian::create_electron(vec2 &pos, double Emag, double Dt, double ds)
 {
-    int num_in_pack=1.0;
-    double el_to_add = calcJ(Emag * 5)*Dt*ds/(qe*num_in_pack);
+    int num_in_pack=10.0;
+    double el_to_add = calcJ(Emag)*Dt*ds/(fabs(qe)*num_in_pack);
 
     int ne=(int) el_to_add;
     ne+=((rand()*1.0)/RAND_MAX < (el_to_add - ne)); //extra electron
 
 
 
-    printf("Emag=%e j=%e el_to_ad=%e ne=%d \n", Emag, calcJ(Emag*5), el_to_add,ne);
-    int upto=MIN(m_numParticles+ne,m_maxParticles);
+    printf("Emag=%e j=%e el_to_ad=%e ne=%d \n", Emag, calcJ(Emag), el_to_add,ne);
+    int upto=MIN(m_numParticles+ne,m_maxParticles-1);
     for (int n = m_numParticles; n < upto; ++n)
     {
         m_bodyPos[n].x = pos.x+(rand()*2e-9/RAND_MAX)+1e-9;
@@ -113,7 +113,7 @@ void electronLagrangian::step(double dt)
     // create_random_particles();
 
     for( i=0; i<m_numParticles; i++ ) {
-        float magn=100.0;//qe/Me;//1e-1;
+        float magn=qe/Me;//1e-1;
         vec2 ev=m_bodyE[i];
         m_bodyVel[i].x -= magn*(ev.x)*dt;
         m_bodyVel[i].y -= magn*(ev.y)*dt;
@@ -135,7 +135,7 @@ void electronLagrangian::step(double dt)
         }
 
     }
-    updateGridProp();
+    //updateGridProp();
 }
 
 void electronLagrangian::updateGridProp()

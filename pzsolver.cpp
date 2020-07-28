@@ -7,7 +7,7 @@ pzSolver::pzSolver()
     this->m_p_num=380;
     m_p=new pElem[m_p_num];
     m_rCentre=new vec2[2 * m_p_num];
-    m_dt=15e-13;//1e-11;
+    m_dt=45e-13;//1e-11;
 
     double _dx,_dz;
     _dz=w_z1-w_z0;
@@ -16,11 +16,11 @@ pzSolver::pzSolver()
 
     for (int i=0;i<m_p_num;i++) //first electrode
     {
-        m_p[i].dl=50.0e-9; //100 nm width;
+        m_p[i].dl=45.0e-9; //100 nm width;
         double alpha=i*1.0/(m_p_num-1);
         m_p[i].r.x = (w_x0)*(1.0-alpha)+w_x1*alpha;
-        m_p[i].r.y = (w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
-        m_p[i].p = -0.26;//+rand()*0.043/RAND_MAX;
+        m_p[i].r.y = w_y0+25e-9;//(w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
+        m_p[i].p = -0.26;//-0.1*(rand()*1.0/RAND_MAX-0.5);//0.0;//-0.005;//-0.26;//+rand()*0.043/RAND_MAX;
         m_p[i].p_prev = m_p[i].p;
 
         m_p[i].E=1.0e8;
@@ -30,7 +30,7 @@ pzSolver::pzSolver()
         m_p[i].q_ext=0.0;
     }
 
-    m_p[0].p = 0.26;
+    m_p[0].p = 0.26;//0.005;//0.26;
     get_q();
     for (int i=0;i<m_p_num;i++) //first electrode
     {
@@ -81,9 +81,9 @@ void  pzSolver::setWallPos(double a)
     for (int i=0;i<m_p_num;i++) //first electrode
     {
         if ((i*1.0)/(m_p_num-1)<a)
-        m_p[i].p = 0.26;//+rand()*0.043/RAND_MAX;
+        m_p[i].p = 0.005;//0.26;//+rand()*0.043/RAND_MAX;
         else
-        m_p[i].p = -0.26;
+        m_p[i].p = -0.005;//-0.26;
     }
     get_q();
 }
@@ -311,21 +311,21 @@ vec2 pzSolver::getEdepol(double x, double y)
         dx = m_p[i].r.x - x;
         dy = m_p[i].r.y + m_p[i].dl*0.5 - y;
         r2=(dx*dx+dy*dy);
-        q=qe/(eps0*pi2) * (m_p[i].q+m_p[i].q_ext);
+        q=-qe/(eps0*pi2) * (m_p[i].q+m_p[i].q_ext);
 
         double c=q/((r2+delta*delta)*(w_z1 - w_z0));
 
         sum.x+=c*dx;
         sum.y+=c*dy;
 
-        dx = m_p[i].r.x - x;
+      /*  dx = m_p[i].r.x - x;
         dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
         r2=(dx*dx+dy*dy);
-        q=qe/(eps0*pi2) * (-m_p[i].q);
+        q=-qe/(eps0*pi2) * (-m_p[i].q);
 
         c=q/((r2+delta*delta)*(w_z1 - w_z0));
         sum.x+=dx*c;
-        sum.y+=dy*c; //zero charge at the bottom
+        sum.y+=dy*c; //zero charge at the bottom*/
     }
     return sum;
 }
@@ -350,14 +350,14 @@ double pzSolver::getPhidepol(double x, double y)
         r=sqrt(dx*dx+dy*dy);
         q=qe/(eps0*pi2) * (m_p[i].q+m_p[i].q_ext);
 
-        sum+=-q*log(r+delta)/(w_z1 - w_z0);
+        sum+=q*log(r+delta)/(w_z1 - w_z0);
 
-        dx = m_p[i].r.x - x;
+      /*  dx = m_p[i].r.x - x;
         dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
         r=sqrt(dx*dx+dy*dy);
         q=qe/(eps0*pi2) * (-m_p[i].q);
 
-        sum+=-q*log(r+delta)/(w_z1 - w_z0);
+        sum+=q*log(r+delta)/(w_z1 - w_z0);*/
 
 
     }

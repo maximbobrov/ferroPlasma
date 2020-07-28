@@ -11,8 +11,8 @@
 
 #define M_PI 3.1415926535
 
-#define N_X 257
-#define N_Y 129
+#define N_X 125
+#define N_Y 80
 #define N_Y_DIEL 64
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -107,6 +107,7 @@ double solve_poly(poly &p,double _x0, double rhs,int itn);
 
 void rand_init();
 
+extern double E_global;
 
 float my_rand(int i);
 float getVms_from_Ev(float eps_in_ev);

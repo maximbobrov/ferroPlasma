@@ -2,13 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//#include  <GL/gl.h>
-//#include  <GL/glu.h>
-//#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+#include  <GL/gl.h>
+#include  <GL/glu.h>
+#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
 
-#include <my_include/gl.h>
-#include <my_include/glu.h>
-#include <my_include/glut.h>
+//#include <my_include/gl.h>
+//#include <my_include/glu.h>
+//#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -76,9 +76,10 @@ void updateEulFields()
     lagr_solver->updatePhi();
     lagr_solver->solvePhi(100);
 
+     pz_solver->get_q();
     double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
 
-    pz_solver->get_q();
+
     multi_solver->updateEforPz();
     for (int i=0;i<N_X;i++)
     {
@@ -88,18 +89,17 @@ void updateEulFields()
             x=1.3*(w_x0+dx*(i));
             y=1.3*(w_y0+dy*j);
 
-            Py_[i][j]=pz_solver->getPhidepol(x,y)-phi_depol0;
+            Py_[i][j]=pz_solver->getPhidepol(x,y);//-phi_depol0;
 
             // printf("P=%e \n",Py_[i][j]);
-            phi_[i][j]=lagr_solver->getPhi(x,y)+Py_[i][j];
+            phi_[i][j]=lagr_solver->getPhi(x,y);//+Py_[i][j];
 
 
 
-            /*    Ey[i][j]=lagr_solver->getE(x,y).y;
+               Ey[i][j]=lagr_solver->getE(x,y).y;
 
-            pz_solver->get_q();
 
-            Ex[i][j]=pz_solver->getEdepol(x,y).y;*/
+            Ex[i][j]=pz_solver->getEdepol(x,y).y;//+Ey[i][j];
 
 
 
@@ -147,19 +147,23 @@ void display(void)
     dphicp=-(pz_solver->getPhidepol(xc,yp)-pz_solver->getPhidepol(xc,ym))/(yp-ym);
 
     //printf("phi_max=%e Phi_p_max=%e Ey_max=%e Ep_max=%e\n",phi_max,p_max,e_max,div_max);
-    printf("phi_c=%e Phi_p_c=%e Ey_c=%e fphic=%e Ep_c=%e ffp=%e \n",phic,phipc,Ec,dphic,Epc,dphicp);
+  //  printf("phi_c=%e Phi_p_c=%e Ey_c=%e fphic=%e Ep_c=%e ffp=%e \n",phic,phipc,Ec,dphic,Epc,dphicp);
 
 
     if (redr==1)
     {
-        for (int i=0;i<1;i++)
-            multi_solver->solve(2);
+        for (int i=0;i<10;i++)
+            multi_solver->solve(1);
         double pzmax=0.0;
+        double E_in=0.0;
         for (int i=0;i<pz_solver->m_p_num;i++)
         {
             if (fabs(pz_solver->m_p[i].p)>fabs(pzmax)) pzmax=(pz_solver->m_p[i].p);
+            E_in+=pz_solver->m_p[i].E;
         }
+        E_in/=pz_solver->m_p_num;
 
+        printf("pz_max=%e  E=%e E_in=%e \n",pzmax,E_global,E_in);
         updateEulFields();
         //  sweep();
     }
@@ -190,7 +194,7 @@ void display(void)
         for (j=0;j<N_Y;j++)
         {
             if (view==VIEW_PHI)
-                l_2=0.02 * ck*(phi_[i][j]);
+                l_2= ck*(phi_[i][j]);
             if (view==VIEW_P)
                 l_2=ck*(Py_[i][j])/p_max;
             if (view==VIEW_PX)
@@ -204,7 +208,7 @@ void display(void)
             glVertex2f(1.3*(w_x0+dx*(i)),1.3*(w_y0+dy*j));
 
             if (view==VIEW_PHI)
-                l_2=0.02 * ck*(phi_[i+1][j]);
+                l_2=ck*(phi_[i+1][j]);
             if (view==VIEW_P)
                 l_2=ck*(Py_[i+1][j])/p_max;
             if (view==VIEW_PX)
@@ -257,24 +261,24 @@ void display(void)
     }
     glEnd();
 
-    glPointSize(2.5);
+    glPointSize(5.5);
     glBegin(GL_POINTS);
 
     for( i=0; i<elec_solver->m_numParticles; i++ )
     {
-        glColor3f(0.0,0.0,1.0);
+        glColor3f(1.0,0.0,1.0);
         glVertex2f(elec_solver->m_bodyPos[i].x,elec_solver->m_bodyPos[i].y);
     }
     glEnd();
 
-    double vel_scale=10.0;//sqrt(vel_scale/numParticles+0.0001);
+    double vel_scale=1900000.0;//sqrt(vel_scale/numParticles+0.0001);
     double leng_sacle=0.01*(w_x1-w_x0);
     glBegin(GL_LINES);
 
     for( i=0; i<elec_solver->m_numParticles; i++ )
     {
         // float pot=get_nearwall_potential(bodyPos[i].x,bodyPos[i].y);
-        glColor3f(1.0*fabs(elec_solver->m_bodyVel[i].x)/vel_scale,4.0*fabs(elec_solver->m_bodyVel[i].y)/vel_scale, 0.0);
+        glColor3f(1,1,1);
         // glColor3f(ck*pot,ck*pot,-ck*pot);
         glVertex2f(elec_solver->m_bodyPos[i].x,elec_solver->m_bodyPos[i].y);
         glColor3f(0.0,0.0,0.0);
@@ -331,17 +335,17 @@ void display(void)
 
 
     glDisable(GL_DEPTH_TEST);
-    glLineWidth(3.5);
+    glLineWidth(1.5);
     glBegin(GL_LINE_STRIP);
 
     for( i=0; i < pz_solver->m_p_num; i++ )
     {
-        glColor3f(1.0,0.0,0.0);
-        glVertex2f(pz_solver->m_p[i].r.x, 1e-3 * scale * pz_solver->m_p[i].q_ext * (w_y1 - w_y0));
+        glColor3f(0.5,0.5,1.0);
+        glVertex2f(pz_solver->m_p[i].r.x, 1e-3 * scale * (pz_solver->m_p[i].q_ext+pz_solver->m_p[i].q) * (w_y1 - w_y0));
     }
     glEnd();
 
-    glLineWidth(3.5);
+    /*glLineWidth(3.5);
     glBegin(GL_LINE_STRIP);
 
     for( i=0; i < pz_solver->m_p_num; i++ )
@@ -356,7 +360,7 @@ void display(void)
     glColor3f(1.0,1.0,1.0);
     glVertex2f(pz_solver->m_p[0].r.x, 0);
     glVertex2f(pz_solver->m_p[pz_solver->m_p_num - 1].r.x, 0);
-    glEnd();
+    glEnd();*/
 
     glutSwapBuffers();
     if (redr==1) glutPostRedisplay();
@@ -471,16 +475,29 @@ void kb(unsigned char key, int x, int y)
     }
 
 
+    if (key=='8')
+    {
+    //    wall_pos+=0.01;
+    //    pz_solver->setWallPos(wall_pos);
+        E_global=-E_global;
+        printf("E_global=%e \n",E_global);
+    }
+
     if (key=='0')
     {
-        wall_pos+=0.01;
-        pz_solver->setWallPos(wall_pos);
+    //    wall_pos+=0.01;
+    //    pz_solver->setWallPos(wall_pos);
+        E_global*=1.1;
+        printf("E_global=%e \n",E_global);
     }
 
     if (key=='9')
     {
-        wall_pos-=0.01;
-        pz_solver->setWallPos(wall_pos);
+      //  wall_pos-=0.01;
+       // pz_solver->setWallPos(wall_pos);
+        E_global/=1.1;
+        printf("E_global=%e \n",E_global);
+
     }
 
 
