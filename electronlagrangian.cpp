@@ -29,8 +29,10 @@ double electronLagrangian::calcJ(double Ein)
 
 int electronLagrangian::create_electron(vec2 &pos, double Emag, double Dt, double ds)
 {
-    int num_in_pack=10.0;
-    double el_to_add = calcJ(Emag)*Dt*ds/(fabs(qe)*num_in_pack);
+    int num_in_pack=int(Emag);//10.0;
+    double el_to_add = calcJ(Emag)*Dt*ds/(fabs(qe)/**num_in_pack*/);
+    num_in_pack = int(el_to_add/10+1);
+    el_to_add /= num_in_pack;
 
     int ne=(int) el_to_add;
     ne+=((rand()*1.0)/RAND_MAX < (el_to_add - ne)); //extra electron

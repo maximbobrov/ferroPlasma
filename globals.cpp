@@ -149,6 +149,8 @@ double solve_poly(poly &p,double _x0, double rhs,int itn)
 
 //multigr--------------------------------------------
 double frequency = 2e7;
+double dtKoef = 1;
+bool emitElectrons = false;
 
 double tt=0.0; //curr time
 

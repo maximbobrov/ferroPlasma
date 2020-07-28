@@ -108,6 +108,8 @@ double solve_poly(poly &p,double _x0, double rhs,int itn);
 void rand_init();
 
 extern double E_global;
+extern double dtKoef;
+extern bool emitElectrons;
 
 float my_rand(int i);
 float getVms_from_Ev(float eps_in_ev);

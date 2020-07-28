@@ -36,27 +36,33 @@ void multiSolver::updateEforElec()
 
 void multiSolver::electronEmission(double d_t)
 {
-    double eMean=0.0;
-    double emass=0.0;
-    for (int i=0;i<m_Esolver->m_elec_num;i++)
+    if(emitElectrons)
     {
-        if (m_Esolver->m_electrodes[i].canEmit)
+        double eMean=0.0;
+        double emass=0.0;
+        for (int i=0;i<m_Esolver->m_elec_num;i++)
         {
-            vec2 E=m_Esolver->getE(m_Esolver->m_electrodes[i].r.x+1e-9,m_Esolver->m_electrodes[i].r.y);
-            vec2 Ep=m_pzSolver->getEdepol(m_Esolver->m_electrodes[i].r.x+1e-9,m_Esolver->m_electrodes[i].r.y);
-            double ex=E.x+Ep.x;
-            double ey=E.y+Ep.y;
-            double l=sqrt(ex*ex + ey*ey);
-            eMean+=l;
-            emass+=1.0;
-            m_elecSolver->create_electron(m_Esolver->m_electrodes[i].r,l,d_t,m_Esolver->m_electrodes[i].dl*(w_z1-w_z0));
+            if (m_Esolver->m_electrodes[i].canEmit)
+            {
+                vec2 E=m_Esolver->getE(m_Esolver->m_electrodes[i].r.x+1e-9,m_Esolver->m_electrodes[i].r.y);
+                vec2 Ep=m_pzSolver->getEdepol(m_Esolver->m_electrodes[i].r.x+1e-9,m_Esolver->m_electrodes[i].r.y);
+                double ex=E.x+Ep.x;
+                double ey=E.y+Ep.y;
+                double l=sqrt(ex*ex + ey*ey);
+                eMean+=l;
+                emass+=1.0;
+                m_elecSolver->create_electron(m_Esolver->m_electrodes[i].r,l,d_t,m_Esolver->m_electrodes[i].dl*(w_z1-w_z0));
+            }
         }
     }
-   // printf("curr_elec_num=%d mass=%f E=%e\n",m_elecSolver->m_numParticles,emass, eMean/emass);
+    // printf("curr_elec_num=%d mass=%f E=%e\n",m_elecSolver->m_numParticles,emass, eMean/emass);
 }
 
 void multiSolver::solve(int itn)
 {
+    double dt_elec=1.5e-16 * dtKoef;
+    m_pzSolver->m_dt = 45e-13 /* * dtKoef*/;
+
     for (int nn=0;nn<itn;nn++)
     {
         m_pzSolver->get_q();
@@ -74,10 +80,10 @@ void multiSolver::solve(int itn)
         m_Esolver->solve_ls_fast();
         updateEforPz();
 
-       m_pzSolver->solvePz(5);
+        m_pzSolver->solvePz(5);
 
     }
-    double dt_elec=1.5e-16;
+
     electronEmission(dt_elec);
 
     printf("nele=%d \n",m_elecSolver->m_numParticles);

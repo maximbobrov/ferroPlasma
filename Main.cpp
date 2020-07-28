@@ -2,13 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include  <GL/gl.h>
-#include  <GL/glu.h>
-#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+//#include  <GL/gl.h>
+//#include  <GL/glu.h>
+//#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
 
-//#include <my_include/gl.h>
-//#include <my_include/glu.h>
-//#include <my_include/glut.h>
+#include <my_include/gl.h>
+#include <my_include/glu.h>
+#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -20,17 +20,10 @@
 #include "electronlagrangian.h"
 
 
-
-
 //#include <sys/time.h>
-
-
 
 void save_fields();
 void load_fields();
-
-
-
 
 void display(void);
 void sweep_init();
@@ -76,7 +69,7 @@ void updateEulFields()
     lagr_solver->updatePhi();
     lagr_solver->solvePhi(100);
 
-     pz_solver->get_q();
+    pz_solver->get_q();
     double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
 
 
@@ -96,7 +89,7 @@ void updateEulFields()
 
 
 
-               Ey[i][j]=lagr_solver->getE(x,y).y;
+            Ey[i][j]=lagr_solver->getE(x,y).y;
 
 
             Ex[i][j]=pz_solver->getEdepol(x,y).y;//+Ey[i][j];
@@ -147,7 +140,7 @@ void display(void)
     dphicp=-(pz_solver->getPhidepol(xc,yp)-pz_solver->getPhidepol(xc,ym))/(yp-ym);
 
     //printf("phi_max=%e Phi_p_max=%e Ey_max=%e Ep_max=%e\n",phi_max,p_max,e_max,div_max);
-  //  printf("phi_c=%e Phi_p_c=%e Ey_c=%e fphic=%e Ep_c=%e ffp=%e \n",phic,phipc,Ec,dphic,Epc,dphicp);
+    //  printf("phi_c=%e Phi_p_c=%e Ey_c=%e fphic=%e Ep_c=%e ffp=%e \n",phic,phipc,Ec,dphic,Epc,dphicp);
 
 
     if (redr==1)
@@ -477,26 +470,23 @@ void kb(unsigned char key, int x, int y)
 
     if (key=='8')
     {
-    //    wall_pos+=0.01;
-    //    pz_solver->setWallPos(wall_pos);
-        E_global=-E_global;
-        printf("E_global=%e \n",E_global);
+        emitElectrons=!emitElectrons;
     }
 
     if (key=='0')
     {
-    //    wall_pos+=0.01;
-    //    pz_solver->setWallPos(wall_pos);
-        E_global*=1.1;
-        printf("E_global=%e \n",E_global);
+        //    wall_pos+=0.01;
+        //    pz_solver->setWallPos(wall_pos);
+        dtKoef*=1.1;
+        printf("dtKoef=%e \n",dtKoef);
     }
 
     if (key=='9')
     {
-      //  wall_pos-=0.01;
-       // pz_solver->setWallPos(wall_pos);
-        E_global/=1.1;
-        printf("E_global=%e \n",E_global);
+        //  wall_pos-=0.01;
+        // pz_solver->setWallPos(wall_pos);
+        dtKoef/=1.1;
+        printf("dtKoef=%e \n",dtKoef);
 
     }
 
