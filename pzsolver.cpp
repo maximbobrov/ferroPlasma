@@ -9,6 +9,11 @@ pzSolver::pzSolver()
     m_rCentre=new vec2[2 * m_p_num];
     m_dt=45e-13;//1e-11;
 
+    init();
+}
+
+void pzSolver::init()
+{
     double _dx,_dz;
     _dz=w_z1-w_z0;
     _dx=(w_x1-w_x0)/(m_p_num-1);
@@ -21,9 +26,9 @@ pzSolver::pzSolver()
         m_p[i].r.x = (w_x0)*(1.0-alpha)+w_x1*alpha;
         m_p[i].r.y = w_y0+25e-9;//(w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
 
-      //  if (i>3)
-      //  m_p[i].p = -0.26;//-0.1*(rand()*1.0/RAND_MAX-0.5);//0.0;//-0.005;//-0.26;//+rand()*0.043/RAND_MAX;
-      //  else
+        //  if (i>3)
+        //  m_p[i].p = -0.26;//-0.1*(rand()*1.0/RAND_MAX-0.5);//0.0;//-0.005;//-0.26;//+rand()*0.043/RAND_MAX;
+        //  else
         m_p[i].p = -0.26;
 
         m_p[i].p_prev = m_p[i].p;
@@ -35,7 +40,7 @@ pzSolver::pzSolver()
         m_p[i].q_ext=0.0;
     }
 
-   // m_p[0].p = 0.26;//0.005;//0.26;
+     m_p[0].p = 0.26;//0.005;//0.26;
     get_q();
     for (int i=0;i<m_p_num;i++) //first electrode
     {
@@ -86,9 +91,9 @@ void  pzSolver::setWallPos(double a)
     for (int i=0;i<m_p_num;i++) //first electrode
     {
         if ((i*1.0)/(m_p_num-1)<a)
-        m_p[i].p = 0.005;//0.26;//+rand()*0.043/RAND_MAX;
+            m_p[i].p = 0.005;//0.26;//+rand()*0.043/RAND_MAX;
         else
-        m_p[i].p = -0.005;//-0.26;
+            m_p[i].p = -0.005;//-0.26;
     }
     get_q();
 }
@@ -97,9 +102,6 @@ void  pzSolver::setWallPos(double a)
 
 void pzSolver::solvePz(int itn)
 {
-
-
-
     //euler:
 
     /*  double alp,bet,gam,T,T0,rh;
@@ -123,9 +125,6 @@ void pzSolver::solvePz(int itn)
     m_par.bp=-kappa/(m_dx*m_dx);
     m_par.bm=-kappa/(m_dx*m_dx);
     ////////////
-
-
-
 
     getRHS();
     poly poly_new;
@@ -325,7 +324,7 @@ vec2 pzSolver::getEdepol(double x, double y)
         sum.x+=c*dx;
         sum.y+=c*dy;
 
-      /*  dx = m_p[i].r.x - x;
+        /*  dx = m_p[i].r.x - x;
         dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
         r2=(dx*dx+dy*dy);
         q=-qe/(eps0*pi2) * (-m_p[i].q);
@@ -359,7 +358,7 @@ double pzSolver::getPhidepol(double x, double y)
 
         sum+=q*log(r+delta)/(w_z1 - w_z0);
 
-      /*  dx = m_p[i].r.x - x;
+        /*  dx = m_p[i].r.x - x;
         dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
         r=sqrt(dx*dx+dy*dy);
         q=qe/(eps0*pi2) * (-m_p[i].q);

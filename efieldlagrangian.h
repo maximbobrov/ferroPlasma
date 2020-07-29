@@ -23,6 +23,7 @@ public:
 public:
 
     eFieldLagrangian();
+    void init();
     void updatePhi(); //get external potential on electrodes
     void solvePhi(int itn); //update potential
     vec2 getE(double x,double y);

@@ -2,13 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include  <GL/gl.h>
-#include  <GL/glu.h>
-#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+//#include  <GL/gl.h>
+//#include  <GL/glu.h>
+//#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
 
-//#include <my_include/gl.h>
-//#include <my_include/glu.h>
-//#include <my_include/glut.h>
+#include <my_include/gl.h>
+#include <my_include/glu.h>
+#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -39,7 +39,7 @@ void init();
 //void fmm_step(double dt);
 //void sweep();
 //void sweep_old();
-int view=VIEW_PHI;
+int view=VIEW_DIV;
 
 int redr=0;
 
@@ -58,6 +58,7 @@ std::vector <double>  avPy_;
 std::vector <double>  avEy_;
 std::vector <double>  area_;
 std::vector <double>  T_;
+FILE *file_data;
 
 
 bool view_px=true;
@@ -76,7 +77,7 @@ void updateEulFields()
     lagr_solver->updatePhi();
     lagr_solver->solvePhi(100);
 
-     pz_solver->get_q();
+    pz_solver->get_q();
     double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
 
 
@@ -96,7 +97,7 @@ void updateEulFields()
 
 
 
-               Ey[i][j]=lagr_solver->getE(x,y).y;
+            Ey[i][j]=lagr_solver->getE(x,y).y;
 
 
             Ex[i][j]=pz_solver->getEdepol(x,y).y;//+Ey[i][j];
@@ -147,7 +148,7 @@ void display(void)
     dphicp=-(pz_solver->getPhidepol(xc,yp)-pz_solver->getPhidepol(xc,ym))/(yp-ym);
 
     //printf("phi_max=%e Phi_p_max=%e Ey_max=%e Ep_max=%e\n",phi_max,p_max,e_max,div_max);
-  //  printf("phi_c=%e Phi_p_c=%e Ey_c=%e fphic=%e Ep_c=%e ffp=%e \n",phic,phipc,Ec,dphic,Epc,dphicp);
+    //  printf("phi_c=%e Phi_p_c=%e Ey_c=%e fphic=%e Ep_c=%e ffp=%e \n",phic,phipc,Ec,dphic,Epc,dphicp);
 
 
     if (redr==1)
@@ -163,8 +164,16 @@ void display(void)
         }
         E_in/=pz_solver->m_p_num;
 
-       // printf("pz_max=%e  E=%e E_in=%e \n",pzmax,E_global,E_in);
+        // printf("pz_max=%e  E=%e E_in=%e \n",pzmax,E_global,E_in);
         updateEulFields();
+
+        double wall_coord = pz_solver->m_p[2].r.x - pz_solver->m_p[0].r.x;
+        int i;
+        for( i = 2; i < pz_solver->m_p_num && pz_solver->m_p[i].p > 0; i++ )
+        {
+        }
+        wall_coord = pz_solver->m_p[i].r.x - pz_solver->m_p[0].r.x;
+        printf("e0=%e e1=%e e2=%e e3=%e wall=%e\n", pz_solver->m_p[0].p, pz_solver->m_p[1].p, pz_solver->m_p[2].p, pz_solver->m_p[3].p, wall_coord);
         //  sweep();
     }
 
@@ -413,6 +422,41 @@ void m_d(int button, int state,int x, int y)  //mouse down
     glutPostRedisplay();
 }
 
+void saveInFile()
+{
+    if(g_save_time2 * 1e15 > 100)
+    {
+        g_save_time2=0;
+        double q_sum = 0;
+        double wall_coord = pz_solver->m_p[1].r.x - pz_solver->m_p[0].r.x;
+        int i;
+        for( i = 1; i < pz_solver->m_p_num && pz_solver->m_p[i].p > 0; i++ )
+        {
+        }
+        wall_coord = pz_solver->m_p[i].r.x - pz_solver->m_p[0].r.x;
+
+        for( i = 0; i < pz_solver->m_p_num; i++ )
+        {
+            q_sum += pz_solver->m_p[i].q_ext;
+        }
+        printf("wall = %e\n", wall_coord);
+        fprintf(file_data,"%lf %e %lf\n",g_t * 1e15, wall_coord, q_sum);
+    }
+
+    int time = int(g_t * 1e15);
+    if(g_save_time * 1e15 > 1000)
+    {
+        g_save_time=0;
+        char filename[64];
+        sprintf(filename, "prifiles%d_%d.txt", int(g_phi), time);
+        FILE *file_data_=fopen(filename,"w");
+        for( int i = 0; i < pz_solver->m_p_num; i++ )
+        {
+            fprintf(file_data_,"%e  %lf  %lf \n",pz_solver->m_p[i].r.x - pz_solver->m_p[0].r.x, pz_solver->m_p[i].q_ext, pz_solver->m_p[i].q);
+        }
+        fclose(file_data_);
+    }
+}
 
 double angle=0.0;
 void kb(unsigned char key, int x, int y)
@@ -486,12 +530,12 @@ void kb(unsigned char key, int x, int y)
 
     if (key=='8')
     {
-    //    wall_pos+=0.01;
-    //    pz_solver->setWallPos(wall_pos);
-     //  E_global=-E_global;
-      //  printf("E_global=%e \n",E_global);
+        //    wall_pos+=0.01;
+        //    pz_solver->setWallPos(wall_pos);
+        //  E_global=-E_global;
+        //  printf("E_global=%e \n",E_global);
 
-         g_emitElectrons=!g_emitElectrons;
+        g_emitElectrons=!g_emitElectrons;
     }
 
     if (key=='0')
@@ -544,6 +588,39 @@ void kb(unsigned char key, int x, int y)
         printf(" pzmax =%e \n",pzmax);
     }
 
+    if (key=='g')
+    {
+        for (int i = 0;i<20;i++)
+        {
+            g_t = 0;
+            g_phi = (i+1);
+            char filename[64];
+            sprintf(filename, "output%d.txt", i+1);
+            file_data=fopen(filename,"w");
+            multi_solver->init();
+            while (g_t * 1e15 < (g_phi / 5 + 1) * 2e4)
+            {
+                multi_solver->solve(1);
+                /*if(int(g_t * 1e15) % 100 == 0)
+                {
+                    double pzmax=0.0;
+                    double E_in=0.0;
+                    for (int i=0;i<pz_solver->m_p_num;i++)
+                    {
+                        if (fabs(pz_solver->m_p[i].p)>fabs(pzmax)) pzmax=(pz_solver->m_p[i].p);
+                        E_in+=pz_solver->m_p[i].E;
+                    }
+                    E_in/=pz_solver->m_p_num;
+                    updateEulFields();
+                    glutPostRedisplay();
+                    display();
+                }*/
+                saveInFile();
+            }
+            fclose(file_data);
+        }
+    }
+
     if (key==' ')
     {
         redr=!redr;
@@ -577,6 +654,7 @@ void init()
 
     //lagr_solver->solvePhi(10);
 }
+
 
 
 

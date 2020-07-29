@@ -13,6 +13,12 @@ electronLagrangian::electronLagrangian()
     m_bodyPos = new vec2[m_maxParticles];
 }
 
+void electronLagrangian::init()
+{
+    m_threadIdx = 0;
+    m_numParticles = 0;
+}
+
 
 double electronLagrangian::calcJ(double Ein)
 {

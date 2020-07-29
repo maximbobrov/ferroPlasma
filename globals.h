@@ -110,7 +110,10 @@ void rand_init();
 extern bool g_emitElectrons;
 extern double E_global;
 extern double dtKoef;
-
+extern double g_t;
+extern double g_phi;
+extern double g_save_time;
+extern double g_save_time2;
 float my_rand(int i);
 float getVms_from_Ev(float eps_in_ev);
 

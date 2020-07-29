@@ -52,22 +52,31 @@ void multiSolver::electronEmission(double d_t)
             m_elecSolver->create_electron(m_Esolver->m_electrodes[i].r,l,d_t,m_Esolver->m_electrodes[i].dl*(w_z1-w_z0));
         }
     }
-   // printf("curr_elec_num=%d mass=%f E=%e\n",m_elecSolver->m_numParticles,emass, eMean/emass);
+    // printf("curr_elec_num=%d mass=%f E=%e\n",m_elecSolver->m_numParticles,emass, eMean/emass);
+}
+
+void multiSolver::init()
+{
+    m_Esolver->init();
+    m_elecSolver->init();
+    m_pzSolver->init();
 }
 
 void multiSolver::solve(int itn)
 {
+    double dt_elec=1.5e-16 * dtKoef;
 
+    g_t+=dt_elec;
+    g_save_time+=dt_elec;
+    g_save_time2+=dt_elec;
 
-     double dt_elec=1.5e-16 * dtKoef;
-
-    for (int i=0;i<m_Esolver->m_elec_num;i++)
+    for (int i=0;i<m_Esolver->m_elec_num && fabs(m_Esolver->m_electrodes[i].phi_fix) < g_phi;i++)
     {
-         m_Esolver->m_electrodes[i].phi_fix+=2.0*((m_Esolver->m_electrodes[i].phi_fix>0)-0.5)*0.0001*(dt_elec/1.5e-16);
-      //  printf("i=%d phi=%e \n",m_Esolver->m_electrodes[i].phi_fix);
+        m_Esolver->m_electrodes[i].phi_fix+=2.0*((m_Esolver->m_electrodes[i].phi_fix>0)-0.5)*0.0001*(dt_elec/1.5e-16);
+        //  printf("i=%d phi=%e \n",m_Esolver->m_electrodes[i].phi_fix);
     }
 
-printf("phi=%e \n",m_Esolver->m_electrodes[0].phi_fix);
+    printf("phi=%e t=%d\n",m_Esolver->m_electrodes[0].phi_fix, int(g_t * 1e15));
     for (int nn=0;nn<itn;nn++)
     {
         m_pzSolver->get_q();
@@ -85,12 +94,12 @@ printf("phi=%e \n",m_Esolver->m_electrodes[0].phi_fix);
         m_Esolver->solve_ls_fast();
         updateEforPz();
 
-       m_pzSolver->solvePz(5);
+        m_pzSolver->solvePz(5);
 
     }
 
     if (g_emitElectrons)
-    electronEmission(dt_elec);
+        electronEmission(dt_elec);
 
     printf("nele=%d \n",m_elecSolver->m_numParticles);
     updateEforElec();
@@ -164,24 +173,24 @@ void multiSolver::electronExchange(double dt)
 void multiSolver::pzEmission(double dt)
 {
     int succ=0;
-     for (int i=0;i<m_pzSolver->m_p_num;i++)
-     {
-         int q_extra=int(m_pzSolver->m_p[i].q_ext+m_pzSolver->m_p[i].q);
+    for (int i=0;i<m_pzSolver->m_p_num;i++)
+    {
+        int q_extra=int(m_pzSolver->m_p[i].q_ext+m_pzSolver->m_p[i].q);
         // if (g_emitElectrons==false)
         // printf("i=%d Qextra=%d q=%f qext=%f \n",i,q_extra,m_pzSolver->m_p[i].q,m_pzSolver->m_p[i].q_ext);
-         if ((q_extra>0)&&(m_pzSolver->m_p[i].q_ext>0.0))
-         {
-             if ((rand()*1.0/RAND_MAX)>0.9)
-             {
-                 if ((q_extra/4)>0)
-                 {
-                     m_pzSolver->m_p[i].q_ext-=q_extra/4;
-                     m_elecSolver->create_pz_electron(m_pzSolver->m_p[i].r.x,m_pzSolver->m_p[i].r.y+m_pzSolver->m_p[i].dl*0.5+1.5e-9,q_extra/4);
-                     succ++;
-                 }
-             }
-         }
-     }
-     if (succ>0)
-     printf("succ electrons created %d \n",succ);
+        if ((q_extra>0)&&(m_pzSolver->m_p[i].q_ext>0.0))
+        {
+            if ((rand()*1.0/RAND_MAX)>0.9)
+            {
+                if ((q_extra/4)>0)
+                {
+                    m_pzSolver->m_p[i].q_ext-=q_extra/4;
+                    m_elecSolver->create_pz_electron(m_pzSolver->m_p[i].r.x,m_pzSolver->m_p[i].r.y+m_pzSolver->m_p[i].dl*0.5+1.5e-9,q_extra/4);
+                    succ++;
+                }
+            }
+        }
+    }
+    if (succ>0)
+        printf("succ electrons created %d \n",succ);
 }

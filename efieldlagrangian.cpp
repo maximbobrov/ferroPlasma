@@ -130,7 +130,11 @@ void m_invert(int num)
 
 eFieldLagrangian::eFieldLagrangian()
 {
+    init();
+}
 
+void eFieldLagrangian::init()
+{
     m_elec_num=0;
     m_electrodes=new eElem[2000];
     m_rCentre=new vec2[2000];
@@ -144,7 +148,7 @@ eFieldLagrangian::eFieldLagrangian()
     p[3].x=w_x0-50e-9; p[3].y=0.5*(w_y0+w_y1);
     p[4].x=p[0].x;      p[4].y=p[0].y;
 
-    addQuad(p,2e-9,0.03,0);
+    addQuad(p,2e-9,0.35,0);
 
 
     p[0].x=w_x0;        p[0].y=w_y0;
@@ -153,7 +157,7 @@ eFieldLagrangian::eFieldLagrangian()
     p[3].x=w_x0;        p[3].y=w_y0-10e-9;
     p[4].x=p[0].x;      p[4].y=p[0].y;
 
-    addQuad(p,2e-9,-0.03,-1);
+    addQuad(p,2e-9,-0.35,-1);
 
     initW();
 
@@ -265,7 +269,7 @@ void eFieldLagrangian::addQuad(vec2 p[5], double dl,double phi, int emit) //last
 
     int n1=m_elec_num;
 
-   /* for (int i=n0/2;i<n1/2;i++)
+    /* for (int i=n0/2;i<n1/2;i++)
     {
         double x,y;
         x = 0.975*((m_electrodes[i*2].r.x + m_electrodes[i*2+1].r.x)*0.5-c_m.x)+c_m.x;

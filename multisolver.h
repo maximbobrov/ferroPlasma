@@ -21,6 +21,7 @@ public:
     void updateEforElec();
     void electronEmission(double dt);
     void solve(int itn);
+    void init();
     void step();
     void preparePz();
     void getExtChargeField();

@@ -25,6 +25,7 @@ public:
     pElem *m_p;
     int m_p_num;
     pzSolver();
+    void init();
     void solvePz(int itn);
     void getRHS();
     void get_q();
