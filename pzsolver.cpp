@@ -20,25 +20,28 @@ pzSolver::pzSolver()
         double alpha=i*1.0/(m_p_num-1);
         m_p[i].r.x = (w_x0)*(1.0-alpha)+w_x1*alpha;
         m_p[i].r.y = w_y0+25e-9;//(w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
-        m_p[i].p = -0.26;//-0.1*(rand()*1.0/RAND_MAX-0.5);//0.0;//-0.005;//-0.26;//+rand()*0.043/RAND_MAX;
+
+      //  if (i>3)
+      //  m_p[i].p = -0.26;//-0.1*(rand()*1.0/RAND_MAX-0.5);//0.0;//-0.005;//-0.26;//+rand()*0.043/RAND_MAX;
+      //  else
+        m_p[i].p = -0.26;
+
         m_p[i].p_prev = m_p[i].p;
 
         m_p[i].E=1.0e8;
         m_p[i].E_prev=m_p[i].E;
-
         m_p[i].ds=_dx*_dz;
 
         m_p[i].q_ext=0.0;
     }
 
-    //m_p[0].p = 0.26;//0.005;//0.26;
+   // m_p[0].p = 0.26;//0.005;//0.26;
     get_q();
     for (int i=0;i<m_p_num;i++) //first electrode
     {
         m_p[i].q_ext=-m_p[i].q;
 
-        m_p[i].q_ext_prev =m_p[i].q_ext;
-        // printf("i=%d q=%e q_ext=%e \n",i,m_p[i].q,m_p[i].q_ext);
+        printf("i=%d q=%e q_ext=%e \n",i,m_p[i].q,m_p[i].q_ext);
     }
 
     /* m_p[0].p = 0.26;
@@ -83,37 +86,20 @@ void  pzSolver::setWallPos(double a)
     for (int i=0;i<m_p_num;i++) //first electrode
     {
         if ((i*1.0)/(m_p_num-1)<a)
-            m_p[i].p = 0.005;//0.26;//+rand()*0.043/RAND_MAX;
+        m_p[i].p = 0.005;//0.26;//+rand()*0.043/RAND_MAX;
         else
-            m_p[i].p = -0.005;//-0.26;
+        m_p[i].p = -0.005;//-0.26;
     }
     get_q();
 }
 
-void pzSolver::electronConduct()
-{
-    /*for (int i=0;i<m_p_num;i++)
-    {
-        m_p[i].q_ext_prev = m_p[i].q_ext;
-    }
-    for (int i=1;i<m_p_num-1;i++)
-    {
-        m_p[i].q_ext = (m_p[i-1].q_ext_prev  + m_p[i].q_ext_prev  + m_p[i+1].q_ext_prev ) / 3;
-    }
-    m_p[0].q_ext = m_p[1].q_ext;//(m_p[0].q_ext_prev + m_p[1].q_ext_prev +m_p[2].q_ext_prev)/3;
-    m_p[m_p_num-1].q_ext = m_p[m_p_num-2].q_ext;// (m_p[m_p_num-1].q_ext_prev + m_p[m_p_num-2].q_ext_prev +m_p[m_p_num-3].q_ext_prev)/3;*/
-    /*m_mu = 0;
-    m_D = 0;
-    for (int i=1;i<m_p_num-1;i++)
-    {
-        m_p[i].q_ext = (m_p[i].q_ext_prev / m_dt + m_mu * (m_p[i].E - m_p[i-1].E)/m_dx + m_D * (m_p[i-1].q_ext + m_p[i+1].q_ext)/(m_dx * m_dx)) / (1/m_dt + 2/(m_dx * m_dx));
-    }
-    m_p[0].q_ext = m_p[1].q_ext;
-    m_p[m_p_num-1].q_ext = m_p[m_p_num-2].q_ext;*/
-}
+
 
 void pzSolver::solvePz(int itn)
 {
+
+
+
     //euler:
 
     /*  double alp,bet,gam,T,T0,rh;
@@ -172,7 +158,7 @@ void pzSolver::solvePz(int itn)
             m_p[i].p=m_p[i].p*0.7+0.3*solve_poly(poly_new,m_p[i].p,rhs_,3);
         }
     }
-    electronConduct();
+
     //step();
 
 }
@@ -217,7 +203,6 @@ void pzSolver::step()
 {
     for (int i=1; i<m_p_num-1; i++)
     {
-        m_p[i].q_ext_prev = m_p[i].q_ext;
         m_p[i].p_prev=m_p[i].p;
         m_p[i].E_prev=m_p[i].E;
     }
@@ -340,7 +325,7 @@ vec2 pzSolver::getEdepol(double x, double y)
         sum.x+=c*dx;
         sum.y+=c*dy;
 
-        /*  dx = m_p[i].r.x - x;
+      /*  dx = m_p[i].r.x - x;
         dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
         r2=(dx*dx+dy*dy);
         q=-qe/(eps0*pi2) * (-m_p[i].q);
@@ -374,7 +359,7 @@ double pzSolver::getPhidepol(double x, double y)
 
         sum+=q*log(r+delta)/(w_z1 - w_z0);
 
-        /*  dx = m_p[i].r.x - x;
+      /*  dx = m_p[i].r.x - x;
         dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
         r=sqrt(dx*dx+dy*dy);
         q=qe/(eps0*pi2) * (-m_p[i].q);

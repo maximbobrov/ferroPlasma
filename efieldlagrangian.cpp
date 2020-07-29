@@ -144,7 +144,7 @@ eFieldLagrangian::eFieldLagrangian()
     p[3].x=w_x0-50e-9; p[3].y=0.5*(w_y0+w_y1);
     p[4].x=p[0].x;      p[4].y=p[0].y;
 
-    addQuad(p,2e-9,2,0);
+    addQuad(p,2e-9,0.03,0);
 
 
     p[0].x=w_x0;        p[0].y=w_y0;
@@ -153,7 +153,7 @@ eFieldLagrangian::eFieldLagrangian()
     p[3].x=w_x0;        p[3].y=w_y0-10e-9;
     p[4].x=p[0].x;      p[4].y=p[0].y;
 
-    addQuad(p,2e-9,-2,-1);
+    addQuad(p,2e-9,-0.03,-1);
 
     initW();
 

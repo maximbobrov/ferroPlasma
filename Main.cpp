@@ -2,13 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//#include  <GL/gl.h>
-//#include  <GL/glu.h>
-//#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+#include  <GL/gl.h>
+#include  <GL/glu.h>
+#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
 
-#include <my_include/gl.h>
-#include <my_include/glu.h>
-#include <my_include/glut.h>
+//#include <my_include/gl.h>
+//#include <my_include/glu.h>
+//#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -20,10 +20,17 @@
 #include "electronlagrangian.h"
 
 
+
+
 //#include <sys/time.h>
+
+
 
 void save_fields();
 void load_fields();
+
+
+
 
 void display(void);
 void sweep_init();
@@ -69,7 +76,7 @@ void updateEulFields()
     lagr_solver->updatePhi();
     lagr_solver->solvePhi(100);
 
-    pz_solver->get_q();
+     pz_solver->get_q();
     double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
 
 
@@ -89,7 +96,7 @@ void updateEulFields()
 
 
 
-            Ey[i][j]=lagr_solver->getE(x,y).y;
+               Ey[i][j]=lagr_solver->getE(x,y).y;
 
 
             Ex[i][j]=pz_solver->getEdepol(x,y).y;//+Ey[i][j];
@@ -140,7 +147,7 @@ void display(void)
     dphicp=-(pz_solver->getPhidepol(xc,yp)-pz_solver->getPhidepol(xc,ym))/(yp-ym);
 
     //printf("phi_max=%e Phi_p_max=%e Ey_max=%e Ep_max=%e\n",phi_max,p_max,e_max,div_max);
-    //  printf("phi_c=%e Phi_p_c=%e Ey_c=%e fphic=%e Ep_c=%e ffp=%e \n",phic,phipc,Ec,dphic,Epc,dphicp);
+  //  printf("phi_c=%e Phi_p_c=%e Ey_c=%e fphic=%e Ep_c=%e ffp=%e \n",phic,phipc,Ec,dphic,Epc,dphicp);
 
 
     if (redr==1)
@@ -156,7 +163,7 @@ void display(void)
         }
         E_in/=pz_solver->m_p_num;
 
-        printf("pz_max=%e  E=%e E_in=%e \n",pzmax,E_global,E_in);
+       // printf("pz_max=%e  E=%e E_in=%e \n",pzmax,E_global,E_in);
         updateEulFields();
         //  sweep();
     }
@@ -338,6 +345,15 @@ void display(void)
     }
     glEnd();
 
+    glBegin(GL_LINE_STRIP);
+
+    for( i=0; i < pz_solver->m_p_num; i++ )
+    {
+        glColor3f(0.1,0.5,0);
+        glVertex2f(pz_solver->m_p[i].r.x, 1e-3 * scale * (pz_solver->m_p[i].q_ext) * (w_y1 - w_y0));
+    }
+    glEnd();
+
     /*glLineWidth(3.5);
     glBegin(GL_LINE_STRIP);
 
@@ -470,7 +486,12 @@ void kb(unsigned char key, int x, int y)
 
     if (key=='8')
     {
-        emitElectrons=!emitElectrons;
+    //    wall_pos+=0.01;
+    //    pz_solver->setWallPos(wall_pos);
+     //  E_global=-E_global;
+      //  printf("E_global=%e \n",E_global);
+
+         g_emitElectrons=!g_emitElectrons;
     }
 
     if (key=='0')
@@ -489,7 +510,6 @@ void kb(unsigned char key, int x, int y)
         printf("dtKoef=%e \n",dtKoef);
 
     }
-
 
     if (key=='=')
     {

@@ -24,6 +24,7 @@ public:
     vec2 getEe(double x, double y);
     static vec2 getEField(const vec2& iPos1, const vec2& iPos2);
     void updateGridProp();
+        void create_pz_electron(double x, double y, int q);
 
 };
 

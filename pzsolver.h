@@ -11,7 +11,7 @@ public:
     {
         double p,p_prev, ds, dl,E,E_prev,RHS;//C/m2, m, V
         vec2 r;
-        double q, q_ext, q_ext_prev; //q is dipolar charge; q_ext is the attached charge
+        double q, q_ext; //q is dipolar charge; q_ext is the attached charge
     };
 
 public:
@@ -20,8 +20,6 @@ public:
     INPUT_PARAM m_par;
 
     double m_dx;
-    double m_mu;
-    double m_D;
     double m_dt;
     double kappa;
     pElem *m_p;
@@ -33,10 +31,10 @@ public:
     void step();
     vec2 getEdepol(double x, double y);
     double getPhidepol(double x, double y);
-    void electronConduct();
     void updateCharge();
     void updateGridProp();
     void setWallPos(double a);
+
    // static vec2 getEField(const vec2& iCenterPos, const vec2& iFarPos);
    // static vec2 getPhiField(const vec2& iCenterPos, const vec2& iFarPos);
 };

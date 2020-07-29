@@ -9,7 +9,9 @@ double RHS[N_X][N_Y],RHS_p[N_X][N_Y],E_x[N_X][N_Y],E_y[N_X][N_Y];
 int num_thread=1;
 uint32_t xr[32],yr[32],zr[32],wr[32];
 
+bool g_emitElectrons=false;
 double E_global=1e7;
+double dtKoef = 1;
 
 double get_time(void) {
     struct timeval tv;
@@ -149,8 +151,6 @@ double solve_poly(poly &p,double _x0, double rhs,int itn)
 
 //multigr--------------------------------------------
 double frequency = 2e7;
-double dtKoef = 1;
-bool emitElectrons = false;
 
 double tt=0.0; //curr time
 
