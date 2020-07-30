@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include  <GL/gl.h>
-#include  <GL/glu.h>
-#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+//#include  <GL/gl.h>
+//#include  <GL/glu.h>
+//#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
 
 
-//#include <my_include/gl.h>
-//#include <my_include/glu.h>
-//#include <my_include/glut.h>
+#include <my_include/gl.h>
+#include <my_include/glu.h>
+#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -96,12 +96,12 @@ void updateEulFields()
             // printf("P=%e \n",Py_[i][j]);
             phi_[i][j]=lagr_solver->getPhi(x,y);//+Py_[i][j];
 
+            vec2 Ee = elec_solver->getEe(x,y);
+            vec2 Ed = lagr_solver->getE(x,y);
+            vec2 Epz = pz_solver->getEdepol(x,y);
 
-
-            Ey[i][j]=lagr_solver->getE(x,y).y;
-
-
-            Ex[i][j]=pz_solver->getEdepol(x,y).y;//+Ey[i][j];
+            Ey[i][j] = (Ed.x + Epz.x)*( Ed.x + Epz.x) + ( Ed.y + Epz.y)*( Ed.y + Epz.y);
+            Ex[i][j] = (Ee.x + Ed.x + Epz.x)*(Ee.x + Ed.x + Epz.x) + (Ee.y + Ed.y + Epz.y)*(Ee.y + Ed.y + Epz.y);
 
 
 

@@ -23,7 +23,7 @@ public:
     double calcJ(double Ein);
     void step(double dt);
     vec2 getEe(double x, double y);
-    static vec2 getEField(const vec2& iPos1, const vec2& iPos2);
+    static vec2 getEField(const vec2& iPos2, const vec2& iPos1);
     void updateGridProp();
         void create_pz_electron(double x, double y, int q);
 

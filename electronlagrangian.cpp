@@ -11,6 +11,23 @@ electronLagrangian::electronLagrangian()
     m_bodyVel = new vec2[m_maxParticles];
     m_bodyE = new vec2[m_maxParticles];
     m_bodyPos = new vec2[m_maxParticles];
+
+    /*m_bodyPos[0].x = w_x0 + (w_x1 - w_x0)/2;
+    m_bodyPos[0].y = w_y0 + (w_y1 - w_y0)/2 + 25e-9;
+    m_bodyPos[0].charge = 100;
+    m_bodyVel[0].x = 0.0;
+    m_bodyVel[0].y = 0.0;
+    m_bodyAccel[0].x = 0.0;
+    m_bodyAccel[0].y = 0.0;
+
+
+    m_bodyPos[1].x = w_x0 + (w_x1 - w_x0)/2+ 25e-9;
+    m_bodyPos[1].y = w_y0 + (w_y1 - w_y0)/2 +25e-9;
+    m_bodyPos[1].charge = 100;
+    m_bodyVel[1].x = 0.0;
+    m_bodyVel[1].y = 0.0;
+    m_bodyAccel[1].x = 0.0;
+    m_bodyAccel[1].y = 0.0;*/
 }
 
 void electronLagrangian::init()
@@ -145,7 +162,7 @@ void electronLagrangian::step(double dt)
         }
 
     }
-    //updateGridProp();
+    updateGridProp();
 }
 
 void electronLagrangian::updateGridProp()
@@ -198,25 +215,29 @@ void electronLagrangian::create_pz_electron(double x, double y, int q)
     }
 }
 
-vec2 electronLagrangian::getEField(const vec2& iCenterPos, const vec2& iFarPos)
+vec2 electronLagrangian::getEField(const vec2& iFarPos, const vec2& iCenterPos)
 {
     vec2 E;
     vec2 dist;
     float invDist2;
 
+    double delta=1e-9;
+
     dist.x = iCenterPos.x - iFarPos.x;
     dist.y = iCenterPos.y - iFarPos.y;
+    double r2 = (dist.x*dist.x+dist.y*dist.y);
 
-    invDist2 = iFarPos.charge / (dist.x*dist.x+dist.y*dist.y+1e-14);
+    double q=qe/(eps0*pi2) * (iCenterPos.charge);
+    invDist2 = -q / ((r2+delta*delta)*(w_z1 - w_z0));
 
-    E.x = -dist.x*invDist2;
-    E.y = -dist.y*invDist2;
+    E.x = dist.x*invDist2;
+    E.y = dist.y*invDist2;
     return  E;
 }
 
 vec2 electronLagrangian::getEe(double x, double y)
 {
-    //double t0 = get_time();
+    double t0 = get_time();
     vec2 ai = {0.0, 0.0, 0.0};
     vec2 iPos(x, y, 0.0);
     vec2 EField;
@@ -224,10 +245,8 @@ vec2 electronLagrangian::getEe(double x, double y)
     getFieldFast(iPos, m_bodyPos, getEField, EField);
     ai.x = EField.x;
     ai.y = EField.y;
-    ai.x/=eps0;
-    ai.y/=eps0;
     return ai;
-    /* double t1 = get_time();
+     /*double t1 = get_time();
 
     vec2 dist;
     float invDist2;
@@ -241,8 +260,8 @@ vec2 electronLagrangian::getEe(double x, double y)
     }
     ai2.x/=eps0;
     ai2.y/=eps0;
-    //double t2 = get_time();
-    //printf("ex = %e ex2 = %e  ey = %e ey2 = %e\n", ai.x, ai2.x, ai.y, ai2.y );
+    double t2 = get_time();
+    printf("ex = %e ex2 = %e  ey = %e ey2 = %e\n", ai.x, ai2.x, ai.y, ai2.y );
     //printf("t1 = %e t2 = %e\n",(t1-t0), (t2-t1));
     return ai;*/
 }
