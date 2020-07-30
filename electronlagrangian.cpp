@@ -38,7 +38,7 @@ int electronLagrangian::create_electron(vec2 &pos, double Emag, double Dt, doubl
 
     int num_in_pack=10.0;
         double el_to_add = calcJ(Emag)*Dt*ds/(fabs(qe)/**num_in_pack*/);
-        num_in_pack = int(el_to_add/10+1);
+        num_in_pack = int(el_to_add/20+1);
         el_to_add /= num_in_pack;
 
 

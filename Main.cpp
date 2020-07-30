@@ -2,13 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//#include  <GL/gl.h>
-//#include  <GL/glu.h>
-//#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+#include  <GL/gl.h>
+#include  <GL/glu.h>
+#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
 
-#include <my_include/gl.h>
-#include <my_include/glu.h>
-#include <my_include/glut.h>
+
+//#include <my_include/gl.h>
+//#include <my_include/glu.h>
+//#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -424,10 +425,12 @@ void m_d(int button, int state,int x, int y)  //mouse down
 
 void saveInFile()
 {
-    if(g_save_time2 * 1e15 > 100)
+    if(g_save_time2 * 1e15 >200)
     {
         g_save_time2=0;
         double q_sum = 0;
+        double p_pos=0.0;
+        double p_full=0.0;
         double wall_coord = pz_solver->m_p[1].r.x - pz_solver->m_p[0].r.x;
         int i;
         for( i = 1; i < pz_solver->m_p_num && pz_solver->m_p[i].p > 0; i++ )
@@ -438,13 +441,15 @@ void saveInFile()
         for( i = 0; i < pz_solver->m_p_num; i++ )
         {
             q_sum += pz_solver->m_p[i].q_ext;
+            if (pz_solver->m_p[i].p>0) p_pos += pz_solver->m_p[i].p;
+            p_full+=fabs(pz_solver->m_p[i].p);
         }
         printf("wall = %e\n", wall_coord);
-        fprintf(file_data,"%lf %e %lf\n",g_t * 1e15, wall_coord, q_sum);
+        fprintf(file_data,"%lf %e %lf %lf\n",g_t * 1e15, wall_coord, q_sum,p_pos/p_full);
     }
 
     int time = int(g_t * 1e15);
-    if(g_save_time * 1e15 > 1000)
+    if(g_save_time * 1e15 > 2000)
     {
         g_save_time=0;
         char filename[64];
@@ -590,7 +595,7 @@ void kb(unsigned char key, int x, int y)
 
     if (key=='g')
     {
-        for (int i = 0;i<20;i++)
+        for (int i = 0;i<20;i+=2)
         {
             g_t = 0;
             g_phi = (i+1);
@@ -598,7 +603,7 @@ void kb(unsigned char key, int x, int y)
             sprintf(filename, "output%d.txt", i+1);
             file_data=fopen(filename,"w");
             multi_solver->init();
-            while (g_t * 1e15 < (g_phi / 5 + 1) * 2e4)
+            while (g_t * 1e15 < (g_phi / 10 + 1) * 2e4)
             {
                 multi_solver->solve(1);
                 /*if(int(g_t * 1e15) % 100 == 0)
