@@ -34,13 +34,14 @@ void pzSolver::init()
         m_p[i].p_prev = m_p[i].p;
 
         m_p[i].E=1.0e8;
+        m_p[i].E_elec=0;
         m_p[i].E_prev=m_p[i].E;
         m_p[i].ds=_dx*_dz;
 
         m_p[i].q_ext=0.0;
     }
 
-     m_p[0].p = 0.26;//0.005;//0.26;
+    m_p[0].p = 0.26;//0.005;//0.26;
     get_q();
     for (int i=0;i<m_p_num;i++) //first electrode
     {

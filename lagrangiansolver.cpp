@@ -12,7 +12,7 @@ void lagrangianSolver::getFieldFast(const vec2 iPos, vec2* iBodyPos, vec2(*getFi
     //int num = 0;
     for (int i = 0; i < m_gridProp.NX; i++)
         for (int j = 0; j < m_gridProp.NY; j++) {
-            if(i == ixIdx && j == iyIdx)
+            if( i > ixIdx - 2 && i <= ixIdx+2 && j > iyIdx-2 && j <= iyIdx+2)
             {
                 for (int k = 0; k < m_gridProp.gridNeighbors[i][j].size(); k++)
                 {

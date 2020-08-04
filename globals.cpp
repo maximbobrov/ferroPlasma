@@ -11,7 +11,7 @@ uint32_t xr[32],yr[32],zr[32],wr[32];
 
 bool g_emitElectrons=true;
 double E_global=1e7;
-double dtKoef = 5;
+double dtKoef = 1.;
 double g_t = 0;
 double g_phi = 5.;
 double g_save_time = 0;

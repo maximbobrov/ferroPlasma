@@ -11,7 +11,16 @@ electronLagrangian::electronLagrangian()
     m_bodyVel = new vec2[m_maxParticles];
     m_bodyE = new vec2[m_maxParticles];
     m_bodyPos = new vec2[m_maxParticles];
-
+    /*for (int i = 0; i <100;i++) {
+        m_bodyPos[i].x = w_x0 + i * (w_x1 - w_x0)/100;
+        m_bodyPos[i].y = 10e-9;
+        m_bodyPos[i].charge = 1000;
+        m_bodyVel[i].x = 0.0;
+        m_bodyVel[i].y = 0.0;
+        m_bodyAccel[i].x = 0.0;
+        m_bodyAccel[i].y = 0.0;
+    }
+    updateGridProp();*/
     /*m_bodyPos[0].x = w_x0 + (w_x1 - w_x0)/2;
     m_bodyPos[0].y = w_y0 + (w_y1 - w_y0)/2 + 25e-9;
     m_bodyPos[0].charge = 100;
@@ -54,9 +63,9 @@ int electronLagrangian::create_electron(vec2 &pos, double Emag, double Dt, doubl
 {
 
     int num_in_pack=10.0;
-        double el_to_add = calcJ(Emag)*Dt*ds/(fabs(qe)/**num_in_pack*/);
-        num_in_pack = int(el_to_add/20+1);
-        el_to_add /= num_in_pack;
+    double el_to_add = calcJ(Emag)*Dt*ds/(fabs(qe)/**num_in_pack*/);
+    num_in_pack = int(el_to_add/20+1);
+    el_to_add /= num_in_pack;
 
 
     int ne=(int) el_to_add;
@@ -64,14 +73,14 @@ int electronLagrangian::create_electron(vec2 &pos, double Emag, double Dt, doubl
 
 
 
-   // printf("Emag=%e j=%e el_to_ad=%e ne=%d \n", Emag, calcJ(Emag), el_to_add,ne);
+    // printf("Emag=%e j=%e el_to_ad=%e ne=%d \n", Emag, calcJ(Emag), el_to_add,ne);
     int upto=MIN(m_numParticles+ne,m_maxParticles-1);
     for (int n = m_numParticles; n < upto; ++n)
     {
         m_bodyPos[n].x = pos.x+(rand()*2e-9/RAND_MAX)+1e-9;
         m_bodyPos[n].y = pos.y+(rand()*2e-9/RAND_MAX-1e-9);
         m_bodyPos[n].charge = num_in_pack;
-        m_bodyVel[n].x = 0.0;
+        m_bodyVel[n].x = 10000000.0;
         m_bodyVel[n].y = 0.0;
         m_bodyAccel[n].x = 0.0;
         m_bodyAccel[n].y = 0.0;
@@ -168,7 +177,7 @@ void electronLagrangian::step(double dt)
 void electronLagrangian::updateGridProp()
 {
     m_gridProp.NX = 20;
-    m_gridProp.NY = 20;
+    m_gridProp.NY = 5;
     m_gridProp.dx = (w_x1-w_x0) / (m_gridProp.NX  - 1);
     m_gridProp.dy = (w_y1-w_y0) / (m_gridProp.NY  - 1);
     m_gridProp.startx = w_x0;
@@ -238,31 +247,34 @@ vec2 electronLagrangian::getEField(const vec2& iFarPos, const vec2& iCenterPos)
 vec2 electronLagrangian::getEe(double x, double y)
 {
     double t0 = get_time();
-    vec2 ai = {0.0, 0.0, 0.0};
+    /*vec2 ai = {0.0, 0.0, 0.0};
     vec2 iPos(x, y, 0.0);
     vec2 EField;
     // printf("num = %d\n", m_numParticles);
     getFieldFast(iPos, m_bodyPos, getEField, EField);
     ai.x = EField.x;
     ai.y = EField.y;
-    return ai;
-     /*double t1 = get_time();
+    return ai;*/
+    double t1 = get_time();
 
     vec2 dist;
     float invDist2;
+        double delta=1e-9;
     vec2 ai2 = {0.0, 0.0, 0.0};
     for( int j=0; j<m_numParticles; j++ ){
-        dist.x = m_bodyPos[j].x-x;
-        dist.y = m_bodyPos[j].y-y;
-        invDist2 = m_bodyPos[j].charge/(dist.x*dist.x+dist.y*dist.y+1e-14);
+        dist.x = x-m_bodyPos[j].x;
+        dist.y = y-m_bodyPos[j].y;
+        double r2 = (dist.x*dist.x+dist.y*dist.y);
+        double q=qe/(eps0*pi2) * (m_bodyPos[j].charge);
+        invDist2 = -q / ((r2+delta*delta)*(w_z1 - w_z0));
         ai2.x -= dist.x*invDist2;
         ai2.y -= dist.y*invDist2;
     }
-    ai2.x/=eps0;
-    ai2.y/=eps0;
+
     double t2 = get_time();
-    printf("ex = %e ex2 = %e  ey = %e ey2 = %e\n", ai.x, ai2.x, ai.y, ai2.y );
+
+    //printf("ex = %e ex2 = %e  ey = %e ey2 = %e\n", ai.x, ai2.x, ai.y, ai2.y );
     //printf("t1 = %e t2 = %e\n",(t1-t0), (t2-t1));
-    return ai;*/
+    return ai2;
 }
 
