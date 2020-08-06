@@ -46,9 +46,10 @@ void pzSolver::init()
     for (int i=0;i<m_p_num;i++) //first electrode
     {
         m_p[i].q_ext=-m_p[i].q;
-
         printf("i=%d q=%e q_ext=%e \n",i,m_p[i].q,m_p[i].q_ext);
     }
+    //m_p[100].q_ext+=100;
+    //m_p[120].q_ext-=100;
 
     /* m_p[0].p = 0.26;
     m_p[0].p_prev = m_p[0].p;*/
@@ -357,7 +358,7 @@ double pzSolver::getPhidepol(double x, double y)
         r=sqrt(dx*dx+dy*dy);
         q=qe/(eps0*pi2) * (m_p[i].q+m_p[i].q_ext);
 
-        sum+=q*log(r+delta)/(w_z1 - w_z0);
+        sum-=q*log(r+delta)/(w_z1 - w_z0);
 
         /*  dx = m_p[i].r.x - x;
         dy = m_p[i].r.y - m_p[i].dl*0.5 - y;

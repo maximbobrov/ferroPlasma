@@ -148,7 +148,7 @@ void eFieldLagrangian::init()
     p[3].x=w_x0-50e-9; p[3].y=0.5*(w_y0+w_y1);
     p[4].x=p[0].x;      p[4].y=p[0].y;
 
-    addQuad(p,2e-9,0.35,0);
+    addQuad(p,2e-9,-0.95,0);
 
 
     p[0].x=w_x0;        p[0].y=w_y0;
@@ -157,7 +157,7 @@ void eFieldLagrangian::init()
     p[3].x=w_x0;        p[3].y=w_y0-10e-9;
     p[4].x=p[0].x;      p[4].y=p[0].y;
 
-    addQuad(p,2e-9,-0.35,-1);
+    addQuad(p,2e-9,0.95,-1);
 
     initW();
 
@@ -233,8 +233,11 @@ void eFieldLagrangian::addQuad(vec2 p[5], double dl,double phi, int emit) //last
     static int n_[4];
     int n0=m_elec_num;
     vec2 c_m(0,0,0);
+    double nx, ny;
     for (int i=0;i<4;i++)
     {
+        nx = p[i+1].y - p[i].y;
+        ny = -p[i+1].x + p[i].x;
         l_[i]=sqrt((p[i+1].x-p[i].x)*(p[i+1].x-p[i].x)+(p[i+1].y-p[i].y)*(p[i+1].y-p[i].y));
         n_[i]=(int)(l_[i]/dl);
         double dl_l=l_[i]/n_[i];
@@ -256,14 +259,19 @@ void eFieldLagrangian::addQuad(vec2 p[5], double dl,double phi, int emit) //last
                 m_electrodes[m_elec_num].canEmit=true;
             else
                 m_electrodes[m_elec_num].canEmit=false;
+            m_electrodes[m_elec_num].nx = nx / sqrt(nx*nx + ny*ny);
+            m_electrodes[m_elec_num].ny = ny / sqrt(nx*nx + ny*ny);
             m_elec_num++;
 
             c_m.x+=x;
             c_m.y+=y;
             c_m.charge+=1.0;
+
         }
+
         printf("i=%d ni=%d li=%e cuur_num=%d \n",i,n_[i],l_[i],m_elec_num);
     }
+
     c_m.x/=c_m.charge;
     c_m.y/=c_m.charge;
 
@@ -562,7 +570,7 @@ vec2 eFieldLagrangian::getE(double x, double y)
         dx = m_charges[i].x - x;
         dy = m_charges[i].y - y;
         r2=(dx*dx+dy*dy);
-        q=qe/(eps0*pi2) * (m_charges[i].charge);
+        q=-qe/(eps0*pi2) * (m_charges[i].charge);
 
         double c=q/((r2+delta*delta)*(w_z1 - w_z0));
 

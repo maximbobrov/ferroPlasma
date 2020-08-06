@@ -13,6 +13,7 @@ public:
         vec2 r;
         bool canEmit;
         double dl;
+        double nx, ny;
     };
     vec2* m_rCentre;
     eElem * m_electrodes;

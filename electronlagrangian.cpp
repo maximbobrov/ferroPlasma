@@ -6,7 +6,7 @@ electronLagrangian::electronLagrangian()
 {
     m_threadIdx = 0;
     m_maxParticles = 81920;
-    m_numParticles = 2;
+    m_numParticles = 0;
     m_bodyAccel = new vec2[m_maxParticles];
     m_bodyVel = new vec2[m_maxParticles];
     m_bodyE = new vec2[m_maxParticles];
@@ -22,7 +22,7 @@ electronLagrangian::electronLagrangian()
         m_bodyAccel[i].y = 0.0;
     }
     */
-    m_bodyPos[0].x = w_x0 + (w_x1 - w_x0)/2;
+    /*m_bodyPos[0].x = w_x0 + (w_x1 - w_x0)/2- 225e-9;
     m_bodyPos[0].y = w_y0 + (w_y1 - w_y0)/2 + 25e-9;
     m_bodyPos[0].charge = 100;
     m_bodyVel[0].x = 0.0;
@@ -38,7 +38,7 @@ electronLagrangian::electronLagrangian()
     m_bodyVel[1].y = 0.0;
     m_bodyAccel[1].x = 0.0;
     m_bodyAccel[1].y = 0.0;
-    updateGridProp();
+    updateGridProp();*/
 }
 
 void electronLagrangian::init()
@@ -295,7 +295,7 @@ double electronLagrangian::getPhiSlow(double x, double y)
         r=sqrt(dx*dx+dy*dy);
         q=qe/(eps0*pi2) * (m_bodyPos[i].charge);
 
-        sum+=q*log(r+delta)/(w_z1 - w_z0);
+        sum-=q*log(r+delta)/(w_z1 - w_z0);
 
 
     }

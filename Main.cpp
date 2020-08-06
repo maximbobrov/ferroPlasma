@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include  <GL/gl.h>
-#include  <GL/glu.h>
-#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+//#include  <GL/gl.h>
+//#include  <GL/glu.h>
+//#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
 
 
-//#include <my_include/gl.h>
-//#include <my_include/glu.h>
-//#include <my_include/glut.h>
+#include <my_include/gl.h>
+#include <my_include/glu.h>
+#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -80,6 +80,7 @@ void updateEulFields()
 
     pz_solver->get_q();
     double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
+    double phi_e0=elec_solver->getPhiSlow(w_x0,w_y0);
 
     multi_solver->updateEforPz();
     for (int i=0;i<N_X;i++)
@@ -90,7 +91,7 @@ void updateEulFields()
             x=1.3*(w_x0+dx*(i));
             y=1.3*(w_y0+dy*j);
 
-            Py_[i][j]=pz_solver->getPhidepol(x,y)+elec_solver->getPhiSlow(x,y);//-phi_depol0;
+            Py_[i][j]=pz_solver->getPhidepol(x,y) - phi_depol0 +elec_solver->getPhiSlow(x,y) - phi_e0;//-phi_depol0;
 
             // printf("P=%e \n",Py_[i][j]);
             phi_[i][j]=lagr_solver->getPhi(x,y)+Py_[i][j];
@@ -99,8 +100,8 @@ void updateEulFields()
             vec2 Ed = lagr_solver->getE(x,y);
             vec2 Epz = pz_solver->getEdepol(x,y);
 
-            Ey[i][j] = (Ed.x + Epz.x)*( Ed.x + Epz.x) + ( Ed.y + Epz.y)*( Ed.y + Epz.y);
-            Ex[i][j] = (Ee.x + Ed.x + Epz.x)*(Ee.x + Ed.x + Epz.x) + (Ee.y + Ed.y + Epz.y)*(Ee.y + Ed.y + Epz.y);
+            Ex[i][j] = Ee.x + Ed.x + Epz.x;
+            Ey[i][j] = Ee.y + Ed.y + Epz.y;
         }
     }
 }
@@ -124,8 +125,6 @@ void display(void)
             px_max=fmax(px_max,fabs(Px_[i][j]));
             e_max=fmax(e_max,fabs(Ey[i][j]));
             div_max=fmax(div_max,fabs(Ex[i][j]));
-
-
         }
     }
 
@@ -241,18 +240,35 @@ void display(void)
             double x,y;
             x=1.3*(w_x0+dx*(i));
             y=1.3*(w_y0+dy*j);
-            vec2 Ee=elec_solver->getEe(x,y);
-            printf("ex=%e ey=%e \n", Ee.x, Ee.y);
+            //vec2 Ee = elec_solver->getEe(x,y);
+            //vec2 Ed = lagr_solver->getE(x,y);
+            //vec2 Ep = pz_solver->getEdepol(x,y);
+            //printf("ex=%e ey=%e \n", Ee.x, Ee.y);
             glColor3f(1,1,1);
             glVertex2f(1.3*(w_x0+dx*(i)),1.3*(w_y0+dy*j));
 
             glColor3f(0,0,0);
-            glVertex2f(1.3*(w_x0+dx*(i))+1e-16*Ee.x*ck,1.3*(w_y0+dy*j)+1e-16*Ee.y*ck);
+            glVertex2f(1.3*(w_x0+dx*(i))+1e-16*(Ex[i][j])*ck,1.3*(w_y0+dy*j)+1e-16*(Ey[i][j])*ck);
         }
         glEnd();
     }
     //EoEfields
 
+    /*glPointSize(3);
+    glBegin(GL_LINES);
+
+    for (int i=0;i<lagr_solver->m_elec_num;i++)
+    {
+           glColor3f(1,1,1);
+        double x=(lagr_solver->m_electrodes[i].r.x);
+        double y=(lagr_solver->m_electrodes[i].r.y);
+        glVertex3f(x,y,0.0);
+
+        double x2=(lagr_solver->m_electrodes[i].nx);
+        double y2=(lagr_solver->m_electrodes[i].ny);
+        glVertex3f(x + (w_y1 - w_y0) * ck * x2,y + (w_y1 - w_y0) * ck * y2,0.0);
+    }
+    glEnd();*/
 
     glPointSize(3);
     glBegin(GL_POINTS);
@@ -589,7 +605,7 @@ void kb(unsigned char key, int x, int y)
             x=lagr_solver->m_electrodes[i].r.x;
             y=lagr_solver->m_electrodes[i].r.y;
 
-            lagr_solver->m_electrodes[i].phi_fix_charges=(pz_solver->getPhidepol(x,y)-phi_depol0);
+            lagr_solver->m_electrodes[i].phi_fix_charges=0;//(pz_solver->getPhidepol(x,y)-phi_depol0);
         }
         printf("start ls \n");
         lagr_solver->solve_ls_fast();//solvePhi(20);
