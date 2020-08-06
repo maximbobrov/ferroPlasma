@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//#include  <GL/gl.h>
-//#include  <GL/glu.h>
-//#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+#include  <GL/gl.h>
+#include  <GL/glu.h>
+#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
 
 
-#include <my_include/gl.h>
-#include <my_include/glu.h>
-#include <my_include/glut.h>
+//#include <my_include/gl.h>
+//#include <my_include/glu.h>
+//#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -40,7 +40,7 @@ void init();
 //void fmm_step(double dt);
 //void sweep();
 //void sweep_old();
-int view=VIEW_DIV;
+int view=VIEW_PHI;
 
 int redr=0;
 
@@ -81,7 +81,6 @@ void updateEulFields()
     pz_solver->get_q();
     double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
 
-
     multi_solver->updateEforPz();
     for (int i=0;i<N_X;i++)
     {
@@ -91,10 +90,10 @@ void updateEulFields()
             x=1.3*(w_x0+dx*(i));
             y=1.3*(w_y0+dy*j);
 
-            Py_[i][j]=pz_solver->getPhidepol(x,y);//-phi_depol0;
+            Py_[i][j]=pz_solver->getPhidepol(x,y)+elec_solver->getPhiSlow(x,y);//-phi_depol0;
 
             // printf("P=%e \n",Py_[i][j]);
-            phi_[i][j]=lagr_solver->getPhi(x,y);//+Py_[i][j];
+            phi_[i][j]=lagr_solver->getPhi(x,y)+Py_[i][j];
 
             vec2 Ee = elec_solver->getEe(x,y);
             vec2 Ed = lagr_solver->getE(x,y);
@@ -102,9 +101,6 @@ void updateEulFields()
 
             Ey[i][j] = (Ed.x + Epz.x)*( Ed.x + Epz.x) + ( Ed.y + Epz.y)*( Ed.y + Epz.y);
             Ex[i][j] = (Ee.x + Ed.x + Epz.x)*(Ee.x + Ed.x + Epz.x) + (Ee.y + Ed.y + Epz.y)*(Ee.y + Ed.y + Epz.y);
-
-
-
         }
     }
 }
@@ -233,6 +229,29 @@ void display(void)
         }
         glEnd();
     }
+
+
+    //Efields---------------------------
+    for (i=0;i<N_X-1;i++)
+    {
+        glBegin(GL_LINES);
+        for (j=0;j<N_Y;j++)
+        {
+
+            double x,y;
+            x=1.3*(w_x0+dx*(i));
+            y=1.3*(w_y0+dy*j);
+            vec2 Ee=elec_solver->getEe(x,y);
+            printf("ex=%e ey=%e \n", Ee.x, Ee.y);
+            glColor3f(1,1,1);
+            glVertex2f(1.3*(w_x0+dx*(i)),1.3*(w_y0+dy*j));
+
+            glColor3f(0,0,0);
+            glVertex2f(1.3*(w_x0+dx*(i))+1e-16*Ee.x*ck,1.3*(w_y0+dy*j)+1e-16*Ee.y*ck);
+        }
+        glEnd();
+    }
+    //EoEfields
 
 
     glPointSize(3);
@@ -562,7 +581,6 @@ void kb(unsigned char key, int x, int y)
 
     if (key=='=')
     {
-
         double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
         printf("here i am ppp=%e \n",phi_depol0);
         for (int i=0;i<lagr_solver->m_elec_num;i++)
@@ -579,6 +597,12 @@ void kb(unsigned char key, int x, int y)
         updateEulFields();
     }
 
+
+    if (key=='-')
+    {
+
+        updateEulFields();
+    }
 
 
     if (key=='d')

@@ -6,11 +6,12 @@ electronLagrangian::electronLagrangian()
 {
     m_threadIdx = 0;
     m_maxParticles = 81920;
-    m_numParticles = 0;
+    m_numParticles = 2;
     m_bodyAccel = new vec2[m_maxParticles];
     m_bodyVel = new vec2[m_maxParticles];
     m_bodyE = new vec2[m_maxParticles];
     m_bodyPos = new vec2[m_maxParticles];
+
     /*for (int i = 0; i <100;i++) {
         m_bodyPos[i].x = w_x0 + i * (w_x1 - w_x0)/100;
         m_bodyPos[i].y = 10e-9;
@@ -20,8 +21,8 @@ electronLagrangian::electronLagrangian()
         m_bodyAccel[i].x = 0.0;
         m_bodyAccel[i].y = 0.0;
     }
-    updateGridProp();*/
-    /*m_bodyPos[0].x = w_x0 + (w_x1 - w_x0)/2;
+    */
+    m_bodyPos[0].x = w_x0 + (w_x1 - w_x0)/2;
     m_bodyPos[0].y = w_y0 + (w_y1 - w_y0)/2 + 25e-9;
     m_bodyPos[0].charge = 100;
     m_bodyVel[0].x = 0.0;
@@ -36,7 +37,8 @@ electronLagrangian::electronLagrangian()
     m_bodyVel[1].x = 0.0;
     m_bodyVel[1].y = 0.0;
     m_bodyAccel[1].x = 0.0;
-    m_bodyAccel[1].y = 0.0;*/
+    m_bodyAccel[1].y = 0.0;
+    updateGridProp();
 }
 
 void electronLagrangian::init()
@@ -80,7 +82,7 @@ int electronLagrangian::create_electron(vec2 &pos, double Emag, double Dt, doubl
         m_bodyPos[n].x = pos.x+(rand()*2e-9/RAND_MAX)+1e-9;
         m_bodyPos[n].y = pos.y+(rand()*2e-9/RAND_MAX-1e-9);
         m_bodyPos[n].charge = num_in_pack;
-        m_bodyVel[n].x = 10000000.0;
+        m_bodyVel[n].x = 1000000.0;
         m_bodyVel[n].y = 0.0;
         m_bodyAccel[n].x = 0.0;
         m_bodyAccel[n].y = 0.0;
@@ -276,5 +278,27 @@ vec2 electronLagrangian::getEe(double x, double y)
     //printf("ex = %e ex2 = %e  ey = %e ey2 = %e\n", ai.x, ai2.x, ai.y, ai2.y );
     //printf("t1 = %e t2 = %e\n",(t1-t0), (t2-t1));
     return ai2;
+}
+double electronLagrangian::getPhiSlow(double x, double y)
+{
+    double sum=0.0;
+    for (int i=0;i<m_numParticles;i++)
+    {
+        //    int i=1;
+        double r;
+        double q;
+        double dx,dy;
+        double delta=1e-9;
+
+        dx = m_bodyPos[i].x - x;
+        dy = m_bodyPos[i].y - y;
+        r=sqrt(dx*dx+dy*dy);
+        q=qe/(eps0*pi2) * (m_bodyPos[i].charge);
+
+        sum+=q*log(r+delta)/(w_z1 - w_z0);
+
+
+    }
+    return sum;
 }
 

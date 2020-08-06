@@ -26,6 +26,7 @@ public:
     static vec2 getEField(const vec2& iPos2, const vec2& iPos1);
     void updateGridProp();
         void create_pz_electron(double x, double y, int q);
+        double getPhiSlow(double x, double y);
 
 };
 

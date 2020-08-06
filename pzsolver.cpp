@@ -41,7 +41,7 @@ void pzSolver::init()
         m_p[i].q_ext=0.0;
     }
 
-    m_p[0].p = 0.26;//0.005;//0.26;
+    //m_p[0].p = 0.26;//0.005;//0.26;
     get_q();
     for (int i=0;i<m_p_num;i++) //first electrode
     {
