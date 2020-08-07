@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//#include  <GL/gl.h>
-//#include  <GL/glu.h>
-//#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+#include  <GL/gl.h>
+#include  <GL/glu.h>
+#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
 
 
-#include <my_include/gl.h>
-#include <my_include/glu.h>
-#include <my_include/glut.h>
+//#include <my_include/gl.h>
+//#include <my_include/glu.h>
+//#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -700,7 +700,20 @@ void init()
     //lagr_solver->solvePhi(10);
 }
 
+void resize(int w, int h)
+{
+    glViewport(0, 0, w, h);
+    glClearColor (0.0, 0.0, 0.0, 0.0);
+    glColor3f(1.0, 1.0, 1.0);
+    glMatrixMode (GL_PROJECTION);
+    glLoadIdentity ();
+    double h0,w0;
+    w0=W_HEIGHT*(w_x1-w_x0)/(w_y1-w_y0);//w_x1*1.3-w_x0+(w_x1-w_x0)*0.3;
+    h0=W_HEIGHT;//(w_y1-w_y0)*1.3;
+    glOrtho(w_x0-(w_x1-w_x0)*0.11, w_x0-(w_x1-w_x0)*0.11+(w_x1*1.3-(w_x0-(w_x1-w_x0)*0.3))*w*1.0/w0*(h0*1.0/h), w_y0*1.3,w_y1*1.3, -10.0, 10.0);
+    glMatrixMode (GL_MODELVIEW);
 
+}
 
 
 int main(int argc, char** argv)
@@ -712,6 +725,7 @@ int main(int argc, char** argv)
     glutInitWindowPosition(0,0);
     glutCreateWindow("simple");
     glutDisplayFunc(display);
+    glutReshapeFunc(resize);
     glutMotionFunc(m_m);
     glutMouseFunc(m_d);
     glutKeyboardFunc(kb);

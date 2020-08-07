@@ -15,7 +15,7 @@ void multiSolver::updateEforPz()
         vec2 E = m_Esolver->getE(x,y);
         vec2 Ep = m_pzSolver->getEdepol(x,y);
         vec2 Ee = m_elecSolver->getEe(x,y);
-        m_pzSolver->m_p[i].E_elec = 0.95 * m_pzSolver->m_p[i].E_elec + 0.05 * Ee.y;
+        m_pzSolver->m_p[i].E_elec = Ee.y;//0.95 * m_pzSolver->m_p[i].E_elec + 0.05 * Ee.y;
         m_pzSolver->m_p[i].E = E.y + Ep.y + m_pzSolver->m_p[i].E_elec;
     }
 }
@@ -51,9 +51,12 @@ void multiSolver::electronEmission(double d_t)
             double ey=E.y+Ep.y+Ee.y;
 
             double l = ex * (-m_Esolver->m_electrodes[i].nx) + ey * (-m_Esolver->m_electrodes[i].ny);
+            if (l>0)
+            {
             eMean+=l;
             emass+=1.0;
             m_elecSolver->create_electron(m_Esolver->m_electrodes[i].r,l,d_t,m_Esolver->m_electrodes[i].dl*(w_z1-w_z0));
+            }
         }
     }
     // printf("curr_elec_num=%d mass=%f E=%e\n",m_elecSolver->m_numParticles,emass, eMean/emass);

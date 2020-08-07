@@ -82,7 +82,7 @@ int electronLagrangian::create_electron(vec2 &pos, double Emag, double Dt, doubl
         m_bodyPos[n].x = pos.x+(rand()*2e-9/RAND_MAX)+1e-9;
         m_bodyPos[n].y = pos.y+(rand()*2e-9/RAND_MAX-1e-9);
         m_bodyPos[n].charge = num_in_pack;
-        m_bodyVel[n].x = 1000000.0;
+        m_bodyVel[n].x = 0.0;//1000000.0;
         m_bodyVel[n].y = 0.0;
         m_bodyAccel[n].x = 0.0;
         m_bodyAccel[n].y = 0.0;
@@ -212,17 +212,17 @@ void electronLagrangian::updateGridProp()
 void electronLagrangian::create_pz_electron(double x, double y, int q)
 {
     int q_left=q;
-    while((m_numParticles<m_maxParticles)&&(q_left>0))
+    //while((m_numParticles<m_maxParticles)&&(q_left>0))
     {
         m_bodyPos[m_numParticles].x = x+(rand()*2.0/RAND_MAX-1.0)*1e-9;
         m_bodyPos[m_numParticles].y = y+(rand()*2.0/RAND_MAX-1.0)*1e-9;
-        m_bodyPos[m_numParticles].charge = 1;
+        m_bodyPos[m_numParticles].charge = q;
         m_bodyVel[m_numParticles].x = 0.0;
         m_bodyVel[m_numParticles].y = 0.0;
         m_bodyAccel[m_numParticles].x = 0.0;
         m_bodyAccel[m_numParticles].y = 0.0;
         m_numParticles++;
-        q_left--;
+        //q_left--;
     }
 }
 
