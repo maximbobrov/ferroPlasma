@@ -19,22 +19,23 @@ void eFieldLagrangian::init()
 
     vec2 p[5];
 
-    p[0].x=w_x0-3e-9;        p[0].y=0.5*(w_y0+w_y1);
+    p[0].x=w_x0-0e-9;         p[0].y=0.5*(w_y0+w_y1);
     p[1].x=w_x0-40e-9;        p[1].y=w_y1;
-    p[2].x=w_x0-50e-9; p[2].y=w_y1;
-    p[3].x=w_x0-50e-9; p[3].y=0.5*(w_y0+w_y1);
-    p[4].x=p[0].x;      p[4].y=p[0].y;
+    p[2].x=w_x0-50e-9;        p[2].y=w_y1;
+    p[3].x=w_x0-50e-9;        p[3].y=0.5*(w_y0+w_y1);
+    p[4].x=p[0].x;            p[4].y=p[0].y;
 
-    addQuad(p,2e-9,-0.35,0);
-
+    addQuad(p,2e-9,-1.25,0);
+    printf("elecnum1 = %d\n", m_elec_num);
 
     p[0].x=w_x0-50e-9;        p[0].y=w_y0;
-    p[1].x=w_x1;        p[1].y=w_y0;
-    p[2].x=w_x1;        p[2].y=w_y0-10e-9;
+    p[1].x=w_x1;              p[1].y=w_y0;
+    p[2].x=w_x1;              p[2].y=w_y0-10e-9;
     p[3].x=w_x0-50e-9;        p[3].y=w_y0-10e-9;
-    p[4].x=p[0].x;      p[4].y=p[0].y;
+    p[4].x=p[0].x;            p[4].y=p[0].y;
 
-    addQuad(p,2e-9,0.35,-1);
+    addQuad(p,2e-9,1.25,-1);
+    printf("elecnum2 = %d\n", m_elec_num);
 
     initW();
 

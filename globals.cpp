@@ -13,7 +13,7 @@ bool g_emitElectrons=true;
 double E_global=1e7;
 double dtKoef = 1.;
 double g_t = 0;
-double g_phi = 5.;
+double g_phi = 25.;
 double g_save_time = 0;
 double g_save_time2 = 0;
 double g_dphidt;

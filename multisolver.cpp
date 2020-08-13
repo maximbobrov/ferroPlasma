@@ -69,6 +69,41 @@ void multiSolver::init()
     m_pzSolver->init();
 }
 
+
+void multiSolver::checkPotential()
+{
+    double phiMin = 1e100;
+    double phiMax = -1e100;
+    double phi_depol0=m_pzSolver->getPhidepol(w_x0,w_y0);
+    double elec_depol0=m_elecSolver->getPhiSlow(w_x0,w_y0);
+    for (int i=0;i<85;i++)
+    {
+        double x = m_Esolver->m_electrodes[i].r.x;
+        double y = m_Esolver->m_electrodes[i].r.y;
+        double phi = m_Esolver->getPhi(x, y)
+        +m_elecSolver->getPhiSlow(x, y)
+        +m_pzSolver->getPhidepol(x,y) - phi_depol0 - elec_depol0;
+        phiMax = fmax(phiMax, phi);
+        phiMin = fmin(phiMin, phi);
+         //printf("phi1 = %f  phi2 = %f phi3 = %f\n", m_Esolver->getPhi(x, y),m_elecSolver->getPhiSlow(x, y),m_pzSolver->getPhidepol(x,y));
+    }
+    printf("phiMax1 = %f phiMin1 = %f \n", phiMax, phiMin);
+
+    phiMin = 1e100;
+    phiMax = -1e100;
+    for (int i=85;i<m_Esolver->m_elec_num;i++)
+    {
+        double x = m_Esolver->m_electrodes[i].r.x;
+        double y = m_Esolver->m_electrodes[i].r.y;
+        double phi = m_Esolver->getPhi(x, y)
+        +m_elecSolver->getPhiSlow(x, y)
+        +m_pzSolver->getPhidepol(x,y)- phi_depol0 - elec_depol0;
+        phiMax = fmax(phiMax, phi);
+        phiMin = fmin(phiMin, phi);
+    }
+    printf("phiMax2 = %f phiMin2 = %f \n", phiMax, phiMin);
+}
+
 void multiSolver::solve(int itn)
 {
     double dt_elec=1.5e-16 * dtKoef;
@@ -79,7 +114,7 @@ void multiSolver::solve(int itn)
 
     for (int i=0;i<m_Esolver->m_elec_num && fabs(m_Esolver->m_electrodes[i].phi_fix) < g_phi;i++)
     {
-        m_Esolver->m_electrodes[i].phi_fix +=2.0*((m_Esolver->m_electrodes[i].phi_fix>0)-0.5)*0.0001*(dt_elec/1.5e-16);
+        m_Esolver->m_electrodes[i].phi_fix +=2.0*((m_Esolver->m_electrodes[i].phi_fix>0)-0.5)*0.0005*(dt_elec/1.5e-16);
         //  printf("i=%d phi=%e \n",m_Esolver->m_electrodes[i].phi_fix);
     }
 

@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include  <GL/gl.h>
-#include  <GL/glu.h>
-#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+//#include  <GL/gl.h>
+//#include  <GL/glu.h>
+//#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
 
 
-//#include <my_include/gl.h>
-//#include <my_include/glu.h>
-//#include <my_include/glut.h>
+#include <my_include/gl.h>
+#include <my_include/glu.h>
+#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -231,7 +231,7 @@ void display(void)
 
 
     //Efields---------------------------
-    for (i=0;i<N_X-1;i++)
+    /*for (i=0;i<N_X-1;i++)
     {
         glBegin(GL_LINES);
         for (j=0;j<N_Y;j++)
@@ -251,7 +251,7 @@ void display(void)
             glVertex2f(1.3*(w_x0+dx*(i))+1e-16*(Ex[i][j])*ck,1.3*(w_y0+dy*j)+1e-16*(Ey[i][j])*ck);
         }
         glEnd();
-    }
+    }*/
     //EoEfields
 
     /*glPointSize(3);
@@ -316,21 +316,24 @@ void display(void)
     }
     glEnd();
 
-    double vel_scale=1900000.0;//sqrt(vel_scale/numParticles+0.0001);
-    double leng_sacle=0.01*(w_x1-w_x0);
+
+
+    /*double vel_scale=1900000.0;//sqrt(vel_scale/numParticles+0.0001);
+    double leng_sacle=0.03*(w_x1-w_x0);
+    glLineWidth(4);
     glBegin(GL_LINES);
 
     for( i=0; i<elec_solver->m_numParticles; i++ )
     {
         // float pot=get_nearwall_potential(bodyPos[i].x,bodyPos[i].y);
-        glColor3f(1,1,1);
+        glColor3f(1,0,0);
         // glColor3f(ck*pot,ck*pot,-ck*pot);
         glVertex2f(elec_solver->m_bodyPos[i].x,elec_solver->m_bodyPos[i].y);
         glColor3f(0.0,0.0,0.0);
         glVertex2f(elec_solver->m_bodyPos[i].x+leng_sacle*elec_solver->m_bodyVel[i].x/vel_scale,
                    elec_solver->m_bodyPos[i].y+leng_sacle*elec_solver->m_bodyVel[i].y/vel_scale);
     }
-    glEnd();
+    glEnd();*/
 
 
     /*   glColor3f(0.5,0.5,0.5);
@@ -380,7 +383,7 @@ void display(void)
 
 
     glDisable(GL_DEPTH_TEST);
-    glLineWidth(1.5);
+    glLineWidth(3.5);
     glBegin(GL_LINE_STRIP);
 
     for( i=0; i < pz_solver->m_p_num; i++ )
@@ -389,7 +392,7 @@ void display(void)
         glVertex2f(pz_solver->m_p[i].r.x, 1e-3 * scale * (pz_solver->m_p[i].q_ext+pz_solver->m_p[i].q) * (w_y1 - w_y0));
     }
     glEnd();
-
+    glLineWidth(3.5);
     glBegin(GL_LINE_STRIP);
 
     for( i=0; i < pz_solver->m_p_num; i++ )
@@ -399,6 +402,11 @@ void display(void)
     }
     glEnd();
 
+
+   /* double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
+    double phi_e0=elec_solver->getPhiSlow(w_x0,w_y0);
+    double phi_electr0=lagr_solver->getPhi(w_x0,w_y0);*/
+
     /*glLineWidth(3.5);
     glBegin(GL_LINE_STRIP);
 
@@ -407,9 +415,28 @@ void display(void)
         glColor3f(1.0,0.0,1.0);
         glVertex2f(pz_solver->m_p[i].r.x, 1e-10 * scale * pz_solver->m_p[i].E * (w_y1 - w_y0));
     }
-    glEnd();
+    glEnd();*/
 
-    glLineWidth(3.5);
+    /*double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
+    double phi_e0=elec_solver->getPhiSlow(w_x0,w_y0);
+    double phi_electr0=lagr_solver->getPhi(w_x0,w_y0);
+
+    glLineWidth(3.);
+    glBegin(GL_LINE_STRIP);
+
+    for( i=0; i < pz_solver->m_p_num; i++ )
+    {
+
+
+        double phi = pz_solver->getPhidepol(pz_solver->m_p[i].r.x,pz_solver->m_p[i].r.y) - phi_depol0
+                +elec_solver->getPhiSlow(pz_solver->m_p[i].r.x,pz_solver->m_p[i].r.y) - phi_e0;
+                //+lagr_solver->getPhi(pz_solver->m_p[i].r.x,pz_solver->m_p[i].r.y) - phi_electr0;
+        glColor3f(1.0,1.0,1.0);
+        glVertex2f(pz_solver->m_p[i].r.x, 1e-1 *  scale * phi * (w_y1 - w_y0));
+    }
+    glEnd();*/
+
+    /*glLineWidth(3.5);
     glBegin(GL_LINE_STRIP);
     glColor3f(1.0,1.0,1.0);
     glVertex2f(pz_solver->m_p[0].r.x, 0);
@@ -613,6 +640,10 @@ void kb(unsigned char key, int x, int y)
         updateEulFields();
     }
 
+    if (key=='7')
+    {
+        multi_solver->checkPotential();
+    }
 
     if (key=='-')
     {

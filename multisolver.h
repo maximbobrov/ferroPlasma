@@ -17,6 +17,7 @@ public:
 
 
     multiSolver();
+    void checkPotential();
     void updateEforPz();
     void updateEforElec();
     void electronEmission(double dt);
