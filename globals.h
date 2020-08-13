@@ -18,15 +18,15 @@
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-#define w_x0 -0.25e-6
-#define w_x1 0.25e-6
+#define w_x0 -250e-6
+#define w_x1 250e-6
 
 
-#define w_y0 -0.5e-7
-#define w_y1 0.5e-7
+#define w_y0 -25e-6
+#define w_y1 25e-6
 
-#define w_z0 -1.0e-7
-#define w_z1 1.0e-7
+#define w_z0 -25.0e-9
+#define w_z1 25.0e-9
 //near_wall_layer width
 
 #define DY_WALL ((w_y1-w_y0)/50)

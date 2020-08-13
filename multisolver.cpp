@@ -106,7 +106,7 @@ void multiSolver::checkPotential()
 
 void multiSolver::solve(int itn)
 {
-    double dt_elec=1.5e-16 * dtKoef;
+    double dt_elec=0.5e-14 * dtKoef;
 
     g_t+=dt_elec;
     g_save_time+=dt_elec;
@@ -114,7 +114,7 @@ void multiSolver::solve(int itn)
 
     for (int i=0;i<m_Esolver->m_elec_num && fabs(m_Esolver->m_electrodes[i].phi_fix) < g_phi;i++)
     {
-        m_Esolver->m_electrodes[i].phi_fix +=2.0*((m_Esolver->m_electrodes[i].phi_fix>0)-0.5)*0.0005*(dt_elec/1.5e-16);
+        m_Esolver->m_electrodes[i].phi_fix +=2.0*((m_Esolver->m_electrodes[i].phi_fix>0)-0.5)*0.0005*(dt_elec/0.5e-14);
         //  printf("i=%d phi=%e \n",m_Esolver->m_electrodes[i].phi_fix);
     }
 

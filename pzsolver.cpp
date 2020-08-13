@@ -21,10 +21,10 @@ void pzSolver::init()
 
     for (int i=0;i<m_p_num;i++) //first electrode
     {
-        m_p[i].dl=45.0e-9; //100 nm width;
+        m_p[i].dl=22.5e-6; //100 nm width;
         double alpha=i*1.0/(m_p_num-1);
         m_p[i].r.x = (w_x0)*(1.0-alpha)+w_x1*alpha;
-        m_p[i].r.y = w_y0+25e-9;//(w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
+        m_p[i].r.y = w_y0+12.5e-6;//(w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
 
         //  if (i<55)
         //  m_p[i].p = 0.26;//-0.1*(rand()*1.0/RAND_MAX-0.5);//0.0;//-0.005;//-0.26;//+rand()*0.043/RAND_MAX;
