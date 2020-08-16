@@ -9,7 +9,7 @@
 class multiSolver
 {   
 public:
-
+    double dt_elec;
     eFieldLagrangian* m_Esolver;
     pzSolver* m_pzSolver;
     electronLagrangian* m_elecSolver;

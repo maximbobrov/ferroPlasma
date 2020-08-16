@@ -53,11 +53,11 @@ double electronLagrangian::calcJ(double Ein)
 
     double E=Ein/100;//from V/m to V/cm
     double t2 = 1.1;
-    double B = 10.0;//145.0
+    double B = 285.0;//145.0
     double phi = 4.0;
     double y = 3.79 * 1e-4 * sqrt(fabs(B * E)) / phi;
     double tetta = 0.95 - 1.03 * y * y;
-    return 1e4*(1.54 * 1e-6 * B * B * E * E / (t2  * phi)) * exp( - 6.83 * 1e7 * pow(phi, 1.5) * tetta / fabs( B * E)); //in A/m^2
+    return 1e4*(1.54 * 1.0e-6 * B * B * E * E / (t2  * phi)) * exp( - 6.83 * 1.0e7 * pow(phi, 1.5) * tetta / fabs( B * E)); //in A/m^2
 }
 
 
@@ -90,6 +90,38 @@ int electronLagrangian::create_electron(vec2 &pos, double Emag, double Dt, doubl
     m_numParticles=upto;
     return num_in_pack*ne;
 }
+
+void electronLagrangian::create_electrons(vec2 &pos, int num)
+{
+    int num_in_pack=max(num/10,10);
+    int left=num;
+    while ((left>num_in_pack)&&(m_numParticles<m_maxParticles+1))
+    {
+        m_bodyPos[m_numParticles].x = pos.x+(rand()*2e-7/RAND_MAX)+1e-7;
+        m_bodyPos[m_numParticles].y = pos.y+(rand()*2e-7/RAND_MAX-1e-7);
+        m_bodyPos[m_numParticles].charge = num_in_pack;
+        m_bodyVel[m_numParticles].x = 0.0;//1000000.0;
+        m_bodyVel[m_numParticles].y = 0.0;
+        m_bodyAccel[m_numParticles].x = 0.0;
+        m_bodyAccel[m_numParticles].y = 0.0;
+        m_numParticles++;
+        left-=num_in_pack;
+    }
+    if ((left>0)&&(m_numParticles<m_maxParticles+1))
+    {
+        m_bodyPos[m_numParticles].x = pos.x+(rand()*2e-7/RAND_MAX)+1e-7;
+        m_bodyPos[m_numParticles].y = pos.y+(rand()*2e-7/RAND_MAX-1e-7);
+        m_bodyPos[m_numParticles].charge = left;
+        m_bodyVel[m_numParticles].x = 0.0;//1000000.0;
+        m_bodyVel[m_numParticles].y = 0.0;
+        m_bodyAccel[m_numParticles].x = 0.0;
+        m_bodyAccel[m_numParticles].y = 0.0;
+        m_numParticles++;
+
+    }
+
+}
+
 
 vec2 getE(float x, float y)
 {
@@ -151,7 +183,7 @@ void electronLagrangian::step(double dt)
     // create_random_particles();
 
     for( i=0; i<m_numParticles; i++ ) {
-        float magn=qe/Me;//1e-1;
+        double magn=qe/Me;//1e-1;
         vec2 ev=m_bodyE[i];
         m_bodyVel[i].x -= magn*(ev.x)*dt;
         m_bodyVel[i].y -= magn*(ev.y)*dt;

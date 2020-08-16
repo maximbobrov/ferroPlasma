@@ -12,6 +12,7 @@ public:
         double phi_ext,phi_fix,phi_fix_charges;//C/m2, m, V
         vec2 r;
         bool canEmit;
+        double eToEmit;
         double dl;
         double nx, ny;
     };

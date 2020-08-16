@@ -18,6 +18,7 @@ public:
     electronLagrangian();
     void init();
     int create_electron(vec2 &pos, double Emag, double Dt, double ds); //creates electrons near the electrode form field emission
+    void create_electrons(vec2 &pos, int num);
     void delete_particle(int particlesIdx);
     void wall_collision(int particlesIdx);
     double calcJ(double Ein);

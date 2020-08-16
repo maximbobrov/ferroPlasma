@@ -16,20 +16,22 @@ void pzSolver::init()
 {
     double _dx,_dz;
     _dz=w_z1-w_z0;
-    _dx=(w_x1-w_x0)/(m_p_num-1);
+    _dx=(w_x1-25e-6-w_x0)/(m_p_num-1);
     m_dx=_dx;
 
     for (int i=0;i<m_p_num;i++) //first electrode
     {
-        m_p[i].dl=22.5e-6; //100 nm width;
+        m_p[i].dl=45e-6; //100 nm width;
         double alpha=i*1.0/(m_p_num-1);
-        m_p[i].r.x = (w_x0)*(1.0-alpha)+w_x1*alpha;
-        m_p[i].r.y = w_y0+12.5e-6;//(w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
+        m_p[i].r.x = (w_x0-25e-6)*(1.0-alpha)+w_x1*alpha;
+        m_p[i].r.y = w_y0+25e-6;//(w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
 
-        //  if (i<55)
-        //  m_p[i].p = 0.26;//-0.1*(rand()*1.0/RAND_MAX-0.5);//0.0;//-0.005;//-0.26;//+rand()*0.043/RAND_MAX;
-        //  else
-        m_p[i].p = -0.26;
+       /*   if (m_p[i].r.x<w_x0)
+          m_p[i].p = 0.26;//-0.1*(rand()*1.0/RAND_MAX-0.5);//0.0;//-0.005;//-0.26;//+rand()*0.043/RAND_MAX;
+          else
+        m_p[i].p = -0.26;*/
+
+        m_p[i].p=0.0;
 
         m_p[i].p_prev = m_p[i].p;
 
@@ -41,7 +43,7 @@ void pzSolver::init()
         m_p[i].q_ext=0.0;
     }
 
-    m_p[0].p = 0.26;//0.005;//0.26;
+    //m_p[0].p = 0.26;//0.005;//0.26;
     get_q();
     for (int i=0;i<m_p_num;i++) //first electrode
     {
@@ -190,7 +192,15 @@ void pzSolver::get_q() //all charges are in elementary
     for (int i=0; i<m_p_num; i++)
     {
         m_p[i].q=(m_p[i].p)*m_p[i].ds/qe;
+
+        if (m_p[i].r.x<w_x0)
+        {
+            m_p[i].q=0.0;
+            m_p[i].q_ext=0.0;
+        }
+
     }
+
 
 
     /*   for (int i=60;i<70;i++) //first electrode

@@ -25,7 +25,7 @@ void eFieldLagrangian::init()
     p[3].x=w_x0-25e-6;        p[3].y=0.5*(w_y0+w_y1);
     p[4].x=p[0].x;            p[4].y=p[0].y;
 
-    addQuad(p,2e-6,-600.25,0);
+    addQuad(p,2e-6,-75,0);
     printf("elecnum1 = %d\n", m_elec_num);
 
     p[0].x=w_x0-25e-6;        p[0].y=w_y0;
@@ -34,7 +34,7 @@ void eFieldLagrangian::init()
     p[3].x=w_x0-25e-6;        p[3].y=w_y0-5e-6;
     p[4].x=p[0].x;            p[4].y=p[0].y;
 
-    addQuad(p,2e-6,600.25,-1);
+    addQuad(p,2e-6,75,-1);
     printf("elecnum2 = %d\n", m_elec_num);
 
     initW();
@@ -271,11 +271,15 @@ void eFieldLagrangian::addQuad(vec2 p[5], double dl,double phi, int emit) //last
                 m_electrodes[m_elec_num].canEmit=false;
             m_electrodes[m_elec_num].nx = nx / sqrt(nx*nx + ny*ny);
             m_electrodes[m_elec_num].ny = ny / sqrt(nx*nx + ny*ny);
+             m_electrodes[m_elec_num].eToEmit=0.0;
+
             m_elec_num++;
 
             c_m.x+=x;
             c_m.y+=y;
             c_m.charge+=1.0;
+
+
 
         }
 
@@ -287,23 +291,23 @@ void eFieldLagrangian::addQuad(vec2 p[5], double dl,double phi, int emit) //last
 
     int n1=m_elec_num;
 
-/*     for (int i=n0/2;i<n1/2;i++)
+     for (int i=n0;i<n1-1;i+=2)
     {
         double x,y;
-        x = 0.975*((m_electrodes[i*2].r.x + m_electrodes[i*2+1].r.x)*0.5-c_m.x)+c_m.x;
-        y = 0.975*((m_electrodes[i*2].r.y + m_electrodes[i*2+1].r.y)*0.5-c_m.y)+c_m.y;
+        x = 0.775*((m_electrodes[i].r.x + m_electrodes[i+1].r.x)*0.5-c_m.x)+c_m.x;
+        y = 0.775*((m_electrodes[i].r.y + m_electrodes[i+1].r.y)*0.5-c_m.y)+c_m.y;
 
         m_charges[m_chargeNum].x=x;
         m_charges[m_chargeNum].y=y;
         m_charges[m_chargeNum].charge=0.0;
         m_chargeNum++;
     }
-*/
+
     for (int i=n0;i<n1-3;i+=4)
     {
         double x,y;
-        x = 0.975*((m_electrodes[i].r.x + m_electrodes[i+1].r.x + m_electrodes[i+2].r.x + m_electrodes[i+3].r.x)*0.25-c_m.x)+c_m.x;
-        y = 0.975*((m_electrodes[i].r.y + m_electrodes[i+1].r.y + m_electrodes[i+2].r.y + m_electrodes[i+3].r.y)*0.25-c_m.y)+c_m.y;
+        x = 0.955*((m_electrodes[i].r.x + m_electrodes[i+1].r.x + m_electrodes[i+2].r.x + m_electrodes[i+3].r.x)*0.25-c_m.x)+c_m.x;
+        y = 0.955*((m_electrodes[i].r.y + m_electrodes[i+1].r.y + m_electrodes[i+2].r.y + m_electrodes[i+3].r.y)*0.25-c_m.y)+c_m.y;
 
         m_charges[m_chargeNum].x=x;
         m_charges[m_chargeNum].y=y;

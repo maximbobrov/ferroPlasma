@@ -22,11 +22,11 @@
 #define w_x1 250e-6
 
 
-#define w_y0 -25e-6
-#define w_y1 25e-6
+#define w_y0 -50e-6
+#define w_y1 50e-6
 
-#define w_z0 -25.0e-9
-#define w_z1 25.0e-9
+#define w_z0 -25.0e-5
+#define w_z1 25.0e-5
 //near_wall_layer width
 
 #define DY_WALL ((w_y1-w_y0)/50)
