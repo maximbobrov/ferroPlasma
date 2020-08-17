@@ -93,33 +93,31 @@ int electronLagrangian::create_electron(vec2 &pos, double Emag, double Dt, doubl
 
 void electronLagrangian::create_electrons(vec2 &pos, int num)
 {
-    int num_in_pack=max(num/10,10);
+    int num_in_pack=max(num/10,10000);
     int left=num;
-    while ((left>num_in_pack)&&(m_numParticles<m_maxParticles+1))
+    while ((left>num_in_pack)&&(m_numParticles<m_maxParticles-1))
     {
         m_bodyPos[m_numParticles].x = pos.x+(rand()*2e-7/RAND_MAX)+1e-7;
         m_bodyPos[m_numParticles].y = pos.y+(rand()*2e-7/RAND_MAX-1e-7);
         m_bodyPos[m_numParticles].charge = num_in_pack;
-        m_bodyVel[m_numParticles].x = 0.0;//1000000.0;
+        m_bodyVel[m_numParticles].x = 0.0;
         m_bodyVel[m_numParticles].y = 0.0;
         m_bodyAccel[m_numParticles].x = 0.0;
         m_bodyAccel[m_numParticles].y = 0.0;
         m_numParticles++;
         left-=num_in_pack;
     }
-    if ((left>0)&&(m_numParticles<m_maxParticles+1))
+    if ((left>0)&&(m_numParticles<m_maxParticles-1))
     {
         m_bodyPos[m_numParticles].x = pos.x+(rand()*2e-7/RAND_MAX)+1e-7;
         m_bodyPos[m_numParticles].y = pos.y+(rand()*2e-7/RAND_MAX-1e-7);
         m_bodyPos[m_numParticles].charge = left;
-        m_bodyVel[m_numParticles].x = 0.0;//1000000.0;
+        m_bodyVel[m_numParticles].x = 0.0;
         m_bodyVel[m_numParticles].y = 0.0;
         m_bodyAccel[m_numParticles].x = 0.0;
         m_bodyAccel[m_numParticles].y = 0.0;
         m_numParticles++;
-
     }
-
 }
 
 
@@ -198,8 +196,8 @@ void electronLagrangian::step(double dt)
         {
             wall_collision(i);
         }
-*/
-        if (m_bodyPos[i].y>2.0*w_y1 || m_bodyPos[i].x < w_x0-1e-7 || m_bodyPos[i].x>w_x1)
+        */
+        if (m_bodyPos[i].y>2.0*w_y1 || m_bodyPos[i].x < w_x0-100e-6 || m_bodyPos[i].x>w_x1)
         {
             delete_particle(i);
         }

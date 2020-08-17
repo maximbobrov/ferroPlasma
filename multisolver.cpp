@@ -74,6 +74,7 @@ void multiSolver::electronEmission(double d_t)
             vec2 Ee=m_elecSolver->getEe(m_Esolver->m_electrodes[i].r.x+1e-9,m_Esolver->m_electrodes[i].r.y);
             double ex=E.x+Ep.x+Ee.x;
             double ey=E.y+Ep.y+Ee.y;
+            m_Esolver->m_electrodes[i].charge*=0.6;
 
             double l = ex * (-m_Esolver->m_electrodes[i].nx) + ey * (-m_Esolver->m_electrodes[i].ny);
             if (l>0)
@@ -84,11 +85,15 @@ void multiSolver::electronEmission(double d_t)
 
 
                 if (i==0)
-                printf("E=%le J=%le to emit: %le \n",l,m_elecSolver->calcJ(l),m_Esolver->m_electrodes[i].eToEmit);
+                    printf("E=%le J=%le to emit: %le \n",l,m_elecSolver->calcJ(l),m_Esolver->m_electrodes[i].eToEmit);
 
-
-                m_elecSolver->create_electrons(m_Esolver->m_electrodes[i].r,int(m_Esolver->m_electrodes[i].eToEmit));
-                m_Esolver->m_electrodes[i].eToEmit-=int(m_Esolver->m_electrodes[i].eToEmit);
+                if(m_Esolver->m_electrodes[i].eToEmit > 10000)
+                {
+                    m_Esolver->m_electrodes[i].charge-=m_Esolver->m_electrodes[i].eToEmit;
+                    vec2 elecPos(m_Esolver->m_electrodes[i].r.x /*+ 0.5e-6 * m_Esolver->m_electrodes[i].nx*/, m_Esolver->m_electrodes[i].r.y /*+ 0.5e-6 * m_Esolver->m_electrodes[i].ny*/,0);
+                    m_elecSolver->create_electrons(elecPos,int(m_Esolver->m_electrodes[i].eToEmit));
+                    m_Esolver->m_electrodes[i].eToEmit-=int(m_Esolver->m_electrodes[i].eToEmit);
+                }
             }
         }
     }
@@ -116,11 +121,11 @@ void multiSolver::checkPotential()
         double x = m_Esolver->m_electrodes[i].r.x;
         double y = m_Esolver->m_electrodes[i].r.y;
         double phi = m_Esolver->getPhi(x, y)
-        +m_elecSolver->getPhiSlow(x, y)
-        +m_pzSolver->getPhidepol(x,y) - phi_depol0 - elec_depol0;
+                +m_elecSolver->getPhiSlow(x, y)
+                +m_pzSolver->getPhidepol(x,y) - phi_depol0 - elec_depol0;
         phiMax = fmax(phiMax, phi);
         phiMin = fmin(phiMin, phi);
-         //printf("phi1 = %f  phi2 = %f phi3 = %f\n", m_Esolver->getPhi(x, y),m_elecSolver->getPhiSlow(x, y),m_pzSolver->getPhidepol(x,y));
+        //printf("phi1 = %f  phi2 = %f phi3 = %f\n", m_Esolver->getPhi(x, y),m_elecSolver->getPhiSlow(x, y),m_pzSolver->getPhidepol(x,y));
     }
     printf("phiMax1 = %f phiMin1 = %f \n", phiMax, phiMin);
 
@@ -131,8 +136,8 @@ void multiSolver::checkPotential()
         double x = m_Esolver->m_electrodes[i].r.x;
         double y = m_Esolver->m_electrodes[i].r.y;
         double phi = m_Esolver->getPhi(x, y)
-        +m_elecSolver->getPhiSlow(x, y)
-        +m_pzSolver->getPhidepol(x,y)- phi_depol0 - elec_depol0;
+                +m_elecSolver->getPhiSlow(x, y)
+                +m_pzSolver->getPhidepol(x,y)- phi_depol0 - elec_depol0;
         phiMax = fmax(phiMax, phi);
         phiMin = fmin(phiMin, phi);
     }
@@ -141,13 +146,13 @@ void multiSolver::checkPotential()
 
 void multiSolver::solve(int itn)
 {
-     dt_elec=0.5e-14 * dtKoef;
+    dt_elec=1.5e-14 * dtKoef;
 
     g_t+=dt_elec;
     g_save_time+=dt_elec;
     g_save_time2+=dt_elec;
 
-   /* for (int i=0;i<m_Esolver->m_elec_num && fabs(m_Esolver->m_electrodes[i].phi_fix) < g_phi;i++)
+    /* for (int i=0;i<m_Esolver->m_elec_num && fabs(m_Esolver->m_electrodes[i].phi_fix) < g_phi;i++)
     {
         m_Esolver->m_electrodes[i].phi_fix +=2.0*((m_Esolver->m_electrodes[i].phi_fix>0)-0.5)*0.005*(dt_elec/0.5e-13);
         //  printf("i=%d phi=%e \n",m_Esolver->m_electrodes[i].phi_fix);
@@ -160,18 +165,22 @@ void multiSolver::solve(int itn)
 
         double phi_depol0=m_pzSolver->getPhidepol(w_x0,w_y0);
         double elec_depol0=m_elecSolver->getPhiSlow(w_x0,w_y0);
+        double phi_fromCharges0 = m_Esolver->getPhiFromCharges(w_x0,w_y0);
+
         for (int i=0;i<m_Esolver->m_elec_num;i++)
         {
             double x,y;
             x=m_Esolver->m_electrodes[i].r.x;
             y=m_Esolver->m_electrodes[i].r.y;
 
-            m_Esolver->m_electrodes[i].phi_fix_charges=(m_pzSolver->getPhidepol(x,y)-phi_depol0 + m_elecSolver->getPhiSlow(x, y) - elec_depol0);
+            m_Esolver->m_electrodes[i].phi_fix_charges=(m_pzSolver->getPhidepol(x,y)-phi_depol0
+                                                        + m_elecSolver->getPhiSlow(x, y) - elec_depol0
+                                                        + m_Esolver->getPhiFromCharges(x, y) - phi_fromCharges0);
         }
         m_Esolver->solve_ls_fast();
-      //  updateEforPz();
+        //  updateEforPz();
 
-     //   m_pzSolver->solvePz(5);
+        //   m_pzSolver->solvePz(5);
 
     }
 
@@ -226,7 +235,8 @@ void multiSolver::electronExchange(double dt)
 
         if (y<m_pzSolver->m_p[0].r.y+m_pzSolver->m_p[0].dl*0.5)
         {
-            int p_n=(int) ((x-m_pzSolver->m_p[0].r.x)/m_pzSolver->m_dx);
+            //int p_n=(int) ((x-m_pzSolver->m_p[0].r.x)/m_pzSolver->m_dx);
+            int p_n=(int) ((x-m_pzSolver->m_p[0].r.x-m_pzSolver->m_dx)/m_pzSolver->m_dx);
             if ((p_n>=0)&&(p_n<m_pzSolver->m_p_num))
             {
                 //if (m_pzSolver->m_p[p_n].q_ext+m_elecSolver->m_bodyPos[i].charge<1.7e+2)
@@ -268,6 +278,6 @@ void multiSolver::pzEmission(double dt)
             }
         }
     }
-   /* if (succ>0)
+    /* if (succ>0)
         printf("succ electrons created %d \n",succ);*/
 }

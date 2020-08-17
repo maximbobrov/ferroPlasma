@@ -13,6 +13,7 @@ public:
         vec2 r;
         bool canEmit;
         double eToEmit;
+        double charge;
         double dl;
         double nx, ny;
     };
@@ -30,9 +31,10 @@ public:
     void solvePhi(int itn); //update potential
     vec2 getE(double x,double y);
     double getPhi(double x,double y);
+    double getPhiFromCharges(double x,double y);
     void setElectrodeAngle(double deg);
     void updateGridProp();
-    void addQuad(vec2 p[4], double dl, double phi, int emit);
+    void addQuad(vec2 p[4], double dl, double phi, int emit[4]);
     static vec2 getEField(const vec2& iPos1, const vec2& iPos2);
     static vec2 getPhiField(const vec2& iPos1, const vec2& iPos2);
 
