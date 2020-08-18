@@ -53,7 +53,7 @@ double electronLagrangian::calcJ(double Ein)
 
     double E=Ein/100;//from V/m to V/cm
     double t2 = 1.1;
-    double B = 285.0;//145.0
+    double B = 145.0;//145.0
     double phi = 4.0;
     double y = 3.79 * 1e-4 * sqrt(fabs(B * E)) / phi;
     double tetta = 0.95 - 1.03 * y * y;
@@ -97,8 +97,8 @@ void electronLagrangian::create_electrons(vec2 &pos, int num)
     int left=num;
     while ((left>num_in_pack)&&(m_numParticles<m_maxParticles-1))
     {
-        m_bodyPos[m_numParticles].x = pos.x+(rand()*2.0e-6/RAND_MAX)-1.0e-6;
-        m_bodyPos[m_numParticles].y = pos.y+(rand()*2.0e-6/RAND_MAX-1.0e-6);
+        m_bodyPos[m_numParticles].x = pos.x+(rand()*1.0e-6/RAND_MAX)-0.5e-6;
+        m_bodyPos[m_numParticles].y = pos.y+(rand()*1.0e-6/RAND_MAX)-0.5e-6;
         m_bodyPos[m_numParticles].charge = num_in_pack;
         m_bodyVel[m_numParticles].x = 0.0;
         m_bodyVel[m_numParticles].y = 0.0;
@@ -109,8 +109,8 @@ void electronLagrangian::create_electrons(vec2 &pos, int num)
     }
     if ((left>0)&&(m_numParticles<m_maxParticles-1))
     {
-        m_bodyPos[m_numParticles].x = pos.x+(rand()*2.0e-6/RAND_MAX)-1.0e-6;
-        m_bodyPos[m_numParticles].y = pos.y+(rand()*2.0e-6/RAND_MAX-1.0e-6);
+        m_bodyPos[m_numParticles].x = pos.x+(rand()*1.0e-6/RAND_MAX)-0.5e-6;
+        m_bodyPos[m_numParticles].y = pos.y+(rand()*1.0e-6/RAND_MAX)-0.5e-6;
         m_bodyPos[m_numParticles].charge = left;
         m_bodyVel[m_numParticles].x = 0.0;
         m_bodyVel[m_numParticles].y = 0.0;

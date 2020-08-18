@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include  <GL/gl.h>
-#include  <GL/glu.h>
-#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+//#include  <GL/gl.h>
+//#include  <GL/glu.h>
+//#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
 
 
-//#include <my_include/gl.h>
-//#include <my_include/glu.h>
-//#include <my_include/glut.h>
+#include <my_include/gl.h>
+#include <my_include/glu.h>
+#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -326,7 +326,7 @@ void display(void)
     }
     glEnd();
 
-    glLineWidth(2);
+   /* glLineWidth(2);
     glBegin(GL_LINES);
 
     for (int i = 0; i < lagr_solver->m_elec_num;i++)
@@ -339,7 +339,7 @@ void display(void)
         glVertex3f(x + ck * 1e-6 * lagr_solver->m_electrodes[i].eToEmit * lagr_solver->m_electrodes[i].nx ,
                    y + ck * 1e-6 *lagr_solver->m_electrodes[i].eToEmit * lagr_solver->m_electrodes[i].ny,0.0);
     }
-    glEnd();
+    glEnd();*/
 
     glPointSize(5.5);
     glBegin(GL_POINTS);
@@ -357,7 +357,7 @@ void display(void)
 
     for( i=0; i<elec_solver->m_numParticles; i++ )
     {
-        int p_n=(int) ((elec_solver->m_bodyPos[i].x-pz_solver->m_p[0].r.x-pz_solver->m_dx)/pz_solver->m_dx);
+        int p_n=(int) ((elec_solver->m_bodyPos[i].x-pz_solver->m_p[0].r.x+0.5 * pz_solver->m_dx)/pz_solver->m_dx);
 
         glColor3f(1,1,1);
         glVertex2f(pz_solver->m_p[p_n].r.x-pz_solver->m_dx*0.5,pz_solver->m_p[p_n].r.y -pz_solver->m_p[p_n].dl*0.5);
@@ -369,8 +369,8 @@ void display(void)
 
 
     }
-    glEnd();*/
-
+    glEnd();
+*/
 
 
     /*double vel_scale=1900000.0;//sqrt(vel_scale/numParticles+0.0001);
@@ -414,11 +414,11 @@ void display(void)
 
     if (view_px)
     {
-        glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+        //glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
         glBegin(GL_TRIANGLE_STRIP);
         for (int i=0;i<pz_solver->m_p_num;i++)
         {
-            glColor3f(pz_solver->m_p[i].p/0.26,-pz_solver->m_p[i].p/0.26,1);
+            glColor3f(pz_solver->m_p[i].p/0.26,-pz_solver->m_p[i].p/0.26,0);
             glVertex2f(pz_solver->m_p[i].r.x/*-pz_solver->m_dx*0.5*/,pz_solver->m_p[i].r.y -pz_solver->m_p[i].dl*0.5);
             glVertex2f(pz_solver->m_p[i].r.x/*-pz_solver->m_dx*0.5*/,pz_solver->m_p[i].r.y +pz_solver->m_p[i].dl*0.5);
         }
@@ -789,11 +789,15 @@ void init()
     double ds  = lagr_solver->m_electrodes[0].dl*(w_z1-w_z0);
     double d_t = 1e-13;
 
-    double E1 = 1e7;
-    double el_to_add = elec_solver->calcJ(E1)*d_t*ds/(fabs(qe)/**num_in_pack*/);
+    double E1 = 1.9e8;
+    double el_to_add = 0;//elec_solver->calcJ(E1)*d_t*ds/(fabs(qe)/**num_in_pack*/);
+            double E0=elec_solver->getEmult_dipole(2.0e-6);
+    for (int i = 0; i<70;i++) {
 
-     double E0=elec_solver->getEmult_dipole(2.0e-6);
-    printf("E0=%e el_to_add=%e \n ",el_to_add*E0,el_to_add);
+        //printf("E0=%e el_to_add=%e \n ",el_to_add*E0,el_to_add);
+        el_to_add = el_to_add * 0.99999 + 0.00001 * elec_solver->calcJ(E1-E0*el_to_add)*d_t*ds/(fabs(qe));
+        printf("E1=%e el_to_add=%e \n ",el_to_add*E0,el_to_add);
+    }
     //lagr_solver->solvePhi(10);
 }
 
@@ -827,5 +831,5 @@ int main(int argc, char** argv)
     glutMouseFunc(m_d);
     glutKeyboardFunc(kb);
     init();
-    glutMainLoop();
+    //glutMainLoop();
 }

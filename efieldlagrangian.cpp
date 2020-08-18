@@ -19,14 +19,14 @@ void eFieldLagrangian::init()
 
     vec2 p[5];
 
-    p[0].x=w_x0-0e-9;         p[0].y=0.5*(w_y0+w_y1);
-    p[1].x=w_x0-20e-6;        p[1].y=w_y1;
-    p[2].x=w_x0-25e-6;        p[2].y=w_y1;
-    p[3].x=w_x0-25e-6;        p[3].y=0.5*(w_y0+w_y1);
+    p[0].x=w_x0+50e-6-0e-9;         p[0].y=0.5*(w_y0+w_y1);
+    p[1].x=w_x0+50e-6-20e-6;        p[1].y=w_y1;
+    p[2].x=w_x0+50e-6-25e-6;        p[2].y=w_y1;
+    p[3].x=w_x0+50e-6-25e-6;        p[3].y=0.5*(w_y0+w_y1);
     p[4].x=p[0].x;            p[4].y=p[0].y;
 
     int emit_1[4] = {1,0,0,1};
-    addQuad(p,2e-6,-100,emit_1);
+    addQuad(p,2e-6,-150,emit_1);
     printf("elecnum1 = %d\n", m_elec_num);
 
     p[3].x=w_x0-25e-6;        p[3].y=w_y0;
@@ -36,7 +36,7 @@ void eFieldLagrangian::init()
     p[4].x=p[0].x;            p[4].y=p[0].y;
 
     int emit_2[4] = {0,0,0,0};
-    addQuad(p,2e-6,100,emit_2);
+    addQuad(p,2e-6,150,emit_2);
     printf("elecnum2 = %d\n", m_elec_num);
 
     initW();
