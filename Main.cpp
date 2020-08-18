@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//#include  <GL/gl.h>
-//#include  <GL/glu.h>
-//#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+#include  <GL/gl.h>
+#include  <GL/glu.h>
+#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
 
 
-#include <my_include/gl.h>
-#include <my_include/glu.h>
-#include <my_include/glut.h>
+//#include <my_include/gl.h>
+//#include <my_include/glu.h>
+//#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -81,7 +81,7 @@ void updateEulFields()
     pz_solver->get_q();
     double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
     double phi_e0=elec_solver->getPhiSlow(w_x0,w_y0);
-    double phi_fromCharges0 = lagr_solver->getPhiFromCharges(w_x0,w_y0);
+    //double phi_fromCharges0 = lagr_solver->getPhiFromCharges(w_x0,w_y0);
 
     multi_solver->updateEforPz();
     for (int i=0;i<N_X;i++)
@@ -93,7 +93,7 @@ void updateEulFields()
             y=(w_y0 + 0.35*(w_y1-w_y0)+dy*0.3*j);
 
 
-            Py_[i][j]=pz_solver->getPhidepol(x,y) - phi_depol0 +elec_solver->getPhiSlow(x,y) - phi_e0 -phi_fromCharges0;//-phi_depol0;
+            Py_[i][j]=pz_solver->getPhidepol(x,y) - phi_depol0 +elec_solver->getPhiSlow(x,y) - phi_e0; //-phi_fromCharges0;//-phi_depol0;
 
             // printf("P=%e \n",Py_[i][j]);
             phi_[i][j]=lagr_solver->getPhi(x,y)+Py_[i][j];
@@ -784,6 +784,16 @@ void init()
     multi_solver->m_pzSolver = pz_solver;
     multi_solver->m_elecSolver = elec_solver;
 
+
+
+    double ds  = lagr_solver->m_electrodes[0].dl*(w_z1-w_z0);
+    double d_t = 1e-13;
+
+    double E1 = 1e7;
+    double el_to_add = elec_solver->calcJ(E1)*d_t*ds/(fabs(qe)/**num_in_pack*/);
+
+     double E0=elec_solver->getEmult_dipole(2.0e-6);
+    printf("E0=%e el_to_add=%e \n ",el_to_add*E0,el_to_add);
     //lagr_solver->solvePhi(10);
 }
 

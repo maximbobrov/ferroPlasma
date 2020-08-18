@@ -23,6 +23,7 @@ public:
     void wall_collision(int particlesIdx);
     double calcJ(double Ein);
     void step(double dt);
+    double getEmult_dipole(double d);
     vec2 getEe(double x, double y);
     static vec2 getEField(const vec2& iPos2, const vec2& iPos1);
     void updateGridProp();

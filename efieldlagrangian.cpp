@@ -415,11 +415,11 @@ double eFieldLagrangian::getPhi(double x, double y)
 
         sum+=-q*log(r+delta)/(w_z1 - w_z0);
     }
-    getPhiFromCharges(x,y);
+    //getPhiFromCharges(x,y);
     return sum;
 }
 
-double eFieldLagrangian::getPhiFromCharges(double x, double y)
+/*double eFieldLagrangian::getPhiFromCharges(double x, double y)
 {
     double sum=0.0;
     for (int i=0;i<m_elec_num;i++)
@@ -438,7 +438,7 @@ double eFieldLagrangian::getPhiFromCharges(double x, double y)
         sum+=-q*log(r+delta)/(w_z1 - w_z0);
     }
     return sum;
-}
+}*/
 
 void eFieldLagrangian::initW()
 {
@@ -670,7 +670,7 @@ vec2 eFieldLagrangian::getE(double x, double y)
         sum.y+=c*dy;
 
     }
-    for (int i=0;i<m_elec_num;i++)
+    /*for (int i=0;i<m_elec_num;i++)
     {
         double r2;
         double q;
@@ -687,7 +687,7 @@ vec2 eFieldLagrangian::getE(double x, double y)
         sum.x+=c*dx;
         sum.y+=c*dy;
 
-    }
+    }*/
     return sum;
 }
 

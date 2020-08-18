@@ -93,12 +93,12 @@ int electronLagrangian::create_electron(vec2 &pos, double Emag, double Dt, doubl
 
 void electronLagrangian::create_electrons(vec2 &pos, int num)
 {
-    int num_in_pack=max(num/10,10000);
+    int num_in_pack=max(num/5,500);
     int left=num;
     while ((left>num_in_pack)&&(m_numParticles<m_maxParticles-1))
     {
-        m_bodyPos[m_numParticles].x = pos.x+(rand()*2e-7/RAND_MAX)+1e-7;
-        m_bodyPos[m_numParticles].y = pos.y+(rand()*2e-7/RAND_MAX-1e-7);
+        m_bodyPos[m_numParticles].x = pos.x+(rand()*2.0e-6/RAND_MAX)-1.0e-6;
+        m_bodyPos[m_numParticles].y = pos.y+(rand()*2.0e-6/RAND_MAX-1.0e-6);
         m_bodyPos[m_numParticles].charge = num_in_pack;
         m_bodyVel[m_numParticles].x = 0.0;
         m_bodyVel[m_numParticles].y = 0.0;
@@ -109,8 +109,8 @@ void electronLagrangian::create_electrons(vec2 &pos, int num)
     }
     if ((left>0)&&(m_numParticles<m_maxParticles-1))
     {
-        m_bodyPos[m_numParticles].x = pos.x+(rand()*2e-7/RAND_MAX)+1e-7;
-        m_bodyPos[m_numParticles].y = pos.y+(rand()*2e-7/RAND_MAX-1e-7);
+        m_bodyPos[m_numParticles].x = pos.x+(rand()*2.0e-6/RAND_MAX)-1.0e-6;
+        m_bodyPos[m_numParticles].y = pos.y+(rand()*2.0e-6/RAND_MAX-1.0e-6);
         m_bodyPos[m_numParticles].charge = left;
         m_bodyVel[m_numParticles].x = 0.0;
         m_bodyVel[m_numParticles].y = 0.0;
@@ -309,6 +309,17 @@ vec2 electronLagrangian::getEe(double x, double y)
     //printf("t1 = %e t2 = %e\n",(t1-t0), (t2-t1));
     return ai2;
 }
+
+double electronLagrangian::getEmult_dipole(double d) //calculate E in the middle two elementary charges with distance d
+{
+      double delta=1e-9;
+
+      double r2 = d*d;
+      double q=qe/(eps0*pi2) * 1;
+      double invDist2 = q / ((r2+delta*delta)*(w_z1 - w_z0));
+      return fabs(2.0*d*invDist2);
+}
+
 double electronLagrangian::getPhiSlow(double x, double y)
 {
     double sum=0.0;
