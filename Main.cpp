@@ -790,14 +790,15 @@ void init()
     double d_t = 1e-13;
 
     double E1 = 1.9e8;
-    double el_to_add = 0;//elec_solver->calcJ(E1)*d_t*ds/(fabs(qe)/**num_in_pack*/);
-            double E0=elec_solver->getEmult_dipole(2.0e-6);
-    for (int i = 0; i<70;i++) {
+    double E0=elec_solver->getEmult_dipole(2.0e-6);
+    double el_to_add = E1/(E0+0.01);//elec_solver->calcJ(E1)*d_t*ds/(fabs(qe)/**num_in_pack*/);
+
+    /*for (int i = 0; i<200;i++) {
 
         //printf("E0=%e el_to_add=%e \n ",el_to_add*E0,el_to_add);
-        el_to_add = el_to_add * 0.99999 + 0.00001 * elec_solver->calcJ(E1-E0*el_to_add)*d_t*ds/(fabs(qe));
+        el_to_add = el_to_add * 0.99 + 0.01 * elec_solver->calcJ(E1-E0*el_to_add)*d_t*ds/(fabs(qe));
         printf("E1=%e el_to_add=%e \n ",el_to_add*E0,el_to_add);
-    }
+    }*/
     //lagr_solver->solvePhi(10);
 }
 
@@ -831,5 +832,5 @@ int main(int argc, char** argv)
     glutMouseFunc(m_d);
     glutKeyboardFunc(kb);
     init();
-    //glutMainLoop();
+    glutMainLoop();
 }

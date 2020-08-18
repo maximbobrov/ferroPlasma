@@ -82,9 +82,9 @@ void multiSolver::electronEmission(double d_t)
             {
                 double ds = m_Esolver->m_electrodes[i].dl*(w_z1-w_z0);
 
-                double el_to_add = m_elecSolver->calcJ(l)*d_t*ds/(fabs(qe)/**num_in_pack*/);
-                for (int i = 0; i<7;i++) {
-                    el_to_add = el_to_add * 0.5 + 0.5 * m_elecSolver->calcJ(fmax(l - E0 * (/*m_Esolver->m_electrodes[i].eToEmit +*/ el_to_add),0.0))*d_t*ds/(fabs(qe)/**num_in_pack*/);
+                double el_to_add = l/(E0 + 0.01);//m_elecSolver->calcJ(l)*d_t*ds/(fabs(qe)/**num_in_pack*/);
+                for (int i = 0; i<200;i++) {
+                    el_to_add = el_to_add * 0.99 + 0.01 * m_elecSolver->calcJ(fmax(l - E0 * (/*m_Esolver->m_electrodes[i].eToEmit +*/ el_to_add),0.0))*d_t*ds/(fabs(qe)/**num_in_pack*/);
                 }
                 // double E0=m_elecSolver->getEmult_dipole(2.0e-6);
                 m_Esolver->m_electrodes[i].eToEmit+=el_to_add;
