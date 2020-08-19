@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//#include  <GL/gl.h>
-//#include  <GL/glu.h>
-//#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+#include  <GL/gl.h>
+#include  <GL/glu.h>
+#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
 
 
-#include <my_include/gl.h>
-#include <my_include/glu.h>
-#include <my_include/glut.h>
+//#include <my_include/gl.h>
+//#include <my_include/glu.h>
+//#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -785,20 +785,31 @@ void init()
     multi_solver->m_elecSolver = elec_solver;
 
 
-
+    static double qem[100][10]; //E 10^5 - 10^9 ; dt  10^-15 10^-8
     double ds  = lagr_solver->m_electrodes[0].dl*(w_z1-w_z0);
-    double d_t = 1e-13;
 
-    double E1 = 1.9e8;
-    double E0=elec_solver->getEmult_dipole(2.0e-6);
-    double el_to_add = E1/(E0+0.01);//elec_solver->calcJ(E1)*d_t*ds/(fabs(qe)/**num_in_pack*/);
+    //for (int i=0; i<100; i++)
+    {
+        int i=0;
+            double E1 = 1.e6 + 1.0e7*i;
+        printf("\n E=%e \n ",E1);
 
-    /*for (int i = 0; i<200;i++) {
+        for (int j=0;j<10;j++)
+        {
+            double d_t = pow(10.0,-8.0-j);
+            double E0=elec_solver->getEmult_dipole(2.0e-6);
+            double el_to_add = E1/(E0+0.01);//elec_solver->calcJ(E1)*d_t*ds/(fabs(qe)/**num_in_pack*/);
 
-        //printf("E0=%e el_to_add=%e \n ",el_to_add*E0,el_to_add);
-        el_to_add = el_to_add * 0.99 + 0.01 * elec_solver->calcJ(E1-E0*el_to_add)*d_t*ds/(fabs(qe));
-        printf("E1=%e el_to_add=%e \n ",el_to_add*E0,el_to_add);
-    }*/
+            //double J=elec_solver->calcJ(E1-E0*el_to_add)*d_t*ds/(fabs(qe));
+            for (int k = 0; k<200;k++) {
+                        el_to_add = el_to_add * 0.99 + 0.01 * elec_solver->calcJ(E1-E0*el_to_add)*d_t*ds/(fabs(qe));
+
+                         printf("E1=%e E0=%e; \n",E1,E0*el_to_add);
+            }
+               printf("dt=%e e=%e; \n",d_t,el_to_add);
+        }
+    }
+
     //lagr_solver->solvePhi(10);
 }
 
@@ -832,5 +843,5 @@ int main(int argc, char** argv)
     glutMouseFunc(m_d);
     glutKeyboardFunc(kb);
     init();
-    glutMainLoop();
+ //   glutMainLoop();
 }

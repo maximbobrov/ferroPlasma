@@ -57,7 +57,7 @@ double electronLagrangian::calcJ(double Ein)
     double phi = 4.0;
     double y = 3.79 * 1e-4 * sqrt(fabs(B * E)) / phi;
     double tetta = 0.95 - 1.03 * y * y;
-    return 1e4*(1.54 * 1.0e-6 * B * B * E * E / (t2  * phi)) * exp( - 6.83 * 1.0e7 * pow(phi, 1.5) * tetta / fabs( B * E)); //in A/m^2
+    return 1e4*(1.54 * 1.0e-6 * B * B * E * E / (t2  * phi)) * exp ( - 6.83 * 1.0e7 * pow(phi, 1.5) * tetta / fabs( B * E)); //in A/m^2
 }
 
 
