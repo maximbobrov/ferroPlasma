@@ -790,23 +790,27 @@ void init()
 
     //for (int i=0; i<100; i++)
     {
-        int i=0;
+        int i=4;
             double E1 = 1.e6 + 1.0e7*i;
         printf("\n E=%e \n ",E1);
 
-        for (int j=0;j<10;j++)
+        for (int j=0;j<2;j++)
         {
             double d_t = pow(10.0,-8.0-j);
             double E0=elec_solver->getEmult_dipole(2.0e-6);
-            double el_to_add = E1/(E0+0.01);//elec_solver->calcJ(E1)*d_t*ds/(fabs(qe)/**num_in_pack*/);
-
+            double el_to_add = 0.99*E1/(E0);//elec_solver->calcJ(E1)*d_t*ds/(fabs(qe)/**num_in_pack*/);
+             //el_to_add = elec_solver->calcJ(E1)*d_t*ds/(fabs(qe)/**num_in_pack*/);
+            double el_to_add0=el_to_add;
+             printf("__E1=%e E0=%e n=%e;  \n",E1,E0*el_to_add);
             //double J=elec_solver->calcJ(E1-E0*el_to_add)*d_t*ds/(fabs(qe));
-            for (int k = 0; k<200;k++) {
-                        el_to_add = el_to_add * 0.99 + 0.01 * elec_solver->calcJ(E1-E0*el_to_add)*d_t*ds/(fabs(qe));
+          for (int k = 0; k<3000;k++) {
+                        el_to_add = el_to_add * 0.999 + 0.001 * elec_solver->calcJ(E1-E0*el_to_add)*d_t*ds/(fabs(qe));
 
-                         printf("E1=%e E0=%e; \n",E1,E0*el_to_add);
+                        // printf("E1=%e E0=%e n=%e; \n",E1,E0*el_to_add,el_to_add);
             }
-               printf("dt=%e e=%e; \n",d_t,el_to_add);
+             printf(" dt=%e E1=%e E0=%e n=%e; \n",d_t,E1,E0*el_to_add,el_to_add);
+           //    printf("dt=%e e=%e; ",d_t,el_to_add);
+        //         printf("%e %e %e; ",el_to_add0,el_to_add,el_to_add*E0/E1);
         }
     }
 
