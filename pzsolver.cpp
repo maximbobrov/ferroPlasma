@@ -31,7 +31,7 @@ void pzSolver::init()
           else
         m_p[i].p = -0.26;
 
-        //m_p[i].p=0.0;
+        m_p[i].p=0.0;
 
         m_p[i].p_prev = m_p[i].p;
 

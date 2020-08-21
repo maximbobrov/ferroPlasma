@@ -91,7 +91,7 @@ int electronLagrangian::create_electron(vec2 &pos, double Emag, double Dt, doubl
     return num_in_pack*ne;
 }
 
-void electronLagrangian::create_electrons(vec2 &pos, int num)
+void electronLagrangian::create_electrons(vec2 &pos, vec2 &vel, int num)
 {
     int num_in_pack=max(num/5,500);
     int left=num;
@@ -100,8 +100,8 @@ void electronLagrangian::create_electrons(vec2 &pos, int num)
         m_bodyPos[m_numParticles].x = pos.x+(rand()*1.0e-6/RAND_MAX)-0.5e-6;
         m_bodyPos[m_numParticles].y = pos.y+(rand()*1.0e-6/RAND_MAX)-0.5e-6;
         m_bodyPos[m_numParticles].charge = num_in_pack;
-        m_bodyVel[m_numParticles].x = 0.0;
-        m_bodyVel[m_numParticles].y = 0.0;
+        m_bodyVel[m_numParticles].x =vel.x+(rand()*1.0e5/RAND_MAX)-0.5e5;
+        m_bodyVel[m_numParticles].y = vel.y+(rand()*1.0e5/RAND_MAX)-0.5e5;
         m_bodyAccel[m_numParticles].x = 0.0;
         m_bodyAccel[m_numParticles].y = 0.0;
         m_numParticles++;
@@ -112,8 +112,8 @@ void electronLagrangian::create_electrons(vec2 &pos, int num)
         m_bodyPos[m_numParticles].x = pos.x+(rand()*1.0e-6/RAND_MAX)-0.5e-6;
         m_bodyPos[m_numParticles].y = pos.y+(rand()*1.0e-6/RAND_MAX)-0.5e-6;
         m_bodyPos[m_numParticles].charge = left;
-        m_bodyVel[m_numParticles].x = 0.0;
-        m_bodyVel[m_numParticles].y = 0.0;
+        m_bodyVel[m_numParticles].x =vel.x+(rand()*1.0e5/RAND_MAX)-0.5e5;
+        m_bodyVel[m_numParticles].y = vel.y+(rand()*1.0e5/RAND_MAX)-0.5e5;
         m_bodyAccel[m_numParticles].x = 0.0;
         m_bodyAccel[m_numParticles].y = 0.0;
         m_numParticles++;

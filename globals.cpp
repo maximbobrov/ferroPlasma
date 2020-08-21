@@ -152,7 +152,7 @@ double solve_poly(poly &p,double _x0, double rhs,int itn)
     return x;
 
 }
-
+tab emis_tab;
 //multigr--------------------------------------------
 double frequency = 2e7;
 

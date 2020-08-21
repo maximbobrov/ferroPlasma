@@ -326,7 +326,7 @@ void display(void)
     }
     glEnd();
 
-   /* glLineWidth(2);
+    /* glLineWidth(2);
     glBegin(GL_LINES);
 
     for (int i = 0; i < lagr_solver->m_elec_num;i++)
@@ -502,6 +502,218 @@ void display(void)
     glutSwapBuffers();
     if (redr==1) glutPostRedisplay();
 
+}
+
+
+/////////1d emission below
+///
+///
+vec2 ch[1000];
+int c_num=0;
+double velFermi=1.5e6;
+double E1=1.7e7;
+double dt1=5e-14;
+double calcJ(double Ein)
+{
+
+    double E=Ein/100;//from V/m to V/cm
+    double t2 = 1.1;
+    double B = 145.0;//145.0
+    double phi = 4.0;
+    double y = 3.79 * 1e-4 * sqrt(fabs(B * E)) / phi;
+    double tetta = 0.95 - 1.03 * y * y;
+    return 1e4*(1.54 * 1.0e-6 * B * B * E * E / (t2  * phi)) * exp ( - 6.83 * 1.0e7 * pow(phi, 1.5) * tetta / fabs( B * E)); //in A/m^2
+}
+
+double E_dipole(double x) //calculate E in the middle two elementary charges with distance d
+{
+    double sum =0.0;
+
+    for (int i=0;i<c_num;i++)
+    {
+        double r2;
+        double q;
+        double dx,dy;
+        double delta=1e-9;
+
+        dx = ch[i].x - x;
+
+        r2=dx*dx;
+        q=-qe/(eps0*pi2) * (ch[i].charge);
+
+        double c=q/((r2+delta*delta)*(w_z1 - w_z0));
+
+        sum+=c*dx;
+
+
+    }
+    return sum;
+}
+
+
+
+
+void step_charges(double dt)
+{
+    for (int i=0;i<c_num;i++)
+    {
+        ch[i].x+=dt*velFermi;
+    }
+
+    for (int i=0;i<c_num;i++)
+    {
+        if (ch[i].x>w_x1){
+            ch[i]=ch[c_num-1];
+            c_num--;
+        }
+    }
+
+}
+double Ec=0.0;
+void sim_emit(double E_1,double dt)
+{
+    double ds = (w_y1-w_y0)*(w_z1-w_z0);
+
+    double phi=4; //work function
+    double barrier_width=(phi-sqrt(fabs(qe*E_1/(pi4*eps0))))/E_1;
+
+    //
+    double vel=1.5e6; //fermi velocity
+    double E0=2.0*fabs(E_dipole(0.0));
+
+    Ec=0.999*Ec+ 0.001*fmax(E_1-E0,0);
+    double el_to_add = calcJ(fmax(Ec,0))*dt*ds/(fabs(qe));
+
+    vec2 q(w_x0+barrier_width,0,el_to_add);
+
+    ch[c_num]=q;
+    c_num++;
+
+    /*for (int i=0;i<c_num;i++)
+     {ch[i].charge=el_to_add;
+
+     }*/
+
+    step_charges(dt);
+
+    //  printf("barrier_w=%e  q=%e \n",barrier_width,el_to_add);
+}
+
+void save_file()
+{
+
+    emis_tab.ex=1.1;
+    emis_tab.ey=1.1;
+
+    emis_tab.nx=100;
+    emis_tab.ny=10;
+
+    emis_tab.x0=1e6;
+    emis_tab.y0=1e-14;
+
+
+
+    FILE* f=fopen("n.txt","w");
+    fprintf (f,"0 ");
+    for (int j=0;j<emis_tab.ny;j++)
+    {
+        fprintf(f,"%e ",1e-14*pow(1.1,j));
+
+        emis_tab.y[j]=1e-14*pow(1.1,j);
+    }
+    fprintf(f,"\n");
+
+    for (int i=0;i<emis_tab.nx;i++)
+    {
+        emis_tab.x[i]=1.0e6*pow(1.1,i);
+    }
+
+
+    double dt,E;
+    for (int i=0;i<100;i++)
+    {
+        E=1e6*pow(1.1,i);
+        fprintf(f,"%e ",E);
+        for (int j=0;j<10;j++)
+        {
+            dt=1e-14*pow(1.1,j);
+
+            for (int  k=0;k<4000;k++)
+            {
+                sim_emit(E,dt);
+            }
+            fprintf(f,"%e ",ch[0].charge);
+            emis_tab.f[i][j]=ch[0].charge;
+        }
+        fprintf(f,"\n ");
+        for (int k=0;k<4000;k++)
+        {
+            sim_emit(E,1e-14);
+        }
+        printf("i=%d \n ",i);
+    }
+    fclose(f);
+}
+int jc=0;
+void display_1d(void)
+{
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    if (redr==1)
+    {
+        sim_emit(E1,dt1);
+        //printf("c_num=%d \n", c_num);
+    }
+
+    glLoadIdentity();
+
+    glPointSize(3);
+    glColor3f(1,1,1);
+    glBegin(GL_LINES);
+    glVertex3f(w_x0,0.0,0.0);
+    glVertex3f(w_x1,0.0,0.0);
+
+    for (int i=0;i<100;i++)
+    {
+        glVertex3f(w_x0+i*1.0e-7,3.0e-8,0.0);
+        glVertex3f(w_x0+i*1.0e-7,-3.0e-8,0.0);
+    }
+    glEnd();
+
+    glBegin(GL_LINES);
+
+    for (int i=0;i<c_num;i++)
+    {
+        glVertex3f(ch[i].x,6.0e-8+6.0e-8*0.001*ch[i].charge,0.0);
+        glVertex3f(ch[i].x,6.0e-8,0.0);
+    }
+    glEnd();
+
+    glColor3f(1,0,0);
+    glPointSize(3);
+    glBegin(GL_POINTS);
+
+    for (int i=0;i<c_num;i++)
+    {
+
+        glVertex3f(ch[i].x,6.0e-8,0.0);
+    }
+    glEnd();
+
+/*glColor3f(1,0,0);
+    glBegin(GL_LINE_STRIP);
+    for (int i=0;i<emis_tab.nx;i++)
+    {
+        //for (int j=0;j<emis_tab.ny;j++)
+        {
+            glVertex3f(w_x0+scale*emis_tab.x[i]/emis_tab.x0*1.0e-7,ck*emis_tab.f[i][jc],0.0);
+
+        }
+    }
+    glEnd();*/
+
+    glutSwapBuffers();
+    if (redr==1) glutPostRedisplay();
 }
 
 void m_m(int x,int y) //mouse move
@@ -761,6 +973,84 @@ void kb(unsigned char key, int x, int y)
     glutPostRedisplay();
 }
 
+void kb_1d(unsigned char key, int x, int y)
+{
+
+
+    if (key==' ')
+    {
+        redr=!redr;
+    }
+
+
+    if (key=='.')
+    {
+        dt1*=1.1;
+        printf("dt=%e \n",dt1);
+    }
+
+    if (key==',')
+    {
+        dt1/=1.1;
+        printf("dt=%e \n",dt1);
+    }
+
+
+    if (key==']')
+    {
+        E1*=1.1;
+        printf("E=%e \n",E1);
+    }
+
+    if (key=='[')
+    {
+        E1/=1.1;
+        printf("E=%e \n",E1);
+    }
+
+
+  /*  if (key=='.')
+    {
+        jc++;
+        printf("jc=%d \n", jc);
+    }
+
+    if (key==',')
+    {
+        jc--;
+        printf("jc=%d \n", jc);
+    }
+
+
+    if (key==']')
+    {
+        ck*=1.1;
+        printf("ck=%e \n", ck);
+    }
+
+    if (key=='[')
+    {
+        ck/=1.1;
+        printf("ck=%e \n", ck);
+    }
+
+
+    if (key=='0')
+    {
+        scale*=1.1;
+        printf("ck=%e \n", ck);
+    }
+
+    if (key=='9')
+    {
+        scale/=1.1;
+        printf("ck=%e \n", ck);
+    }*/
+
+    glutPostRedisplay();
+}
+
+
 
 
 
@@ -791,7 +1081,7 @@ void init()
     //for (int i=0; i<100; i++)
     {
         int i=4;
-            double E1 = 1.e6 + 1.0e7*i;
+        double E1 = 1.e6 + 1.0e7*i;
         printf("\n E=%e \n ",E1);
 
         for (int j=0;j<2;j++)
@@ -799,18 +1089,18 @@ void init()
             double d_t = pow(10.0,-8.0-j);
             double E0=elec_solver->getEmult_dipole(2.0e-6);
             double el_to_add = 0.99*E1/(E0);//elec_solver->calcJ(E1)*d_t*ds/(fabs(qe)/**num_in_pack*/);
-             //el_to_add = elec_solver->calcJ(E1)*d_t*ds/(fabs(qe)/**num_in_pack*/);
+            //el_to_add = elec_solver->calcJ(E1)*d_t*ds/(fabs(qe)/**num_in_pack*/);
             double el_to_add0=el_to_add;
-             printf("__E1=%e E0=%e n=%e;  \n",E1,E0*el_to_add);
+            printf("__E1=%e E0=%e n=%e;  \n",E1,E0*el_to_add);
             //double J=elec_solver->calcJ(E1-E0*el_to_add)*d_t*ds/(fabs(qe));
-          for (int k = 0; k<3000;k++) {
-                        el_to_add = el_to_add * 0.999 + 0.001 * elec_solver->calcJ(E1-E0*el_to_add)*d_t*ds/(fabs(qe));
+            for (int k = 0; k<6000;k++) {
+                el_to_add = el_to_add * 0.9995 + 0.0005 * elec_solver->calcJ(E1-E0*el_to_add)*d_t*ds/(fabs(qe));
 
-                        // printf("E1=%e E0=%e n=%e; \n",E1,E0*el_to_add,el_to_add);
+                // printf("E1=%e E0=%e n=%e; \n",E1,E0*el_to_add,el_to_add);
             }
-             printf(" dt=%e E1=%e E0=%e n=%e; \n",d_t,E1,E0*el_to_add,el_to_add);
-           //    printf("dt=%e e=%e; ",d_t,el_to_add);
-        //         printf("%e %e %e; ",el_to_add0,el_to_add,el_to_add*E0/E1);
+            printf(" dt=%e E1=%e E0=%e n=%e; \n",d_t,E1,E0*el_to_add,el_to_add);
+            //    printf("dt=%e e=%e; ",d_t,el_to_add);
+            //         printf("%e %e %e; ",el_to_add0,el_to_add,el_to_add*E0/E1);
         }
     }
 
@@ -841,11 +1131,13 @@ int main(int argc, char** argv)
     glutInitWindowSize(W_HEIGHT*(w_x1-w_x0)/(w_y1-w_y0),W_HEIGHT);
     glutInitWindowPosition(0,0);
     glutCreateWindow("simple");
-    glutDisplayFunc(display);
+    glutDisplayFunc(display_1d);
     glutReshapeFunc(resize);
     glutMotionFunc(m_m);
     glutMouseFunc(m_d);
-    glutKeyboardFunc(kb);
+    glutKeyboardFunc(kb_1d);
     init();
- //   glutMainLoop();
+
+   // save_file();
+    glutMainLoop();
 }

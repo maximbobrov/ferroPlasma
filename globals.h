@@ -18,7 +18,7 @@
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-#define w_x0 -250e-6
+/*#define w_x0 -250e-6
 #define w_x1 250e-6
 
 
@@ -26,7 +26,18 @@
 #define w_y1 50e-6
 
 #define w_z0 -25.0e-5
-#define w_z1 25.0e-5
+#define w_z1 25.0e-5*/
+
+#define w_x0 0.0
+#define w_x1 1.0e-5
+
+
+#define w_y0 -0.50e-6
+#define w_y1 0.50e-6
+
+#define w_z0 -0.250e-5
+#define w_z1 0.250e-5
+
 //near_wall_layer width
 
 #define DY_WALL ((w_y1-w_y0)/50)
@@ -61,6 +72,34 @@
 #include <sys/time.h>
 using namespace std;
 const float inv4PI             = 0.25/M_PI;  // Laplace kernel coefficient
+
+struct tab {
+    double x[200];
+    double y[200];
+    double f[200][200];
+
+    double ex,ey,x0,y0;
+    int nx,ny;
+    double get_f(double x, double y)
+    {
+      double a=log(x/x0)/log(ex);
+      double b=log(y/y0)/log(ey);
+
+      if (a<0) a=0;
+      if (a>nx-1) a=nx-1-0.001;
+
+      if (b<0) b=0;
+      if (b>ny-1) b=ny-1-0.001;
+
+      int i=(int)(a);
+      int j=(int)(b);
+
+      a-=i;
+      b-=j;
+
+      return ((1.0-b)*(f[i][j]*(1.0-a)+f[i+1][j]*(a)) + (b)*(f[i][j+1]*(1.0-a)+f[i+1][j+1]*(a)));
+    }
+};
 
 
 struct vec2 {
@@ -122,6 +161,9 @@ double get_time(void);
 
 
 double delta_f(double E, double phi);
+
+
+extern tab emis_tab;
 
 extern double RHS[N_X][N_Y],RHS_p[N_X][N_Y],E_x[N_X][N_Y],E_y[N_X][N_Y];
 
