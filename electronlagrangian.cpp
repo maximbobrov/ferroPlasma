@@ -50,7 +50,6 @@ void electronLagrangian::init()
 
 double electronLagrangian::calcJ(double Ein)
 {
-
     double E=Ein/100;//from V/m to V/cm
     double t2 = 1.1;
     double B = 145.0;//145.0

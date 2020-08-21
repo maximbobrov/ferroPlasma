@@ -4,7 +4,7 @@
 
 pzSolver::pzSolver()
 {
-    this->m_p_num=380;
+    this->m_p_num=760;
     m_p=new pElem[m_p_num];
     m_rCentre=new vec2[2 * m_p_num];
     m_dt=2.0*45e-13;//1e-11;
@@ -16,7 +16,7 @@ void pzSolver::init()
 {
     double _dx,_dz;
     _dz=w_z1-w_z0;
-    _dx=(w_x1/*-25e-6-*/- w_x0)/(m_p_num-1);
+    _dx=(w_x1/2/*-25e-6-*/- w_x0)/(m_p_num-1);
     m_dx=_dx;
 
     for (int i=0;i<m_p_num;i++) //first electrode
@@ -26,12 +26,12 @@ void pzSolver::init()
         m_p[i].r.x = w_x0 + m_dx * i;//(w_x0/*-25e-6*/)*(1.0-alpha)+w_x1*alpha;
         m_p[i].r.y = w_y0+25e-6;//(w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
 
-          if (m_p[i].r.x<w_x0)
+          if (m_p[i].r.x<w_x0+50e-6 && m_p[i].r.x>w_x0+25e-6)
           m_p[i].p = 0.26;//-0.1*(rand()*1.0/RAND_MAX-0.5);//0.0;//-0.005;//-0.26;//+rand()*0.043/RAND_MAX;
           else
         m_p[i].p = -0.26;
 
-        m_p[i].p=0.0;
+        //m_p[i].p=0.0;
 
         m_p[i].p_prev = m_p[i].p;
 
@@ -63,7 +63,7 @@ void pzSolver::init()
     }*/
 
 
-    kappa=1.38e-10*0.15;//1.38e-10*0.15;
+    kappa=5 * 1.38e-10*0.15;//1.38e-10*0.15;
     m_par.a=(1.0/(m_dt))+(kappa*2.0/(m_dx*m_dx));
     m_par.bp=-kappa/(m_dx*m_dx);
     m_par.bm=-kappa/(m_dx*m_dx);

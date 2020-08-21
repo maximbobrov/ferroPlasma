@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include  <GL/gl.h>
-#include  <GL/glu.h>
-#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+//#include  <GL/gl.h>
+//#include  <GL/glu.h>
+//#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
 
 
-//#include <my_include/gl.h>
-//#include <my_include/glu.h>
-//#include <my_include/glut.h>
+#include <my_include/gl.h>
+#include <my_include/glu.h>
+#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -550,9 +550,6 @@ double E_dipole(double x) //calculate E in the middle two elementary charges wit
     return sum;
 }
 
-
-
-
 void step_charges(double dt)
 {
     for (int i=0;i<c_num;i++)
@@ -562,13 +559,14 @@ void step_charges(double dt)
 
     for (int i=0;i<c_num;i++)
     {
-        if (ch[i].x>w_x1){
+        if (ch[i].x>1e-6){
             ch[i]=ch[c_num-1];
             c_num--;
         }
     }
 
 }
+
 double Ec=0.0;
 void sim_emit(double E_1,double dt)
 {
@@ -584,7 +582,7 @@ void sim_emit(double E_1,double dt)
     Ec=0.999*Ec+ 0.001*fmax(E_1-E0,0);
     double el_to_add = calcJ(fmax(Ec,0))*dt*ds/(fabs(qe));
 
-    vec2 q(w_x0+barrier_width,0,el_to_add);
+    vec2 q(barrier_width,0,el_to_add);
 
     ch[c_num]=q;
     c_num++;
@@ -643,7 +641,16 @@ void save_file()
                 sim_emit(E,dt);
             }
             fprintf(f,"%e ",ch[0].charge);
-            emis_tab.f[i][j]=ch[0].charge;
+            double sumCharge = 0;
+            double sumX = 0;
+            for (int k=0;k<c_num;k++)
+            {
+                sumCharge+=ch[k].charge;
+                sumX+=ch[k].x;
+            }
+            sumX/=c_num;
+            emis_tab.f[i][j]=sumCharge;//ch[0].charge;
+            printf("charge = %f x = %e\n", sumCharge, sumX);
         }
         fprintf(f,"\n ");
         for (int k=0;k<4000;k++)
@@ -651,6 +658,7 @@ void save_file()
             sim_emit(E,1e-14);
         }
         printf("i=%d \n ",i);
+
     }
     fclose(f);
 }
@@ -669,7 +677,7 @@ void display_1d(void)
 
     glPointSize(3);
     glColor3f(1,1,1);
-    glBegin(GL_LINES);
+    /*glBegin(GL_LINES);
     glVertex3f(w_x0,0.0,0.0);
     glVertex3f(w_x1,0.0,0.0);
 
@@ -688,8 +696,8 @@ void display_1d(void)
         glVertex3f(ch[i].x,6.0e-8,0.0);
     }
     glEnd();
-
-    glColor3f(1,0,0);
+*/
+    /*glColor3f(1,0,0);
     glPointSize(3);
     glBegin(GL_POINTS);
 
@@ -698,9 +706,9 @@ void display_1d(void)
 
         glVertex3f(ch[i].x,6.0e-8,0.0);
     }
-    glEnd();
+    glEnd();*/
 
-/*glColor3f(1,0,0);
+    glColor3f(1,0,0);
     glBegin(GL_LINE_STRIP);
     for (int i=0;i<emis_tab.nx;i++)
     {
@@ -710,7 +718,19 @@ void display_1d(void)
 
         }
     }
-    glEnd();*/
+    glEnd();
+
+    glColor3f(0,1,1);
+    glBegin(GL_POINTS);
+    for (int i=0;i<10000;i++)
+    {
+        //for (int j=0;j<emis_tab.ny;j++)
+        {
+            glVertex3f(w_x0+scale*(i * 1e5 + 1e5)/emis_tab.x0*1.0e-7,ck*emis_tab.get_f(i * 1e5 + 1e5, emis_tab.y0),0.0);
+
+        }
+    }
+    glEnd();
 
     glutSwapBuffers();
     if (redr==1) glutPostRedisplay();
@@ -977,7 +997,7 @@ void kb_1d(unsigned char key, int x, int y)
 {
 
 
-    if (key==' ')
+    /*  if (key==' ')
     {
         redr=!redr;
     }
@@ -1006,10 +1026,10 @@ void kb_1d(unsigned char key, int x, int y)
     {
         E1/=1.1;
         printf("E=%e \n",E1);
-    }
+    }*/
 
 
-  /*  if (key=='.')
+    if (key=='.')
     {
         jc++;
         printf("jc=%d \n", jc);
@@ -1045,7 +1065,7 @@ void kb_1d(unsigned char key, int x, int y)
     {
         scale/=1.1;
         printf("ck=%e \n", ck);
-    }*/
+    }
 
     glutPostRedisplay();
 }
@@ -1131,13 +1151,13 @@ int main(int argc, char** argv)
     glutInitWindowSize(W_HEIGHT*(w_x1-w_x0)/(w_y1-w_y0),W_HEIGHT);
     glutInitWindowPosition(0,0);
     glutCreateWindow("simple");
-    glutDisplayFunc(display_1d);
+    glutDisplayFunc(display);
     glutReshapeFunc(resize);
     glutMotionFunc(m_m);
     glutMouseFunc(m_d);
-    glutKeyboardFunc(kb_1d);
+    glutKeyboardFunc(kb);
     init();
 
-   // save_file();
+    save_file();
     glutMainLoop();
 }
