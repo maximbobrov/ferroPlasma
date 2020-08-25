@@ -310,7 +310,8 @@ void display(void)
             glColor3f(0.25,0.25,1);
         else
             glColor3f(1,1,1);
-
+        if(i==0)
+          glColor3f(1,0,0);
         double x=(lagr_solver->m_electrodes[i].r.x);
         double y=(lagr_solver->m_electrodes[i].r.y);
         glVertex3f(x,y,0.0);
@@ -418,7 +419,7 @@ void display(void)
         glBegin(GL_TRIANGLE_STRIP);
         for (int i=0;i<pz_solver->m_p_num;i++)
         {
-            glColor3f(pz_solver->m_p[i].p/0.26,-pz_solver->m_p[i].p/0.26,0);
+            glColor3f(ck * pz_solver->m_p[i].p/0.26,-ck * pz_solver->m_p[i].p/0.26,0);
             glVertex2f(pz_solver->m_p[i].r.x/*-pz_solver->m_dx*0.5*/,pz_solver->m_p[i].r.y -pz_solver->m_p[i].dl*0.5);
             glVertex2f(pz_solver->m_p[i].r.x/*-pz_solver->m_dx*0.5*/,pz_solver->m_p[i].r.y +pz_solver->m_p[i].dl*0.5);
         }

@@ -7,7 +7,7 @@ pzSolver::pzSolver()
     this->m_p_num=760;
     m_p=new pElem[m_p_num];
     m_rCentre=new vec2[2 * m_p_num];
-    m_dt=2.0*45e-13;//1e-11;
+    m_dt=1.0*45e-13;//1e-11;
 
     init();
 }
@@ -16,12 +16,12 @@ void pzSolver::init()
 {
     double _dx,_dz;
     _dz=w_z1-w_z0;
-    _dx=(w_x1/2/*-25e-6-*/- w_x0)/(m_p_num-1);
+    _dx=0.25 * (w_x1/*-25e-6-*/- w_x0)/(m_p_num-1);
     m_dx=_dx;
 
     for (int i=0;i<m_p_num;i++) //first electrode
     {
-        m_p[i].dl=45e-6; //100 nm width;
+        m_p[i].dl=45.0e-6; //100 nm width;
         //double alpha=i*1.0/(m_p_num-1);
         m_p[i].r.x = w_x0 + m_dx * i;//(w_x0/*-25e-6*/)*(1.0-alpha)+w_x1*alpha;
         m_p[i].r.y = w_y0+25e-6;//(w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
@@ -31,7 +31,7 @@ void pzSolver::init()
           else
         m_p[i].p = -0.26;
 
-        //m_p[i].p=0.0;
+        m_p[i].p=-0.26;
 
         m_p[i].p_prev = m_p[i].p;
 
@@ -43,7 +43,7 @@ void pzSolver::init()
         m_p[i].q_ext=0.0;
     }
 
-    //m_p[0].p = 0.26;//0.005;//0.26;
+    m_p[0].p = 0.26;//0.005;//0.26;
     get_q();
     for (int i=0;i<m_p_num;i++) //first electrode
     {
@@ -62,8 +62,8 @@ void pzSolver::init()
         m_p[i].p_prev = m_p[i].p;
     }*/
 
-
-    kappa=5 * 1.38e-10*0.15;//1.38e-10*0.15;
+    //m_dx = 1e-9;
+    kappa=0.1 * 1.38e-10*0.15;//1.38e-10*0.15;
     m_par.a=(1.0/(m_dt))+(kappa*2.0/(m_dx*m_dx));
     m_par.bp=-kappa/(m_dx*m_dx);
     m_par.bm=-kappa/(m_dx*m_dx);
@@ -193,11 +193,11 @@ void pzSolver::get_q() //all charges are in elementary
     {
         m_p[i].q=(m_p[i].p)*m_p[i].ds/qe;
 
-        if (m_p[i].r.x<w_x0)
+        /*if (m_p[i].r.x<w_x0+50e-6 && m_p[i].r.x>w_x0+25e-6)
         {
             m_p[i].q=0.0;
-            //m_p[i].q_ext=0.0;
-        }
+            m_p[i].q_ext=0.0;
+        }*/
 
     }
 
@@ -324,7 +324,7 @@ vec2 pzSolver::getEdepol(double x, double y)
         double r2;
         double q;
         double dx,dy;
-        double delta=1e-9;
+        double delta=1e-6;
 
         dx = m_p[i].r.x - x;
         dy = m_p[i].r.y + m_p[i].dl*0.5 - y;
@@ -361,7 +361,7 @@ double pzSolver::getPhidepol(double x, double y)
         double r;
         double q;
         double dx,dy;
-        double delta=1e-9;
+        double delta=1e-6;
 
         dx = m_p[i].r.x - x;
         dy = m_p[i].r.y + m_p[i].dl*0.5 - y;

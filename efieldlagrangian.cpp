@@ -17,7 +17,7 @@ void eFieldLagrangian::init()
     m_rCentre=new vec2[2000];
     m_chargeNum = 0 ;
 
-    vec2 p[5];
+    /*vec2 p[5];
 
     p[0].x=w_x0+50e-6-0e-9;         p[0].y=0.5*(w_y0+w_y1);
     p[1].x=w_x0+50e-6-20e-6;        p[1].y=w_y1;
@@ -25,8 +25,8 @@ void eFieldLagrangian::init()
     p[3].x=w_x0+50e-6-25e-6;        p[3].y=0.5*(w_y0+w_y1);
     p[4].x=p[0].x;            p[4].y=p[0].y;
 
-    int emit_1[4] = {1,0,0,1};
-    addQuad(p,2e-6,-150,emit_1);
+    int emit_1[4] = {1,0,0,0};
+    addQuad(p,2e-6,-1250,emit_1);
     printf("elecnum1 = %d\n", m_elec_num);
 
     p[3].x=w_x0-25e-6;        p[3].y=w_y0;
@@ -36,7 +36,29 @@ void eFieldLagrangian::init()
     p[4].x=p[0].x;            p[4].y=p[0].y;
 
     int emit_2[4] = {0,0,0,0};
-    addQuad(p,2e-6,150,emit_2);
+    addQuad(p,2e-6,1250,emit_2);*/
+
+    vec2 p[5];
+
+    p[0].x=w_x0-0e-6;         p[0].y=0.5*(w_y0+w_y1);
+    p[1].x=w_x0-40e-6;        p[1].y=w_y1;
+    p[2].x=w_x0-50e-6;        p[2].y=w_y1;
+    p[3].x=w_x0-50e-6;        p[3].y=0.5*(w_y0+w_y1);
+    p[4].x=p[0].x;            p[4].y=p[0].y;
+
+     int emit_1[4] = {1,0,0,0};
+    addQuad(p,2e-6,-5 * 1250,emit_1);
+    printf("elecnum1 = %d\n", m_elec_num);
+
+    p[0].x=w_x0-50e-6;        p[0].y=w_y0;
+    p[1].x=w_x1;              p[1].y=w_y0;
+    p[2].x=w_x1;              p[2].y=w_y0-10e-6;
+    p[3].x=w_x0-50e-6;        p[3].y=w_y0-10e-6;
+    p[4].x=p[0].x;            p[4].y=p[0].y;
+
+    int emit_2[4] = {0,0,0,0};
+    addQuad(p,2e-6,5 * 1250,emit_2);
+
     printf("elecnum2 = %d\n", m_elec_num);
 
     initW();
@@ -295,7 +317,7 @@ void eFieldLagrangian::addQuad(vec2 p[5], double dl,double phi, int emit[4]) //l
         yCoord[i] = m_electrodes[i].r.y;
     }
 
-    for (int i=n0;i<m_elec_num;i++)
+   /* for (int i=n0;i<m_elec_num;i++)
     {
         int im = i-1;
         if(i == n0)
@@ -307,7 +329,7 @@ void eFieldLagrangian::addQuad(vec2 p[5], double dl,double phi, int emit[4]) //l
         m_electrodes[i].r.x = (xCoord[im] + xCoord[i] + xCoord[ip])/3;
         m_electrodes[i].r.y = (yCoord[im] + yCoord[i] + yCoord[ip])/3;
     }
-
+*/
     for (int i=n0;i<m_elec_num;i++)
     {
         int im = i-1;
@@ -385,7 +407,7 @@ double eFieldLagrangian::getW(double s_x, double s_y,double t_x, double t_y) //g
     double r;
     double q;
     double dx,dy;
-    double delta=1e-9;
+    double delta=1e-6;
 
     dx = s_x - t_x;
     dy = s_y - t_y;
@@ -406,7 +428,7 @@ double eFieldLagrangian::getPhi(double x, double y)
         double r;
         double q;
         double dx,dy;
-        double delta=1e-9;
+        double delta=1e-6;
 
         dx = m_charges[i].x - x;
         dy = m_charges[i].y - y;
@@ -563,7 +585,7 @@ vec2 eFieldLagrangian::getEField(const vec2& iCenterPos, const vec2& iFarPos)
     vec2 E;
     vec2 dist;
     float invDist2;
-    double delta=1e-9;
+    double delta=1e-6;
 
     dist.x = iCenterPos.x - iFarPos.x;
     dist.y = iCenterPos.y - iFarPos.y;
@@ -580,7 +602,7 @@ vec2 eFieldLagrangian::getPhiField(const vec2& iCenterPos, const vec2& iFarPos)
     vec2 E;
     vec2 dist;
     float invDist2;
-    double delta=1e-9;
+    double delta=1e-6;
 
     dist.x = iCenterPos.x - iFarPos.x;
     dist.y = iCenterPos.y - iFarPos.y;
@@ -657,7 +679,7 @@ vec2 eFieldLagrangian::getE(double x, double y)
         double r2;
         double q;
         double dx,dy;
-        double delta=1e-9;
+        double delta=1e-6;
 
         dx = m_charges[i].x - x;
         dy = m_charges[i].y - y;

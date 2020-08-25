@@ -22,11 +22,11 @@
 #define w_x1 250e-6
 
 
-#define w_y0 -50e-6
-#define w_y1 50e-6
+#define w_y0 -500e-7
+#define w_y1 500e-7
 
-#define w_z0 -25.0e-7
-#define w_z1 25.0e-7
+#define w_z0 -1.0e-7
+#define w_z1 1.0e-7
 
 /*#define w_x0 0.0
 #define w_x1 1.0e-5

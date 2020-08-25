@@ -52,7 +52,7 @@ double electronLagrangian::calcJ(double Ein)
 {
     double E=Ein/100;//from V/m to V/cm
     double t2 = 1.1;
-    double B = 145.0;//145.0
+    double B = 10.0;//145.0
     double phi = 4.0;
     double y = 3.79 * 1e-4 * sqrt(fabs(B * E)) / phi;
     double tetta = 0.95 - 1.03 * y * y;
@@ -99,8 +99,8 @@ void electronLagrangian::create_electrons(vec2 &pos, vec2 &vel, int num)
         m_bodyPos[m_numParticles].x = pos.x+(rand()*1.0e-6/RAND_MAX)-0.5e-6;
         m_bodyPos[m_numParticles].y = pos.y+(rand()*1.0e-6/RAND_MAX)-0.5e-6;
         m_bodyPos[m_numParticles].charge = num_in_pack;
-        m_bodyVel[m_numParticles].x =vel.x+(rand()*1.0e5/RAND_MAX)-0.5e5;
-        m_bodyVel[m_numParticles].y = vel.y+(rand()*1.0e5/RAND_MAX)-0.5e5;
+        m_bodyVel[m_numParticles].x =vel.x/*+(rand()*1.0e5/RAND_MAX)-0.5e5*/;
+        m_bodyVel[m_numParticles].y = vel.y/*+(rand()*1.0e5/RAND_MAX)-0.5e5*/;
         m_bodyAccel[m_numParticles].x = 0.0;
         m_bodyAccel[m_numParticles].y = 0.0;
         m_numParticles++;
@@ -111,8 +111,8 @@ void electronLagrangian::create_electrons(vec2 &pos, vec2 &vel, int num)
         m_bodyPos[m_numParticles].x = pos.x+(rand()*1.0e-6/RAND_MAX)-0.5e-6;
         m_bodyPos[m_numParticles].y = pos.y+(rand()*1.0e-6/RAND_MAX)-0.5e-6;
         m_bodyPos[m_numParticles].charge = left;
-        m_bodyVel[m_numParticles].x =vel.x+(rand()*1.0e5/RAND_MAX)-0.5e5;
-        m_bodyVel[m_numParticles].y = vel.y+(rand()*1.0e5/RAND_MAX)-0.5e5;
+        m_bodyVel[m_numParticles].x =vel.x/*+(rand()*1.0e5/RAND_MAX)-0.5e5*/;
+        m_bodyVel[m_numParticles].y = vel.y/*+(rand()*1.0e5/RAND_MAX)-0.5e5*/;
         m_bodyAccel[m_numParticles].x = 0.0;
         m_bodyAccel[m_numParticles].y = 0.0;
         m_numParticles++;
@@ -261,7 +261,7 @@ vec2 electronLagrangian::getEField(const vec2& iFarPos, const vec2& iCenterPos)
     vec2 dist;
     float invDist2;
 
-    double delta=1e-9;
+    double delta=1e-6;
 
     dist.x = iCenterPos.x - iFarPos.x;
     dist.y = iCenterPos.y - iFarPos.y;
@@ -277,6 +277,7 @@ vec2 electronLagrangian::getEField(const vec2& iFarPos, const vec2& iCenterPos)
 
 vec2 electronLagrangian::getEe(double x, double y)
 {
+    //return vec2(0,0,0);
     double t0 = get_time();
     /*vec2 ai = {0.0, 0.0, 0.0};
     vec2 iPos(x, y, 0.0);
@@ -290,7 +291,7 @@ vec2 electronLagrangian::getEe(double x, double y)
 
     vec2 dist;
     float invDist2;
-        double delta=1e-9;
+        double delta=1e-6;
     vec2 ai2 = {0.0, 0.0, 0.0};
     for( int j=0; j<m_numParticles; j++ ){
         dist.x = x-m_bodyPos[j].x;
@@ -311,7 +312,8 @@ vec2 electronLagrangian::getEe(double x, double y)
 
 double electronLagrangian::getEmult_dipole(double d) //calculate E in the middle two elementary charges with distance d
 {
-      double delta=1e-9;
+        //return 0;
+      double delta=1e-6;
 
       double r2 = d*d;
       double q=qe/(eps0*pi2) * 1;
@@ -321,6 +323,7 @@ double electronLagrangian::getEmult_dipole(double d) //calculate E in the middle
 
 double electronLagrangian::getPhiSlow(double x, double y)
 {
+    //return 0;
     double sum=0.0;
     for (int i=0;i<m_numParticles;i++)
     {
@@ -328,7 +331,7 @@ double electronLagrangian::getPhiSlow(double x, double y)
         double r;
         double q;
         double dx,dy;
-        double delta=1e-9;
+        double delta=1e-6;
 
         dx = m_bodyPos[i].x - x;
         dy = m_bodyPos[i].y - y;
