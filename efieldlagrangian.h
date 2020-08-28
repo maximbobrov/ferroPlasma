@@ -34,7 +34,8 @@ public:
     //double getPhiFromCharges(double x,double y);
     void setElectrodeAngle(double deg);
     void updateGridProp();
-    void addQuad(vec2 p[4], double dl, double phi, int emit[4]);
+    void addQuad(vec2 p[4], double dl[4], double phi, int emit[4]);
+    void addQuadRegular(vec2 p[4], double dl, double phi, int emit[4]);
     static vec2 getEField(const vec2& iPos1, const vec2& iPos2);
     static vec2 getPhiField(const vec2& iPos1, const vec2& iPos2);
 
