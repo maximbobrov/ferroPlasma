@@ -281,8 +281,8 @@ void display(void)
 
             double magn=qe/Me;//1e-1;
             double dt=multi_solver->dt_elec*100;
-            E_x = magn*(E_x)*dt*dt;
-            E_y = magn*(E_y)*dt*dt;
+            E_x = magn*(E_x)*5e-25 * ck;
+            E_y = magn*(E_y)*5e-25 * ck;
 
             glVertex3f(x + E_x,y + E_y,0.0);
         }
@@ -924,7 +924,7 @@ void kb(unsigned char key, int x, int y)
             lagr_solver->m_electrodes[i].phi_fix_charges=0;//(pz_solver->getPhidepol(x,y)-phi_depol0);
         }
         printf("start ls \n");
-        lagr_solver->solve_ls_fast();//solvePhi(20);
+        lagr_solver->solve_ls_fast_PhiE();//solvePhi(20);
         printf("end ls \n");
         updateEulFields();
     }

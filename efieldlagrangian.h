@@ -19,7 +19,7 @@ public:
     };
     vec2* m_rCentre;
     eElem * m_electrodes;
-    vec2 m_charges[1000];
+    vec2 m_charges[2000];
     int m_chargeNum;
     int m_elec_num;
 
@@ -40,9 +40,13 @@ public:
     static vec2 getPhiField(const vec2& iPos1, const vec2& iPos2);
 
     void initW();
+    void initW_PhiE();
     double getW(double s_x, double s_y, double t_x, double t_y);
+    double getW_E(int elecNum, int chargeNum);
     void solve_ls();
     void getInv();
+    void getInv_PhiE();
     void solve_ls_fast();
+    void solve_ls_fast_PhiE();
 };
 #endif // EFIELDLAGRANGIAN_H
