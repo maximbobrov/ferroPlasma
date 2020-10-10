@@ -311,7 +311,7 @@ void display(void)
         else
             glColor3f(1,1,1);
         if(i==0)
-          glColor3f(1,0,0);
+            glColor3f(1,0,0);
         double x=(lagr_solver->m_electrodes[i].r.x);
         double y=(lagr_solver->m_electrodes[i].r.y);
         glVertex3f(x,y,0.0);
@@ -814,6 +814,37 @@ void saveInFile()
     }
 }
 
+void savePotential()
+{
+    int nx, ny;
+    double x0,x1,y0,y1;
+    nx = 100;
+    ny = 100;
+    x0 = w_x0;
+    x1 = w_x1;
+    y0 = w_y0;
+    y1 = w_y1;
+    FILE *file_data_=fopen("out.dat","w");
+
+    fprintf(file_data_, "TITLE = \" \" \n VARIABLES = \"x\" \"y\" \"z\" ");
+
+    fprintf(file_data_, "\"phi\" ");
+    fprintf(file_data_, "\n");
+    fprintf(file_data_, "ZONE T=\" \" \n I=%d ,J=%d, K=%d \n", nx,ny,1);
+
+    for (int j=0;j<ny;j++) {
+
+        for (int i=0;i<nx;i++) {
+            double x,y;
+            x=x0 + (x1 - x0)/(nx-1)*(i);
+            y=y0 + (y1 - y0)/(ny-1)*(j);
+            fprintf(file_data_,"%f %f %f %e \n", x, y, 0.0, lagr_solver->getPhi(x, y));
+        }
+    }
+
+    fclose(file_data_);
+}
+
 double angle=0.0;
 void kb(unsigned char key, int x, int y)
 {
@@ -924,9 +955,10 @@ void kb(unsigned char key, int x, int y)
             lagr_solver->m_electrodes[i].phi_fix_charges=0;//(pz_solver->getPhidepol(x,y)-phi_depol0);
         }
         printf("start ls \n");
-        lagr_solver->solve_ls_fast_PhiE();//solvePhi(20);
+        lagr_solver->solve_ls_fast();//lagr_solver->solve_ls_fast_PhiE();//solvePhi(20);
         printf("end ls \n");
         updateEulFields();
+        savePotential();
     }
 
     if (key=='7')
@@ -1159,6 +1191,6 @@ int main(int argc, char** argv)
     glutKeyboardFunc(kb);
     init();
 
-    save_file();
+    //save_file();
     glutMainLoop();
 }

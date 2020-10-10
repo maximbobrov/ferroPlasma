@@ -66,9 +66,10 @@ void eFieldLagrangian::init()
 
     printf("elecnum2 = %d\n", m_elec_num);
 
-    initW_PhiE();
-
-    getInv_PhiE();
+    //initW_PhiE();
+    initW();
+    //getInv_PhiE();
+    getInv();
 
 }
 
