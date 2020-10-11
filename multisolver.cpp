@@ -201,11 +201,9 @@ void multiSolver::solve(int itn)
                                                         + m_elecSolver->getPhiSlow(x, y) - elec_depol0
                                                         /*+ m_Esolver->getPhiFromCharges(x, y) - phi_fromCharges0*/);
         }
-        m_Esolver->solve_ls_fast();
-        updateEforPz();
-        
+        m_Esolver->solve_ls_fast_PhiE();//solve_ls_fast();
+        updateEforPz();       
         m_pzSolver->solvePz(5);
-        
     }
     
     if (g_emitElectrons)

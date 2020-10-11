@@ -324,6 +324,10 @@ void display(void)
         double x=(lagr_solver->m_charges[i].x);
         double y=(lagr_solver->m_charges[i].y);
         glVertex3f(x,y,0.0);
+        /*glColor3f(0.5,0.5,0);
+        x=(lagr_solver->m_mirrorCharges[i].x);
+        y=(lagr_solver->m_mirrorCharges[i].y);
+        glVertex3f(x,y,0.0);*/
     }
     glEnd();
 
@@ -955,7 +959,7 @@ void kb(unsigned char key, int x, int y)
             lagr_solver->m_electrodes[i].phi_fix_charges=0;//(pz_solver->getPhidepol(x,y)-phi_depol0);
         }
         printf("start ls \n");
-        lagr_solver->solve_ls_fast();//lagr_solver->solve_ls_fast_PhiE();//solvePhi(20);
+        lagr_solver->solve_ls_fast_PhiE();//lagr_solver->solve_ls_fast();//lagr_solver->solve_ls_fast_PhiE();//solvePhi(20);
         printf("end ls \n");
         updateEulFields();
         savePotential();

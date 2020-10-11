@@ -20,6 +20,7 @@ public:
     vec2* m_rCentre;
     eElem * m_electrodes;
     vec2 m_charges[2000];
+    vec2 m_mirrorCharges[2000];
     int m_chargeNum;
     int m_elec_num;
 
@@ -34,7 +35,8 @@ public:
     //double getPhiFromCharges(double x,double y);
     void setElectrodeAngle(double deg);
     void updateGridProp();
-    void addQuad(vec2 p[4], double dl[4], double phi, int emit[4]);
+    void addQuad(vec2 p[4], double dl[4], double phi, int emit[4], double coordYDIel);
+    void addQuad2Layers(vec2 p[4], double dl[4], double phi, int emit[4]);
     void addQuadRegular(vec2 p[4], double dl, double phi, int emit[4]);
     static vec2 getEField(const vec2& iPos1, const vec2& iPos2);
     static vec2 getPhiField(const vec2& iPos1, const vec2& iPos2);
@@ -42,6 +44,7 @@ public:
     void initW();
     void initW_PhiE();
     double getW(double s_x, double s_y, double t_x, double t_y);
+    double getWMirror(int iCharge, int iElec);
     double getW_E(int elecNum, int chargeNum);
     void solve_ls();
     void getInv();
