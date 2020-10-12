@@ -324,10 +324,10 @@ void display(void)
         double x=(lagr_solver->m_charges[i].x);
         double y=(lagr_solver->m_charges[i].y);
         glVertex3f(x,y,0.0);
-        /*glColor3f(0.5,0.5,0);
+        glColor3f(0.5,0.5,0);
         x=(lagr_solver->m_mirrorCharges[i].x);
         y=(lagr_solver->m_mirrorCharges[i].y);
-        glVertex3f(x,y,0.0);*/
+        glVertex3f(x,y,0.0);
     }
     glEnd();
 
@@ -353,6 +353,10 @@ void display(void)
     {
         glColor3f(1.0,0.0,1.0);
         glVertex2f(elec_solver->m_bodyPos[i].x,elec_solver->m_bodyPos[i].y);
+
+        glColor3f(1.0,1.0,1.0);
+        glVertex2f(elec_solver->m_bodyPos[i].x,(w_y0+25e-6 + 0.5 * 45.0e-6) - (elec_solver->m_bodyPos[i].y - (w_y0+25e-6 + 0.5 * 45.0e-6)));
+
     }
     glEnd();
 

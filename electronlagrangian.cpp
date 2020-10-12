@@ -12,16 +12,17 @@ electronLagrangian::electronLagrangian()
     m_bodyE = new vec2[m_maxParticles];
     m_bodyPos = new vec2[m_maxParticles];
 
-    /*for (int i = 0; i <100;i++) {
-        m_bodyPos[i].x = w_x0 + i * (w_x1 - w_x0)/100;
-        m_bodyPos[i].y = 10e-9;
+
+   /* for (int i = 0; i <1;i++) {
+        m_bodyPos[i].x = w_x0 +  (w_x1 - w_x0)/4;
+        m_bodyPos[i].y = w_y0 + (w_y1 - w_y0)/2 + 1e-6;
         m_bodyPos[i].charge = 1000;
         m_bodyVel[i].x = 0.0;
         m_bodyVel[i].y = 0.0;
         m_bodyAccel[i].x = 0.0;
         m_bodyAccel[i].y = 0.0;
-    }
-    */
+    }*/
+
     /*m_bodyPos[0].x = w_x0 + (w_x1 - w_x0)/2- 225e-9;
     m_bodyPos[0].y = w_y0 + (w_y1 - w_y0)/2 + 25e-9;
     m_bodyPos[0].charge = 100;
@@ -275,6 +276,41 @@ vec2 electronLagrangian::getEField(const vec2& iFarPos, const vec2& iCenterPos)
     return  E;
 }
 
+vec2 electronLagrangian::getEeFromMirrorCharge(double x, double y)
+{
+    //return vec2(0,0,0);
+    double t0 = get_time();
+    /*vec2 ai = {0.0, 0.0, 0.0};
+    vec2 iPos(x, y, 0.0);
+    vec2 EField;
+    // printf("num = %d\n", m_numParticles);
+    getFieldFast(iPos, m_bodyPos, getEField, EField);
+    ai.x = EField.x;
+    ai.y = EField.y;
+    return ai;*/
+    double t1 = get_time();
+
+    vec2 dist;
+    float invDist2;
+        double delta=1e-6;
+    vec2 ai2 = {0.0, 0.0, 0.0};
+    for( int j=0; j<m_numParticles; j++ ){
+        dist.x = x-m_bodyPos[j].x;
+        dist.y = y - (w_y0+25e-6 + 0.5 * 45.0e-6) + (m_bodyPos[j].y - (w_y0+25e-6 + 0.5 * 45.0e-6));
+        double r2 = (dist.x*dist.x+dist.y*dist.y);
+        double q= - qe/(eps0*pi2) * (m_bodyPos[j].charge);
+        invDist2 = -q / ((r2+delta*delta)*(w_z1 - w_z0));
+        ai2.x -= dist.x*invDist2;
+        ai2.y -= dist.y*invDist2;
+    }
+
+    double t2 = get_time();
+
+    //printf("ex = %e ex2 = %e  ey = %e ey2 = %e\n", ai.x, ai2.x, ai.y, ai2.y );
+    //printf("t1 = %e t2 = %e\n",(t1-t0), (t2-t1));
+    return ai2;
+}
+
 vec2 electronLagrangian::getEe(double x, double y)
 {
     //return vec2(0,0,0);
@@ -319,6 +355,31 @@ double electronLagrangian::getEmult_dipole(double d) //calculate E in the middle
       double q=qe/(eps0*pi2) * 1;
       double invDist2 = q / ((r2+delta*delta)*(w_z1 - w_z0));
       return fabs(2.0*d*invDist2);
+}
+
+
+double electronLagrangian::getPhiSlowFromMirrorCharges(double x, double y)
+{
+    //return 0;
+    double sum=0.0;
+    for (int i=0;i<m_numParticles;i++)
+    {
+        //    int i=1;
+        double r;
+        double q;
+        double dx,dy;
+        double delta=1e-6;
+
+        dx = m_bodyPos[i].x - x;
+        dy = (w_y0+25e-6 + 0.5 * 45.0e-6) - (m_bodyPos[i].y - (w_y0+25e-6 + 0.5 * 45.0e-6)) - y;
+        r=sqrt(dx*dx+dy*dy);
+        q=-qe/(eps0*pi2) * (m_bodyPos[i].charge);
+
+        sum-=q*log(r+delta)/(w_z1 - w_z0);
+
+
+    }
+    return sum;
 }
 
 double electronLagrangian::getPhiSlow(double x, double y)

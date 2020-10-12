@@ -25,10 +25,12 @@ public:
     void step(double dt);
     double getEmult_dipole(double d);
     vec2 getEe(double x, double y);
+    vec2 getEeFromMirrorCharge(double x, double y);
     static vec2 getEField(const vec2& iPos2, const vec2& iPos1);
     void updateGridProp();
         void create_pz_electron(double x, double y, int q);
         double getPhiSlow(double x, double y);
+        double getPhiSlowFromMirrorCharges(double x, double y);
 
 };
 

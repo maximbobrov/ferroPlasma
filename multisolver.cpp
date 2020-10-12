@@ -44,8 +44,9 @@ void multiSolver::updateEforElec()
         vec2 E=m_Esolver->getE(x,y);
         vec2 Ep=m_pzSolver->getEdepol(x,y);
         vec2 Ee = m_elecSolver->getEe(x,y);
-        m_elecSolver->m_bodyE[i].x=-(E.x+Ep.x+Ee.x);
-        m_elecSolver->m_bodyE[i].y=-(E.y+Ep.y+Ee.y);
+        vec2 EeMirror = m_elecSolver->getEeFromMirrorCharge(x,y);
+        m_elecSolver->m_bodyE[i].x=-(E.x+Ep.x+Ee.x+EeMirror.x);
+        m_elecSolver->m_bodyE[i].y=-(E.y+Ep.y+Ee.y+EeMirror.y);
     }
 }
 
@@ -202,8 +203,8 @@ void multiSolver::solve(int itn)
                                                         /*+ m_Esolver->getPhiFromCharges(x, y) - phi_fromCharges0*/);
         }
         m_Esolver->solve_ls_fast_PhiE();//solve_ls_fast();
-        updateEforPz();       
-        m_pzSolver->solvePz(5);
+        //updateEforPz();
+        //m_pzSolver->solvePz(5);
     }
     
     if (g_emitElectrons)
@@ -211,10 +212,10 @@ void multiSolver::solve(int itn)
     
     //printf("nele=%d \n",m_elecSolver->m_numParticles);
     updateEforElec();
-    m_pzSolver->step();
+    //m_pzSolver->step();
     m_elecSolver->step(dt_elec);
     electronExchange(dt_elec);
-    pzEmission(dt_elec);
+    //pzEmission(dt_elec);
     
     /* //debug below
       
