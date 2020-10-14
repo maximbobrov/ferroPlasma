@@ -324,10 +324,12 @@ void display(void)
         double x=(lagr_solver->m_charges[i].x);
         double y=(lagr_solver->m_charges[i].y);
         glVertex3f(x,y,0.0);
+#ifdef USE_MIRROR
         glColor3f(0.5,0.5,0);
         x=(lagr_solver->m_mirrorCharges[i].x);
         y=(lagr_solver->m_mirrorCharges[i].y);
         glVertex3f(x,y,0.0);
+#endif
     }
     glEnd();
 
@@ -354,8 +356,10 @@ void display(void)
         glColor3f(1.0,0.0,1.0);
         glVertex2f(elec_solver->m_bodyPos[i].x,elec_solver->m_bodyPos[i].y);
 
+#ifdef USE_MIRROR
         glColor3f(1.0,1.0,1.0);
-        glVertex2f(elec_solver->m_bodyPos[i].x,(w_y0+25e-6 + 0.5 * 45.0e-6) - (elec_solver->m_bodyPos[i].y - (w_y0+25e-6 + 0.5 * 45.0e-6)));
+        glVertex2f(elec_solver->m_bodyPos[i].x,(w_y0+25e-6 + 0.5 * dl_pz) - (elec_solver->m_bodyPos[i].y - (w_y0+25e-6 + 0.5 * dl_pz)));
+#endif
 
     }
     glEnd();
@@ -826,8 +830,8 @@ void savePotential()
 {
     int nx, ny;
     double x0,x1,y0,y1;
-    nx = 100;
-    ny = 100;
+    nx = 500;
+    ny = 500;
     x0 = w_x0;
     x1 = w_x1;
     y0 = w_y0;
@@ -837,6 +841,8 @@ void savePotential()
     fprintf(file_data_, "TITLE = \" \" \n VARIABLES = \"x\" \"y\" \"z\" ");
 
     fprintf(file_data_, "\"phi\" ");
+    fprintf(file_data_, "\"Ex\" ");
+    fprintf(file_data_, "\"Ey\" ");
     fprintf(file_data_, "\n");
     fprintf(file_data_, "ZONE T=\" \" \n I=%d ,J=%d, K=%d \n", nx,ny,1);
 
@@ -846,7 +852,8 @@ void savePotential()
             double x,y;
             x=x0 + (x1 - x0)/(nx-1)*(i);
             y=y0 + (y1 - y0)/(ny-1)*(j);
-            fprintf(file_data_,"%f %f %f %e \n", x, y, 0.0, lagr_solver->getPhi(x, y));
+            vec2 E = lagr_solver->getE(x,y);
+            fprintf(file_data_,"%f %f %f %e %e %e\n", x, y, 0.0, lagr_solver->getPhi(x, y), E.x, E.y);
         }
     }
 

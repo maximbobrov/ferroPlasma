@@ -50,7 +50,7 @@ void eFieldLagrangian::init()
      double dl[5] = {0.5 * 0.5e-6, 0.5 * 2e-6, 0.5 * 3e-6, 0.5 * 2e-6, 0.5 * 0.5e-6};
 
      //double dl[5] = {2e-6, 2e-6, 2e-6, 2e-6, 2e-6};
-    addQuad(p,dl,-20 * 1250,emit_1, w_y0+25e-6 + 0.5 * 45.0e-6);
+    addQuad(p,dl,-20 * 1250,emit_1, w_y0+25e-6 + 0.5 * dl_pz);
 
     printf("elecnum1 = %d\n", m_elec_num);
 
@@ -63,7 +63,7 @@ void eFieldLagrangian::init()
     int emit_2[4] = {0,0,0,0};
 
          double dl2[5] = {2e-6, 2e-6, 2e-6, 2e-6, 2e-6};
-    addQuad(p,dl2,20 * 1250,emit_2,  w_y0+25e-6 - 0.5 * 45.0e-6);
+    addQuad(p,dl2,20 * 1250,emit_2,  w_y0+25e-6 - 0.5 * dl_pz);
 
     printf("elecnum2 = %d\n", m_elec_num);
 
@@ -759,7 +759,7 @@ double eFieldLagrangian::getWMirror(int iCharge, int iElec) //get Weight functio
     //       q=qe/(eps0*pi2) * (m_p[i].q+m_p[i].q_ext);
 
     //sum-=-q*log(r+delta)/(w_z1 - w_z0);
-    sum+=(qe/(eps0*pi2))*log(r+delta)/(w_z1 - w_z0);
+    sum+=0.99 *(qe/(eps0*pi2))*log(r+delta)/(w_z1 - w_z0);
 
     return sum;
 }
@@ -804,13 +804,13 @@ double eFieldLagrangian::getPhi(double x, double y)
         q=qe/(eps0*pi2) * (m_charges[i].charge);
 
         sum+=-q*log(r+delta)/(w_z1 - w_z0);
-
+#ifdef USE_MIRROR
         dx = m_mirrorCharges[i].x - x;
         dy = m_mirrorCharges[i].y - y;
         r=sqrt(dx*dx+dy*dy);
         q=-qe/(eps0*pi2) * (m_charges[i].charge);
-
-        sum+=-q*log(r+delta)/(w_z1 - w_z0);
+        sum+=-0.99 *q*log(r+delta)/(w_z1 - w_z0);
+#endif
     }
     //getPhiFromCharges(x,y);
     return sum;
@@ -843,7 +843,11 @@ void eFieldLagrangian::initW()
     {
         for(int j=0;j<m_elec_num;j++)
         {
+            #ifdef USE_MIRROR
             m_W[i][j]=getWMirror(i,j);//getW(m_charges[i].x,m_charges[i].y,m_electrodes[j].r.x,m_electrodes[j].r.y);
+            #else
+            m_W[i][j]=getW(m_charges[i].x,m_charges[i].y,m_electrodes[j].r.x,m_electrodes[j].r.y);
+            #endif
         }
     }
 }
@@ -1143,6 +1147,7 @@ vec2 eFieldLagrangian::getE(double x, double y)
         sum.x+=c*dx;
         sum.y+=c*dy;
 
+        #ifdef USE_MIRROR
         dx = m_mirrorCharges[i].x - x;
         dy = m_mirrorCharges[i].y - y;
         r2=(dx*dx+dy*dy);
@@ -1150,8 +1155,9 @@ vec2 eFieldLagrangian::getE(double x, double y)
 
         c=-q/((r2+delta*delta)*(w_z1 - w_z0));
 
-        sum.x+=c*dx;
-        sum.y+=c*dy;
+        sum.x+=0.99 * c*dx;
+        sum.y+=0.99 * c*dy;
+        #endif
 
     }
     /*for (int i=0;i<m_elec_num;i++)

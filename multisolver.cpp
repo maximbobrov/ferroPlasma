@@ -44,9 +44,8 @@ void multiSolver::updateEforElec()
         vec2 E=m_Esolver->getE(x,y);
         vec2 Ep=m_pzSolver->getEdepol(x,y);
         vec2 Ee = m_elecSolver->getEe(x,y);
-        vec2 EeMirror = m_elecSolver->getEeFromMirrorCharge(x,y);
-        m_elecSolver->m_bodyE[i].x=-(E.x+Ep.x+Ee.x+EeMirror.x);
-        m_elecSolver->m_bodyE[i].y=-(E.y+Ep.y+Ee.y+EeMirror.y);
+        m_elecSolver->m_bodyE[i].x=-(E.x+Ep.x+Ee.x);
+        m_elecSolver->m_bodyE[i].y=-(E.y+Ep.y+Ee.y);
     }
 }
 
