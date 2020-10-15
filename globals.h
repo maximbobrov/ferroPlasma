@@ -29,7 +29,7 @@
 #define w_z1 1.0e-7
 
 #define dl_pz 49e-6
-
+#define eps_pz 100
 /*#define w_x0 0.0
 #define w_x1 1.0e-5
 
@@ -71,7 +71,7 @@
 #include <math.h>
 #include <sys/time.h>
 
-#define USE_MIRROR
+//#define USE_MIRROR
 using namespace std;
 const float inv4PI             = 0.25/M_PI;  // Laplace kernel coefficient
 

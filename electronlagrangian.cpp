@@ -298,7 +298,7 @@ vec2 electronLagrangian::getEeFromMirrorCharge(double x, double y)
         dist.x = x-m_bodyPos[j].x;
         dist.y = y - (w_y0+25e-6 + 0.5 * dl_pz) + (m_bodyPos[j].y - (w_y0+25e-6 + 0.5 * dl_pz));
         double r2 = (dist.x*dist.x+dist.y*dist.y);
-        double q= - qe/(eps0*pi2) * (m_bodyPos[j].charge);
+        double q= - ((eps_pz-1.0)/(eps_pz+1.0))*qe/(eps0*pi2) * (m_bodyPos[j].charge);
         invDist2 = -q / ((r2+delta*delta)*(w_z1 - w_z0));
         ai2.x -= dist.x*invDist2;
         ai2.y -= dist.y*invDist2;
@@ -375,7 +375,7 @@ double electronLagrangian::getPhiSlowFromMirrorCharges(double x, double y)
         dx = m_bodyPos[i].x - x;
         dy = (w_y0+25e-6 + 0.5 * dl_pz) - (m_bodyPos[i].y - (w_y0+25e-6 + 0.5 * dl_pz)) - y;
         r=sqrt(dx*dx+dy*dy);
-        q=-qe/(eps0*pi2) * (m_bodyPos[i].charge);
+        q=-((eps_pz-1.0)/(eps_pz+1.0))*qe/(eps0*pi2) * (m_bodyPos[i].charge);
 
         sum-=q*log(r+delta)/(w_z1 - w_z0);
 

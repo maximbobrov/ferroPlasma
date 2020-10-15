@@ -46,11 +46,11 @@ void eFieldLagrangian::init()
     p[3].x=w_x0-50e-6;        p[3].y=0.5*(w_y0+w_y1);
     p[4].x=p[0].x;            p[4].y=p[0].y;
 
-     int emit_1[4] = {1,0,0,0};
-     double dl[5] = {0.5 * 0.5e-6, 0.5 * 2e-6, 0.5 * 3e-6, 0.5 * 2e-6, 0.5 * 0.5e-6};
+    int emit_1[4] = {1,0,0,0};
+    double dl[5] = {0.5 * 0.5e-6, 0.5 * 2e-6, 0.5 * 3e-6, 0.5 * 2e-6, 0.5 * 0.5e-6};
 
-     //double dl[5] = {2e-6, 2e-6, 2e-6, 2e-6, 2e-6};
-    addQuad(p,dl,-20 * 1250,emit_1, w_y0+25e-6 + 0.5 * dl_pz);
+    //double dl[5] = {2e-6, 2e-6, 2e-6, 2e-6, 2e-6};
+    addQuad(p,dl,-20 * 12.50,emit_1, w_y0+25e-6 + 0.5 * dl_pz);
 
     printf("elecnum1 = %d\n", m_elec_num);
 
@@ -62,8 +62,8 @@ void eFieldLagrangian::init()
 
     int emit_2[4] = {0,0,0,0};
 
-         double dl2[5] = {2e-6, 2e-6, 2e-6, 2e-6, 2e-6};
-    addQuad(p,dl2,20 * 1250,emit_2,  w_y0+25e-6 - 0.5 * dl_pz);
+    double dl2[5] = {2e-6, 2e-6, 2e-6, 2e-6, 2e-6};
+    addQuad(p,dl2,20 * 12.50,emit_2,  w_y0+25e-6 - 0.5 * dl_pz);
 
     printf("elecnum2 = %d\n", m_elec_num);
 
@@ -277,9 +277,9 @@ void  getProgrCoef(double b1, double bn, double l, int& n, double &q)
     {
         q = pow(bn/b1, 1.0/(n-1));
         if(fabs(q - 1) < 1e-5)
-          sum = b1 * n;
+            sum = b1 * n;
         else
-          sum = b1 * (1-pow(q,n)) / (1-q);
+            sum = b1 * (1-pow(q,n)) / (1-q);
         n++;
     }
     n-=1;
@@ -633,7 +633,7 @@ void eFieldLagrangian::addQuadRegular(vec2 p[5], double dl,double phi, int emit[
         yCoord[i] = m_electrodes[i].r.y;
     }
 
-   /* for (int i=n0;i<m_elec_num;i++)
+    /* for (int i=n0;i<m_elec_num;i++)
     {
         int im = i-1;
         if(i == n0)
@@ -759,7 +759,7 @@ double eFieldLagrangian::getWMirror(int iCharge, int iElec) //get Weight functio
     //       q=qe/(eps0*pi2) * (m_p[i].q+m_p[i].q_ext);
 
     //sum-=-q*log(r+delta)/(w_z1 - w_z0);
-    sum+=0.99 *(qe/(eps0*pi2))*log(r+delta)/(w_z1 - w_z0);
+    sum+=((eps_pz-1.0)/(eps_pz+1.0))*(qe/(eps0*pi2))*log(r+delta)/(w_z1 - w_z0);
 
     return sum;
 }
@@ -808,11 +808,34 @@ double eFieldLagrangian::getPhi(double x, double y)
         dx = m_mirrorCharges[i].x - x;
         dy = m_mirrorCharges[i].y - y;
         r=sqrt(dx*dx+dy*dy);
-        q=-qe/(eps0*pi2) * (m_charges[i].charge);
-        sum+=-0.99 *q*log(r+delta)/(w_z1 - w_z0);
+        q=-((eps_pz-1.0)/(eps_pz+1.0))*qe/(eps0*pi2) * (m_charges[i].charge);
+        sum+=-q*log(r+delta)/(w_z1 - w_z0);
 #endif
     }
     //getPhiFromCharges(x,y);
+
+
+#ifdef USE_MIRROR
+    if ((y<w_y0+25e-6+dl_pz*0.5)&&(y>w_y0+25e-6-dl_pz*0.5))
+    {
+        sum=0.0;
+        for (int i=0;i<m_chargeNum;i++)
+        {
+            //    int i=1;
+            double r;
+            double q;
+            double dx,dy;
+            double delta=1e-6;
+
+            dx = m_charges[i].x - x;
+            dy = m_charges[i].y - y;
+            r=sqrt(dx*dx+dy*dy);
+            q=((2.0)/(eps_pz+1.0))*qe/(eps0*pi2) * (m_charges[i].charge);
+
+            sum+=-q*log(r+delta)/(w_z1 - w_z0);
+        }
+    }
+#endif
     return sum;
 }
 
@@ -843,11 +866,11 @@ void eFieldLagrangian::initW()
     {
         for(int j=0;j<m_elec_num;j++)
         {
-            #ifdef USE_MIRROR
+#ifdef USE_MIRROR
             m_W[i][j]=getWMirror(i,j);//getW(m_charges[i].x,m_charges[i].y,m_electrodes[j].r.x,m_electrodes[j].r.y);
-            #else
+#else
             m_W[i][j]=getW(m_charges[i].x,m_charges[i].y,m_electrodes[j].r.x,m_electrodes[j].r.y);
-            #endif
+#endif
         }
     }
 }
@@ -1147,19 +1170,46 @@ vec2 eFieldLagrangian::getE(double x, double y)
         sum.x+=c*dx;
         sum.y+=c*dy;
 
-        #ifdef USE_MIRROR
+#ifdef USE_MIRROR
         dx = m_mirrorCharges[i].x - x;
         dy = m_mirrorCharges[i].y - y;
         r2=(dx*dx+dy*dy);
         q=-qe/(eps0*pi2) * (m_charges[i].charge);
 
-        c=-q/((r2+delta*delta)*(w_z1 - w_z0));
+        c=-((eps_pz-1.0)/(eps_pz+1.0))*q/((r2+delta*delta)*(w_z1 - w_z0));
 
-        sum.x+=0.99 * c*dx;
-        sum.y+=0.99 * c*dy;
-        #endif
+        sum.x+=c*dx;
+        sum.y+=c*dy;
+#endif
 
     }
+
+#ifdef USE_MIRROR
+
+    if ((y<w_y0+25e-6+dl_pz*0.5)&&(y>w_y0+25e-6-dl_pz*0.5))
+    {
+        sum.x=0.0; sum.y=0.0;
+        for (int i=0;i<m_chargeNum;i++)
+        {
+            double r2;
+            double q;
+            double dx,dy;
+            double delta=1e-6;
+
+            dx = m_charges[i].x - x;
+            dy = m_charges[i].y - y;
+            r2=(dx*dx+dy*dy);
+            q=-((2.0)/(eps_pz+1.0))*qe/(eps0*pi2) * (m_charges[i].charge);
+
+            double c=q/((r2+delta*delta)*(w_z1 - w_z0));
+
+            sum.x+=c*dx;
+            sum.y+=c*dy;
+
+        }
+    }
+
+#endif
     /*for (int i=0;i<m_elec_num;i++)
     {
         double r2;

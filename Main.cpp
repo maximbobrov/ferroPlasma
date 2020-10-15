@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//#include  <GL/gl.h>
-//#include  <GL/glu.h>
-//#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+#include  <GL/gl.h>
+#include  <GL/glu.h>
+#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
 
 
-#include <my_include/gl.h>
-#include <my_include/glu.h>
-#include <my_include/glut.h>
+//#include <my_include/gl.h>
+//#include <my_include/glu.h>
+//#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -832,8 +832,8 @@ void savePotential()
     double x0,x1,y0,y1;
     nx = 500;
     ny = 500;
-    x0 = w_x0;
-    x1 = w_x1;
+    x0 = w_x0-80e-6;
+    x1 = w_x1-250e-6;
     y0 = w_y0;
     y1 = w_y1;
     FILE *file_data_=fopen("out.dat","w");
@@ -850,10 +850,10 @@ void savePotential()
 
         for (int i=0;i<nx;i++) {
             double x,y;
-            x=x0 + (x1 - x0)/(nx-1)*(i);
-            y=y0 + (y1 - y0)/(ny-1)*(j);
+            x=x0 + (x1 - x0)/(nx-1.0)*(i);
+            y=y0 + (y1 - y0)/(ny-1.0)*(j);
             vec2 E = lagr_solver->getE(x,y);
-            fprintf(file_data_,"%f %f %f %e %e %e\n", x, y, 0.0, lagr_solver->getPhi(x, y), E.x, E.y);
+            fprintf(file_data_,"%e %e %e %e %e %e\n", x, y, 0.0, lagr_solver->getPhi(x, y), E.x, E.y);
         }
     }
 
