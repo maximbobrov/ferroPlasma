@@ -113,7 +113,7 @@ void multiSolver::electronEmission(double d_t)
                 {
                     // m_Esolver->m_electrodes[i].charge-=m_Esolver->m_electrodes[i].eToEmit;
                     vec2 elecPos(m_Esolver->m_electrodes[i].r.x + 5e-7 * m_Esolver->m_electrodes[i].nx, m_Esolver->m_electrodes[i].r.y + 5e-7 * m_Esolver->m_electrodes[i].ny,0);
-                    vec2 vel(0.0 * 1.5e6 * m_Esolver->m_electrodes[i].nx, 0.0 *  1.5e6 * m_Esolver->m_electrodes[i].ny,0);
+                    vec2 vel(0.00001 * 1.5e6 * m_Esolver->m_electrodes[i].nx, 0.00001 *  1.5e6 * m_Esolver->m_electrodes[i].ny,0);
                     
                     m_elecSolver->create_electrons(elecPos,vel,int(m_Esolver->m_electrodes[i].eToEmit));
                     m_Esolver->m_electrodes[i].eToEmit-=int(m_Esolver->m_electrodes[i].eToEmit);
@@ -170,7 +170,7 @@ void multiSolver::checkPotential()
 
 void multiSolver::solve(int itn)
 {
-    dt_elec = 1.5e-15 * dtKoef;
+    dt_elec = 1.5e-14 * dtKoef;
     
     g_t+=dt_elec;
     g_save_time+=dt_elec;
@@ -185,8 +185,9 @@ void multiSolver::solve(int itn)
     //printf("phi=%e t=%f dt=%e\n",m_Esolver->m_electrodes[0].phi_fix, (g_t * 1e6),dt_elec);
     for (int nn=0;nn<itn;nn++)
     {
+        #ifndef USE_MIRROR
         m_pzSolver->get_q();
-        
+        #endif
         double phi_depol0=m_pzSolver->getPhidepol(w_x0,w_y0);
         double elec_depol0=m_elecSolver->getPhiSlow(w_x0,w_y0);
         //double phi_fromCharges0 = m_Esolver->getPhiFromCharges(w_x0,w_y0);
@@ -202,8 +203,10 @@ void multiSolver::solve(int itn)
                                                         /*+ m_Esolver->getPhiFromCharges(x, y) - phi_fromCharges0*/);
         }
         m_Esolver->solve_ls_fast_PhiE();//solve_ls_fast();
-        //updateEforPz();
-        //m_pzSolver->solvePz(5);
+        #ifndef USE_MIRROR
+        updateEforPz();
+        m_pzSolver->solvePz(5);
+        #endif
     }
     
     if (g_emitElectrons)
@@ -211,10 +214,14 @@ void multiSolver::solve(int itn)
     
     //printf("nele=%d \n",m_elecSolver->m_numParticles);
     updateEforElec();
-    //m_pzSolver->step();
+    #ifndef USE_MIRROR
+    m_pzSolver->step();
+    #endif
     m_elecSolver->step(dt_elec);
     electronExchange(dt_elec);
-    //pzEmission(dt_elec);
+    #ifndef USE_MIRROR
+    pzEmission(dt_elec);
+    #endif
     
     /* //debug below
       
@@ -267,7 +274,11 @@ void multiSolver::electronExchange(double dt)
             {
                 //if (m_pzSolver->m_p[p_n].q_ext+m_elecSolver->m_bodyPos[i].charge<1.7e+2)
                 {
-                    m_pzSolver->m_p[p_n].q_ext+= m_elecSolver->m_bodyPos[i].charge;
+                    double coef = 1.0;
+#ifdef USE_MIRROR
+                    coef = (1.0 - ((eps_pz-1.0)/(eps_pz+1.0)));
+#endif
+                    m_pzSolver->m_p[p_n].q_ext+= coef*m_elecSolver->m_bodyPos[i].charge;
                     m_elecSolver->delete_particle(i);
                 }
                 /*else

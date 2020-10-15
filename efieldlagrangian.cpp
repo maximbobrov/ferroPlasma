@@ -50,7 +50,7 @@ void eFieldLagrangian::init()
     double dl[5] = {0.5 * 0.5e-6, 0.5 * 2e-6, 0.5 * 3e-6, 0.5 * 2e-6, 0.5 * 0.5e-6};
 
     //double dl[5] = {2e-6, 2e-6, 2e-6, 2e-6, 2e-6};
-    addQuad(p,dl,-20 * 12.50,emit_1, w_y0+25e-6 + 0.5 * dl_pz);
+    addQuad(p,dl,-20 * 120.50,emit_1, w_y0+25e-6 + 0.5 * dl_pz, 30);
 
     printf("elecnum1 = %d\n", m_elec_num);
 
@@ -63,7 +63,7 @@ void eFieldLagrangian::init()
     int emit_2[4] = {0,0,0,0};
 
     double dl2[5] = {2e-6, 2e-6, 2e-6, 2e-6, 2e-6};
-    addQuad(p,dl2,20 * 12.50,emit_2,  w_y0+25e-6 - 0.5 * dl_pz);
+    addQuad(p,dl2,20 * 120.50,emit_2,  w_y0+25e-6 - 0.5 * dl_pz, 1);
 
     printf("elecnum2 = %d\n", m_elec_num);
 
@@ -286,7 +286,7 @@ void  getProgrCoef(double b1, double bn, double l, int& n, double &q)
     q = pow(bn/b1, 1.0/(n-1));
 }
 
-void eFieldLagrangian::addQuad(vec2 p[5], double dl[5],double phi, int emit[4], double coordYDIel) //last point should coincide with the first one emit is the side number that can emit
+void eFieldLagrangian::addQuad(vec2 p[5], double dl[5],double phi, int emit[4], double coordYDIel, int smoothingCount) //last point should coincide with the first one emit is the side number that can emit
 {
     static double l_[4];
     static int n_[4];
@@ -340,23 +340,26 @@ void eFieldLagrangian::addQuad(vec2 p[5], double dl[5],double phi, int emit[4], 
     }
     static double xCoord[1000];
     static double yCoord[1000];
-    for (int i=n0;i<m_elec_num;i++)
-    {
-        xCoord[i] = m_electrodes[i].r.x;
-        yCoord[i] = m_electrodes[i].r.y;
-    }
+    for (int f =0 ; f<smoothingCount;f++) {
 
-    for (int i=n0;i<m_elec_num;i++)
-    {
-        int im = i-1;
-        if(i == n0)
-            im = m_elec_num - 1;
-        int ip = i+1;
-        if(i == m_elec_num - 1)
-            ip = n0;
+        for (int i=n0;i<m_elec_num;i++)
+        {
+            xCoord[i] = m_electrodes[i].r.x;
+            yCoord[i] = m_electrodes[i].r.y;
+        }
 
-        m_electrodes[i].r.x = (xCoord[im] + xCoord[i] + xCoord[ip])/3;
-        m_electrodes[i].r.y = (yCoord[im] + yCoord[i] + yCoord[ip])/3;
+        for (int i=n0;i<m_elec_num;i++)
+        {
+            int im = i-1;
+            if(i == n0)
+                im = m_elec_num - 1;
+            int ip = i+1;
+            if(i == m_elec_num - 1)
+                ip = n0;
+
+            m_electrodes[i].r.x = (xCoord[im] + xCoord[i] + xCoord[ip])/3;
+            m_electrodes[i].r.y = (yCoord[im] + yCoord[i] + yCoord[ip])/3;
+        }
     }
 
     for (int i=n0;i<m_elec_num;i++)

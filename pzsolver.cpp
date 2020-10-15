@@ -26,12 +26,13 @@ void pzSolver::init()
         m_p[i].r.x = w_x0 + m_dx * i;//(w_x0/*-25e-6*/)*(1.0-alpha)+w_x1*alpha;
         m_p[i].r.y = w_y0+25e-6;//(w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
 
-          if (m_p[i].r.x<w_x0+50e-6 && m_p[i].r.x>w_x0+25e-6)
+          /*if (m_p[i].r.x<w_x0+50e-6 && m_p[i].r.x>w_x0+25e-6)
           m_p[i].p = 0.26;//-0.1*(rand()*1.0/RAND_MAX-0.5);//0.0;//-0.005;//-0.26;//+rand()*0.043/RAND_MAX;
-          else
+          else*/
         m_p[i].p = -0.26;
-
-        m_p[i].p=-0.26;
+        #ifdef USE_MIRROR
+        m_p[i].p=0.0;//-0.26;
+        #endif
 
         m_p[i].p_prev = m_p[i].p;
 
@@ -42,8 +43,9 @@ void pzSolver::init()
 
         m_p[i].q_ext=0.0;
     }
-
+    #ifndef USE_MIRROR
     m_p[0].p = 0.26;//0.005;//0.26;
+    #endif
     get_q();
     for (int i=0;i<m_p_num;i++) //first electrode
     {
