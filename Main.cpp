@@ -215,7 +215,7 @@ void display(void)
                 l_2=ck*(Ex[i][j])/div_max;
 
             glColor3f(l_2,l_2,-l_2);
-            glVertex2f((w_x0 - (w_x1 - w_x0) * 0.05+dx*0.3*(i)),(w_y0 + 0.35*(w_y1-w_y0)+dy*0.3*j));
+            glVertex2f((w_x0 - (w_x1 - w_x0) * 0.05+dx*0.8*(i)),(w_y0 + 0.35*(w_y1-w_y0)+dy*0.3*j));
 
             if (view==VIEW_PHI)
                 l_2=ck*(phi_[i+1][j]);
@@ -229,7 +229,7 @@ void display(void)
                 l_2=ck*(Ex[i+1][j])/div_max;
 
             glColor3f(l_2,l_2,-l_2);
-            glVertex2f((w_x0 - (w_x1 - w_x0) * 0.05 +dx*0.3*(i+1)),(w_y0 + 0.35*(w_y1-w_y0)+dy*0.3*j));
+            glVertex2f((w_x0 - (w_x1 - w_x0) * 0.05 +dx*0.8*(i+1)),(w_y0 + 0.35*(w_y1-w_y0)+dy*0.3*j));
         }
         glEnd();
     }

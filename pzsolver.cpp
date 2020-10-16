@@ -16,7 +16,7 @@ void pzSolver::init()
 {
     double _dx,_dz;
     _dz=w_z1-w_z0;
-    _dx=0.25 * (w_x1/*-25e-6-*/- w_x0)/(m_p_num-1);
+    _dx=1 * (w_x1/*-25e-6-*/- w_x0)/(m_p_num-1);
     m_dx=_dx;
 
     for (int i=0;i<m_p_num;i++) //first electrode
@@ -45,6 +45,8 @@ void pzSolver::init()
     }
     #ifndef USE_MIRROR
     m_p[0].p = 0.26;//0.005;//0.26;
+    //m_p[1].p = 0.26;//0.005;//0.26;
+    //m_p[2].p = 0.26;//0.005;//0.26;
     #endif
     get_q();
     for (int i=0;i<m_p_num;i++) //first electrode

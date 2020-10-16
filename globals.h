@@ -19,7 +19,7 @@
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 #define w_x0 -250e-6
-#define w_x1 250e-6
+#define w_x1 -50e-6
 
 
 #define w_y0 -500e-7

@@ -29,7 +29,7 @@ void multiSolver::updateEforPz()
         m_pzSolver->m_p[i].E =(Em.y + Epm.y+E0.y + Ep0.y+ Ep.y + Epp.y)/3.0 + m_pzSolver->m_p[i].E_elec;
         //m_pzSolver->m_p[i].E*=3;
         /*if(i%10 == 0)
-              printf("IIIIII=%d EEEEEE=%e\n", i, m_pzSolver->m_p[i].E);*/
+              //printf("IIIIII=%d EEEEEE=%e\n", i, m_pzSolver->m_p[i].E);*/
     }
 }
 
@@ -106,8 +106,8 @@ void multiSolver::electronEmission(double d_t)
                 m_Esolver->m_electrodes[i].eToEmit+=el_to_add;
                 
                 
-                if (i==0)
-                    printf("E=%le J=%le to emit:%le\n", l, m_elecSolver->calcJ(l), el_to_add);
+                /*if (i==0)
+                    printf("E=%le J=%le to emit:%le\n", l, m_elecSolver->calcJ(l), el_to_add);*/
                 
                 if(m_Esolver->m_electrodes[i].eToEmit > 500)
                 {
@@ -151,7 +151,7 @@ void multiSolver::checkPotential()
         phiMin = fmin(phiMin, phi);
         //printf("phi1 = %f  phi2 = %f phi3 = %f\n", m_Esolver->getPhi(x, y),m_elecSolver->getPhiSlow(x, y),m_pzSolver->getPhidepol(x,y));
     }
-    printf("phiMax1 = %f phiMin1 = %f \n", phiMax, phiMin);
+    //printf("phiMax1 = %f phiMin1 = %f \n", phiMax, phiMin);
     
     phiMin = 1e100;
     phiMax = -1e100;
@@ -165,12 +165,12 @@ void multiSolver::checkPotential()
         phiMax = fmax(phiMax, phi);
         phiMin = fmin(phiMin, phi);
     }
-    printf("phiMax2 = %f phiMin2 = %f \n", phiMax, phiMin);
+    //printf("phiMax2 = %f phiMin2 = %f \n", phiMax, phiMin);
 }
 
 void multiSolver::solve(int itn)
 {
-    dt_elec = 1.5e-14 * dtKoef;
+    dt_elec = 1.5e-15 * dtKoef;
     
     g_t+=dt_elec;
     g_save_time+=dt_elec;

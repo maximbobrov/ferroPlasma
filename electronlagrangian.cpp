@@ -53,7 +53,7 @@ double electronLagrangian::calcJ(double Ein)
 {
     double E=Ein/100;//from V/m to V/cm
     double t2 = 1.1;
-    double B = 10.0;//145.0
+    double B = 145.0;//145.0
     double phi = 4.0;
     double y = 3.79 * 1e-4 * sqrt(fabs(B * E)) / phi;
     double tetta = 0.95 - 1.03 * y * y;
