@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//#include  <GL/gl.h>
-//#include  <GL/glu.h>
-//#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+#include  <GL/gl.h>
+#include  <GL/glu.h>
+#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
 
 
-#include <my_include/gl.h>
-#include <my_include/glu.h>
-#include <my_include/glut.h>
+//#include <my_include/gl.h>
+//#include <my_include/glu.h>
+//#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -75,8 +75,8 @@ multiSolver* multi_solver;
 double wall_pos=0.0;
 void updateEulFields()
 {
-    lagr_solver->updatePhi();
-    lagr_solver->solvePhi(100);
+  //  lagr_solver->updatePhi();
+  //  lagr_solver->solvePhi(100);
 
     pz_solver->get_q();
     double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
@@ -89,7 +89,7 @@ void updateEulFields()
         for (int j=0;j<N_Y;j++)
         {
             double x,y;
-            x=(w_x0 - (w_x1 - w_x0) * 0.05+dx*0.3*(i));
+            x=(w_x0 - (w_x1 - w_x0) * 0.05+dx*0.8*(i));
             y=(w_y0 + 0.35*(w_y1-w_y0)+dy*0.3*j);
 
 
@@ -108,6 +108,77 @@ void updateEulFields()
     }
 }
 
+
+void print_stats()
+{
+    double phi_mean=0.0;
+    double phi2=0.0;
+    double phi_max=-1e10;
+    double phi_min=1e10;
+
+    double y_min,y_max;
+    double mass=0;
+    double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
+    double phi_e0=elec_solver->getPhiSlow(w_x0,w_y0);
+
+    for (int i=0;i<lagr_solver->m_elec_num;i++)
+    {
+        if (lagr_solver->m_electrodes[i].canEmit)
+        {
+            mass+=1.0;
+            double x=lagr_solver->m_electrodes[i].r.x;
+            double y=lagr_solver->m_electrodes[i].r.y;
+            double ph=lagr_solver->getPhi(x,y)+pz_solver->getPhidepol(x,y) - phi_depol0 +elec_solver->getPhiSlow(x,y) - phi_e0;
+
+            phi_mean+=ph;
+            phi2+=ph*ph;
+            if (phi_min>ph) {phi_min=ph; y_min=y;}
+            if (phi_max<ph) {phi_max=ph; y_max=y;}
+
+        }
+    }
+    phi_mean/=mass;
+    phi2=sqrt(phi2/mass - phi_mean*phi_mean);
+    y_min=(y_min-(w_y1+w_y0)*0.5)/(w_y1-w_y0);
+    y_max=(y_max-(w_y1+w_y0)*0.5)/(w_y1-w_y0);
+
+     printf("phi_mean=%f phi_min=%f phi_max=%f y_min=%f y_max=%f phi2=%f \n",phi_mean,phi_min,phi_max,y_min,y_max,phi2);
+
+
+
+      phi_mean=0.0;
+      phi2=0.0;
+      phi_max=-1e10;
+      phi_min=1e10;
+
+      y_min,y_max;
+      mass=0;
+      phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
+      phi_e0=elec_solver->getPhiSlow(w_x0,w_y0);
+
+     for (int i=0;i<lagr_solver->m_elec_num;i++)
+     {
+         if (lagr_solver->m_electrodes[i].phi_fix>200)
+         {
+             mass+=1.0;
+             double x=lagr_solver->m_electrodes[i].r.x;
+             double y=lagr_solver->m_electrodes[i].r.y;
+             double ph=lagr_solver->getPhi(x,y)+pz_solver->getPhidepol(x,y) - phi_depol0 +elec_solver->getPhiSlow(x,y) - phi_e0;
+
+             phi_mean+=ph;
+             phi2+=ph*ph;
+             if (phi_min>ph) {phi_min=ph; y_min=y;}
+             if (phi_max<ph) {phi_max=ph; y_max=y;}
+
+         }
+     }
+     phi_mean/=mass;
+     phi2=sqrt(phi2/mass - phi_mean*phi_mean);
+     y_min=(y_min-(w_y1+w_y0)*0.5)/(w_y1-w_y0);
+     y_max=(y_max-(w_y1+w_y0)*0.5)/(w_y1-w_y0);
+
+      printf("--------------------------------------------------phi_mean=%f phi_min=%f phi_max=%f y_min=%f y_max=%f phi2=%f \n",phi_mean,phi_min,phi_max,y_min,y_max,phi2);
+}
 
 void display(void)
 {
@@ -167,7 +238,7 @@ void display(void)
 
         // printf("pz_max=%e  E=%e E_in=%e \n",pzmax,E_global,E_in);
         updateEulFields();
-
+        print_stats();
         /*double wall_coord = pz_solver->m_p[2].r.x - pz_solver->m_p[0].r.x;
         int i;
         for( i = 2; i < pz_solver->m_p_num && pz_solver->m_p[i].p > 0; i++ )
@@ -204,7 +275,7 @@ void display(void)
         for (j=0;j<N_Y;j++)
         {
             if (view==VIEW_PHI)
-                l_2= ck*(phi_[i][j]);
+                l_2= ck*(0.01*(phi_[i][j]-250));
             if (view==VIEW_P)
                 l_2=ck*(Py_[i][j])/p_max;
             if (view==VIEW_PX)
@@ -218,7 +289,7 @@ void display(void)
             glVertex2f((w_x0 - (w_x1 - w_x0) * 0.05+dx*0.8*(i)),(w_y0 + 0.35*(w_y1-w_y0)+dy*0.3*j));
 
             if (view==VIEW_PHI)
-                l_2=ck*(phi_[i+1][j]);
+                l_2=ck*(0.01*(phi_[i+1][j]-250));
             if (view==VIEW_P)
                 l_2=ck*(Py_[i+1][j])/p_max;
             if (view==VIEW_PX)
@@ -260,6 +331,7 @@ void display(void)
     //EoEfields
 
     glPointSize(3);
+     glLineWidth(1.0);
     glBegin(GL_LINES);
 
     for (int i=0;i<lagr_solver->m_elec_num;i++)
@@ -284,12 +356,30 @@ void display(void)
             E_x = magn*(E_x)*5e-25 * ck;
             E_y = magn*(E_y)*5e-25 * ck;
 
+            double nx=lagr_solver->m_electrodes[i].nx;
+            double ny=lagr_solver->m_electrodes[i].ny;
+            double a=nx*E_x+ny*E_y;
+
             glVertex3f(x + E_x,y + E_y,0.0);
+            //glVertex3f(x + E_x,y + E_y,0.0);
+            //glVertex3f(x + nx*a,y + ny*a,0.0);
+
+
+
+            glColor3f(1,0,1);
+            glVertex3f(x,y,0.0);
+           // E_x =ck*lagr_solver->m_electrodes[i].nx* log(1.0+lagr_solver->m_electrodes[i].eCurrent)*35e-7;
+           // E_y = ck*lagr_solver->m_electrodes[i].nx * log(1.0+lagr_solver->m_electrodes[i].eCurrent)*35e-7;
+
+             E_x =ck*nx * scale*(lagr_solver->m_electrodes[i].eCurrent)*35e-13;
+             E_y = ck*ny * scale*(lagr_solver->m_electrodes[i].eCurrent)*35e-13;
+
+            glVertex3f(x + E_x,y + E_y,-30e-7);
         }
     }
     glEnd();
 
-    glPointSize(3);
+    glPointSize(1.5);
     glBegin(GL_POINTS);
 
     double rhomax=0.0;
@@ -348,7 +438,7 @@ void display(void)
     }
     glEnd();*/
 
-    glPointSize(5.5);
+    glPointSize(1.5);
     glBegin(GL_POINTS);
 
     for( i=0; i<elec_solver->m_numParticles; i++ )
@@ -970,10 +1060,10 @@ void kb(unsigned char key, int x, int y)
             lagr_solver->m_electrodes[i].phi_fix_charges=0;//(pz_solver->getPhidepol(x,y)-phi_depol0);
         }
         printf("start ls \n");
-        lagr_solver->solve_ls_fast_PhiE();//lagr_solver->solve_ls_fast();//lagr_solver->solve_ls_fast_PhiE();//solvePhi(20);
+        lagr_solver->solve_ls_fast();//lagr_solver->solve_ls_fast();//lagr_solver->solve_ls_fast_PhiE();//solvePhi(20);
         printf("end ls \n");
         updateEulFields();
-        savePotential();
+       // savePotential();
     }
 
     if (key=='7')

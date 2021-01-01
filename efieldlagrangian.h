@@ -15,6 +15,7 @@ public:
         double eToEmit;
         //double charge;
         double dl;
+        double eCurrent;
         double nx, ny;
     };
     vec2* m_rCentre;
@@ -38,6 +39,7 @@ public:
     void addQuad(vec2 p[4], double dl[4], double phi, int emit[4], double coordYDIel, int smoothingCount);
     void addQuad2Layers(vec2 p[4], double dl[4], double phi, int emit[4]);
     void addQuadRegular(vec2 p[4], double dl, double phi, int emit[4]);
+        void addQuad_stabilized(vec2 p[], double dl[], double phi, int emit[], double coordYDIel, int smoothingCount);
     static vec2 getEField(const vec2& iPos1, const vec2& iPos2);
     static vec2 getPhiField(const vec2& iPos1, const vec2& iPos2);
 
@@ -51,5 +53,6 @@ public:
     void getInv_PhiE();
     void solve_ls_fast();
     void solve_ls_fast_PhiE();
+
 };
 #endif // EFIELDLAGRANGIAN_H

@@ -37,7 +37,7 @@ void pzSolver::init()
         m_p[i].p_prev = m_p[i].p;
 
         m_p[i].E=1.0e8;
-        m_p[i].E_elec=0;
+
         m_p[i].E_prev=m_p[i].E;
         m_p[i].ds=_dx*_dz;
 

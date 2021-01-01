@@ -9,7 +9,7 @@ class pzSolver : lagrangianSolver
 public:
     struct pElem   //linear electrode elem
     {
-        double p,p_prev, ds, dl,E,E_elec,E_prev,RHS;//C/m2, m, V
+        double p,p_prev, ds, dl,E,E_prev,RHS;//C/m2, m, V
         vec2 r;
         double q, q_ext; //q is dipolar charge; q_ext is the attached charge
     };
