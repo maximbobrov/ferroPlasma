@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include  <GL/gl.h>
+/*#include  <GL/gl.h>
 #include  <GL/glu.h>
-#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+#include  <GL/glut.h>*//* glut.h includes gl.h and glu.h*/
 
 
-//#include <my_include/gl.h>
-//#include <my_include/glu.h>
-//#include <my_include/glut.h>
+#include <my_include/gl.h>
+#include <my_include/glu.h>
+#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -53,7 +53,7 @@ double conv1[100];
 
 bool clearc=true;
 
-
+void saveInFile();
 
 std::vector <double>  avPy_;
 std::vector <double>  avEy_;
@@ -75,8 +75,8 @@ multiSolver* multi_solver;
 double wall_pos=0.0;
 void updateEulFields()
 {
-  //  lagr_solver->updatePhi();
-  //  lagr_solver->solvePhi(100);
+    //  lagr_solver->updatePhi();
+    //  lagr_solver->solvePhi(100);
 
     pz_solver->get_q();
     double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
@@ -142,44 +142,46 @@ void print_stats()
     y_min=(y_min-(w_y1+w_y0)*0.5)/(w_y1-w_y0);
     y_max=(y_max-(w_y1+w_y0)*0.5)/(w_y1-w_y0);
 
-     printf("phi_mean=%f phi_min=%f phi_max=%f y_min=%f y_max=%f phi2=%f \n",phi_mean,phi_min,phi_max,y_min,y_max,phi2);
+    printf("phi_mean=%f phi_min=%f phi_max=%f y_min=%f y_max=%f phi2=%f \n",phi_mean,phi_min,phi_max,y_min,y_max,phi2);
 
 
 
-      phi_mean=0.0;
-      phi2=0.0;
-      phi_max=-1e10;
-      phi_min=1e10;
+    phi_mean=0.0;
+    phi2=0.0;
+    phi_max=-1e10;
+    phi_min=1e10;
 
-      y_min,y_max;
-      mass=0;
-      phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
-      phi_e0=elec_solver->getPhiSlow(w_x0,w_y0);
+    y_min,y_max;
+    mass=0;
+    phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
+    phi_e0=elec_solver->getPhiSlow(w_x0,w_y0);
 
-     for (int i=0;i<lagr_solver->m_elec_num;i++)
-     {
-         if (lagr_solver->m_electrodes[i].phi_fix>200)
-         {
-             mass+=1.0;
-             double x=lagr_solver->m_electrodes[i].r.x;
-             double y=lagr_solver->m_electrodes[i].r.y;
-             double ph=lagr_solver->getPhi(x,y)+pz_solver->getPhidepol(x,y) - phi_depol0 +elec_solver->getPhiSlow(x,y) - phi_e0;
+    for (int i=0;i<lagr_solver->m_elec_num;i++)
+    {
+        if (lagr_solver->m_electrodes[i].phi_fix>200)
+        {
+            mass+=1.0;
+            double x=lagr_solver->m_electrodes[i].r.x;
+            double y=lagr_solver->m_electrodes[i].r.y;
+            double ph=lagr_solver->getPhi(x,y)+pz_solver->getPhidepol(x,y) - phi_depol0 +elec_solver->getPhiSlow(x,y) - phi_e0;
 
-             phi_mean+=ph;
-             phi2+=ph*ph;
-             if (phi_min>ph) {phi_min=ph; y_min=y;}
-             if (phi_max<ph) {phi_max=ph; y_max=y;}
+            phi_mean+=ph;
+            phi2+=ph*ph;
+            if (phi_min>ph) {phi_min=ph; y_min=y;}
+            if (phi_max<ph) {phi_max=ph; y_max=y;}
 
-         }
-     }
-     phi_mean/=mass;
-     phi2=sqrt(phi2/mass - phi_mean*phi_mean);
-     y_min=(y_min-(w_y1+w_y0)*0.5)/(w_y1-w_y0);
-     y_max=(y_max-(w_y1+w_y0)*0.5)/(w_y1-w_y0);
+        }
+    }
+    phi_mean/=mass;
+    phi2=sqrt(phi2/mass - phi_mean*phi_mean);
+    y_min=(y_min-(w_y1+w_y0)*0.5)/(w_y1-w_y0);
+    y_max=(y_max-(w_y1+w_y0)*0.5)/(w_y1-w_y0);
 
-      printf("--------------------------------------------------phi_mean=%f phi_min=%f phi_max=%f y_min=%f y_max=%f phi2=%f \n",phi_mean,phi_min,phi_max,y_min,y_max,phi2);
+    printf("--------------------------------------------------phi_mean=%f phi_min=%f phi_max=%f y_min=%f y_max=%f phi2=%f \n",phi_mean,phi_min,phi_max,y_min,y_max,phi2);
 }
-
+static double progress = 2.0;
+static int fileNum = 0;
+static double timePrev = 0;
 void display(void)
 {
     double phi_max=1e-20;
@@ -247,6 +249,41 @@ void display(void)
         wall_coord = pz_solver->m_p[i].r.x - pz_solver->m_p[0].r.x;*/
         //   printf("e0=%e e1=%e e2=%e e3=%e wall=%e\n", pz_solver->m_p[0].p, pz_solver->m_p[1].p, pz_solver->m_p[2].p, pz_solver->m_p[3].p, wall_coord);
         //  sweep();
+    }
+
+    if(serialRegime)
+    {
+
+        if(progress>1.0)
+        {
+            if(file_data)
+                fclose(file_data);
+            fileNum++;
+            g_t = 0;
+            g_phi = (270 + fileNum*20);
+            char filename[64];
+            sprintf(filename, "output%d.txt", fileNum);
+            file_data=fopen(filename,"w");
+            multi_solver->init();
+            progress=0;
+        }
+        else{
+            for (int kk=0;kk<100;kk++)
+                multi_solver->solve(1);
+            double pzmax=0.0;
+            double E_in=0.0;
+            for (int i=0;i<pz_solver->m_p_num;i++)
+            {
+                if (fabs(pz_solver->m_p[i].p)>fabs(pzmax)) pzmax=(pz_solver->m_p[i].p);
+                E_in+=pz_solver->m_p[i].E;
+            }
+            printf("progress(%d) = %d \n", fileNum, int(progress * 100));
+            E_in/=pz_solver->m_p_num;
+            updateEulFields();
+            saveInFile();
+
+        }
+        progress = (g_t / multi_solver->dt_elec)/((g_phi / 10 + 1) * 1000.0);
     }
 
 
@@ -331,7 +368,7 @@ void display(void)
     //EoEfields
 
     glPointSize(3);
-     glLineWidth(1.0);
+    glLineWidth(1.0);
     glBegin(GL_LINES);
 
     for (int i=0;i<lagr_solver->m_elec_num;i++)
@@ -368,11 +405,11 @@ void display(void)
 
             glColor3f(1,0,1);
             glVertex3f(x,y,0.0);
-           // E_x =ck*lagr_solver->m_electrodes[i].nx* log(1.0+lagr_solver->m_electrodes[i].eCurrent)*35e-7;
-           // E_y = ck*lagr_solver->m_electrodes[i].nx * log(1.0+lagr_solver->m_electrodes[i].eCurrent)*35e-7;
+            // E_x =ck*lagr_solver->m_electrodes[i].nx* log(1.0+lagr_solver->m_electrodes[i].eCurrent)*35e-7;
+            // E_y = ck*lagr_solver->m_electrodes[i].nx * log(1.0+lagr_solver->m_electrodes[i].eCurrent)*35e-7;
 
-             E_x =ck*nx * scale*(lagr_solver->m_electrodes[i].eCurrent)*35e-13;
-             E_y = ck*ny * scale*(lagr_solver->m_electrodes[i].eCurrent)*35e-13;
+            E_x =ck*nx * scale*(lagr_solver->m_electrodes[i].eCurrent)*35e-13;
+            E_y = ck*ny * scale*(lagr_solver->m_electrodes[i].eCurrent)*35e-13;
 
             glVertex3f(x + E_x,y + E_y,-30e-7);
         }
@@ -603,7 +640,7 @@ void display(void)
     glEnd();*/
 
     glutSwapBuffers();
-    if (redr==1) glutPostRedisplay();
+    if (redr==1 || serialRegime) glutPostRedisplay();
 
 }
 
@@ -897,11 +934,11 @@ void saveInFile()
             if (pz_solver->m_p[i].p>0) p_pos += pz_solver->m_p[i].p;
             p_full+=fabs(pz_solver->m_p[i].p);
         }
-        printf("wall = %e\n", wall_coord);
+        printf("wall = %e t = %e\n", wall_coord, g_t);
         fprintf(file_data,"%lf %e %lf %lf\n",g_t * 1e15, wall_coord, q_sum,p_pos/p_full);
     }
 
-    int time = int(g_t * 1e15);
+    /*int time = int(g_t * 1e15);
     if(g_save_time * 1e15 > 2000)
     {
         g_save_time=0;
@@ -913,7 +950,7 @@ void saveInFile()
             fprintf(file_data_,"%e  %lf  %lf \n",pz_solver->m_p[i].r.x - pz_solver->m_p[0].r.x, pz_solver->m_p[i].q_ext, pz_solver->m_p[i].q);
         }
         fclose(file_data_);
-    }
+    }*/
 }
 
 void savePotential()
@@ -1063,7 +1100,7 @@ void kb(unsigned char key, int x, int y)
         lagr_solver->solve_ls_fast();//lagr_solver->solve_ls_fast();//lagr_solver->solve_ls_fast_PhiE();//solvePhi(20);
         printf("end ls \n");
         updateEulFields();
-       // savePotential();
+        // savePotential();
     }
 
     if (key=='7')
@@ -1092,19 +1129,26 @@ void kb(unsigned char key, int x, int y)
 
     if (key=='g')
     {
-        /* for (int i = 0;i<20;i+=2)
+        serialRegime =!serialRegime;
+        display();
+        glutPostRedisplay();
+        /*for (int i = 0;i<5;i+=1)
         {
             g_t = 0;
-            g_phi = (i+1);
+            g_phi = (250 + i*5);
             char filename[64];
             sprintf(filename, "output%d.txt", i+1);
             file_data=fopen(filename,"w");
             multi_solver->init();
-            while (g_t * 1e15 < (g_phi / 10 + 1) * 2e4)
+            double timePrev = g_t;
+            double progress = 0.0;
+            while (progress < 1.0)
             {
+                progress = (g_t / multi_solver->dt_elec)/((g_phi / 10 + 1) * 1000.0);
                 multi_solver->solve(1);
-                if(int(g_t * 1e15) % 100 == 0)
+                if(g_t > timePrev + multi_solver->dt_elec * 100)
                 {
+                    timePrev = g_t;
                     double pzmax=0.0;
                     double E_in=0.0;
                     for (int i=0;i<pz_solver->m_p_num;i++)
@@ -1112,12 +1156,14 @@ void kb(unsigned char key, int x, int y)
                         if (fabs(pz_solver->m_p[i].p)>fabs(pzmax)) pzmax=(pz_solver->m_p[i].p);
                         E_in+=pz_solver->m_p[i].E;
                     }
+                    printf("progress(%d) = %d \n", i, int(progress * 100));
                     E_in/=pz_solver->m_p_num;
                     updateEulFields();
                     glutPostRedisplay();
-                    display();
+                    glutIdleFunc(display);
+                    //display();
+                    saveInFile();
                 }
-                saveInFile();
             }
             fclose(file_data);
         }*/

@@ -147,7 +147,7 @@ double calc_d2_poly(poly &p, double x); // значение второй про�
 double solve_poly(poly &p,double _x0, double rhs,int itn);
 
 void rand_init();
-
+extern bool serialRegime;
 extern bool g_emitElectrons;
 extern double E_global;
 extern double dtKoef;

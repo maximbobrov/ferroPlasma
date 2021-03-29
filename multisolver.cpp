@@ -7,8 +7,8 @@ multiSolver::multiSolver()
 void multiSolver::updateEforPz()
 {
 
-    double phi_down=m_Esolver->m_electrodes[m_Esolver->m_elec_num-1].phi_fix; //phi at lower electrode
-    printf("phi_down= %f \n",phi_down);
+    //double phi_down=m_Esolver->m_electrodes[m_Esolver->m_elec_num-1].phi_fix; //phi at lower electrode
+    // printf("phi_down= %f \n",phi_down);
 
     double phi_depol0=m_pzSolver->getPhidepol(w_x0,w_y0);
     double phi_e0=m_elecSolver->getPhiSlow(w_x0,w_y0);
@@ -37,7 +37,7 @@ void multiSolver::updateEforPz()
         m_pzSolver->m_p[i].E =(Em.y + Epm.y+E0.y + Ep0.y+ Ep.y + Epp.y)/3.0 + (Eem.y +Ee0.y+Eep.y)/3;;
 
 
-/*
+        /*
         //by PHI calculation for some reason its a bit underestmating the field values
         double x,yp;
         x=m_pzSolver->m_p[i].r.x;
@@ -190,12 +190,15 @@ void multiSolver::checkPotential()
 
 void multiSolver::solve(int itn)
 {
-    dt_elec = 1.5e-14 * dtKoef;
+    dt_elec = 1.5e-13 * dtKoef;
+    static int elecSteps=10;
     
     g_t+=dt_elec;
     g_save_time+=dt_elec;
     g_save_time2+=dt_elec;
-    
+
+    //double tstart = get_time();
+    //double t1,t2;
     /* for (int i=0;i<m_Esolver->m_elec_num && fabs(m_Esolver->m_electrodes[i].phi_fix) < g_phi;i++)
     {
         m_Esolver->m_electrodes[i].phi_fix +=2.0*((m_Esolver->m_electrodes[i].phi_fix>0)-0.5)*0.005*(dt_elec/0.5e-13);
@@ -203,47 +206,57 @@ void multiSolver::solve(int itn)
     }
 */
     //printf("phi=%e t=%f dt=%e\n",m_Esolver->m_electrodes[0].phi_fix, (g_t * 1e6),dt_elec);
+
     for (int nn=0;nn<itn;nn++)
     {
-        #ifndef USE_MIRROR
+#ifndef USE_MIRROR
         m_pzSolver->get_q();
-        #endif
+#endif
+
+
         double phi_depol0=m_pzSolver->getPhidepol(w_x0,w_y0);
         double elec_depol0=m_elecSolver->getPhiSlow(w_x0,w_y0);
+
         //double phi_fromCharges0 = m_Esolver->getPhiFromCharges(w_x0,w_y0);
-        
+
         for (int i=0;i<m_Esolver->m_elec_num;i++)
         {
             double x,y;
             x=m_Esolver->m_electrodes[i].r.x;
             y=m_Esolver->m_electrodes[i].r.y;
             
-            m_Esolver->m_electrodes[i].phi_fix_charges=  (m_pzSolver->getPhidepol(x,y)-phi_depol0
-                                                        + m_elecSolver->getPhiSlow(x, y) - elec_depol0
-                                                        );
+            m_Esolver->m_electrodes[i].phi_fix_charges = (m_pzSolver->getPhidepol(x,y)-phi_depol0
+                                                          + m_elecSolver->getPhiSlow(x, y) - elec_depol0
+                                                          );
         }
-       // m_Esolver->solve_ls_fast_PhiE();//solve_ls_fast();
-         m_Esolver->solve_ls_fast();//solve_ls_fast();
-        #ifndef USE_MIRROR
+
+
+        // m_Esolver->solve_ls_fast_PhiE();//solve_ls_fast();
+        m_Esolver->solve_ls_fast();//solve_ls_fast();
+#ifndef USE_MIRROR
         updateEforPz();
         m_pzSolver->solvePz(5);
-        #endif
+#endif
+
     }
-    
+
+
     if (g_emitElectrons)
         electronEmission(dt_elec);
-    
-    //printf("nele=%d \n",m_elecSolver->m_numParticles);
-    updateEforElec();
-    #ifndef USE_MIRROR
+
+#ifndef USE_MIRROR
     m_pzSolver->step();
-    #endif
-    m_elecSolver->step(dt_elec);
-    electronExchange(dt_elec);
-    #ifndef USE_MIRROR
+#endif
+    for(int n=0; n<elecSteps;n++)
+    {
+        updateEforElec();
+        m_elecSolver->step(dt_elec/elecSteps);
+        electronExchange(dt_elec/elecSteps);
+    }
+#ifndef USE_MIRROR
     pzEmission(dt_elec);
-    #endif
-    
+#endif
+
     /* //debug below
       
     for (int nn=0;nn<itn;nn++)
@@ -258,23 +271,25 @@ void multiSolver::solve(int itn)
     
     m_pzSolver->step();*/
     
-//update E for visualization purposes:
-double phi_depol0=m_pzSolver->getPhidepol(w_x0,w_y0);
-double elec_depol0=m_elecSolver->getPhiSlow(w_x0,w_y0);
+    //update E for visualization purposes:
+    /*double phi_depol0=m_pzSolver->getPhidepol(w_x0,w_y0);
+    double elec_depol0=m_elecSolver->getPhiSlow(w_x0,w_y0);
+  //t1 = get_time();
 
+    for (int i=0;i<m_Esolver->m_elec_num;i++)
+    {
+        double x,y;
+        x=m_Esolver->m_electrodes[i].r.x;
+        y=m_Esolver->m_electrodes[i].r.y;
+        m_Esolver->m_electrodes[i].phi_fix_charges=  (m_pzSolver->getPhidepol(x,y)-phi_depol0
+                                                      + m_elecSolver->getPhiSlow(x, y) - elec_depol0
+                                                      );
+    }
+    //t2 = get_time();
+    m_Esolver->solve_ls_fast();*/
 
-for (int i=0;i<m_Esolver->m_elec_num;i++)
-{
-    double x,y;
-    x=m_Esolver->m_electrodes[i].r.x;
-    y=m_Esolver->m_electrodes[i].r.y;
-    m_Esolver->m_electrodes[i].phi_fix_charges=  (m_pzSolver->getPhidepol(x,y)-phi_depol0
-                                                + m_elecSolver->getPhiSlow(x, y) - elec_depol0
-                                                );
-}
- m_Esolver->solve_ls_fast();
-
-
+    //double tend = get_time();
+    //printf("fullT = %e t2 = %e\n",(tend-tstart), (t2-t1));
 }
 
 void multiSolver::step()

@@ -1,15 +1,6 @@
 #include "efieldlagrangian.h"
 #include "globals.h"
 
-
-
-
-
-
-
-
-
-
 void eFieldLagrangian::init()
 {
     m_elec_num=0;
@@ -47,11 +38,11 @@ void eFieldLagrangian::init()
     p[4].x=p[0].x;            p[4].y=p[0].y;
 
     int emit_1[4] = {1,0,0,0};
-    double dl[5] = {0.5 * 0.5e-6,  2e-6,  3e-6,  2e-6, 0.5 * 0.5e-6};
+    double dl[5] = {0.5 * 0.5e-6,  6e-6,  8e-6,  6e-6, 0.5 * 0.5e-6};
 
     //double dl[5] = {2e-6, 2e-6, 2e-6, 2e-6, 2e-6};
    //addQuad(p,dl,-20 * 12.50,emit_1, w_y0+25e-6 + 0.5 * dl_pz, 30);
-    addQuad_stabilized(p,dl,-30 * 12.50,emit_1, w_y0+25e-6 + 0.5 * dl_pz, 30);
+    addQuad_stabilized(p,dl, - g_phi ,emit_1, w_y0+25e-6 + 0.5 * dl_pz, 30);
    // addQuad2Layers(p,dl,-20 * 12.50,emit_1);
 
     printf("elecnum1 = %d\n", m_elec_num);
@@ -64,8 +55,9 @@ void eFieldLagrangian::init()
 
     int emit_2[4] = {0,0,0,0};
 
-    double dl2[5] = {4e-6, 4e-6, 4e-6, 4e-6, 4e-6};
-    addQuad(p,dl2,30 * 12.50,emit_2,  w_y0+25e-6 - 0.5 * dl_pz, 1);
+    double coef = 2.0;
+    double dl2[5] = {coef * 4e-6, coef * 4e-6,coef * 4e-6,coef * 4e-6,coef * 4e-6};
+    addQuad(p,dl2, g_phi,emit_2,  w_y0+25e-6 - 0.5 * dl_pz, 1);
     //addQuad_stabilized(p,dl2,20 * 12.50,emit_2,  w_y0+25e-6 - 0.5 * dl_pz, 1);
     //addQuad2Layers(p,dl,-20 * 12.50,emit_1);
 
@@ -461,6 +453,9 @@ void eFieldLagrangian::addQuad(vec2 p[5], double dl[5],double phi, int emit[4], 
         double q;
         double s=0;
         getProgrCoef(dl[i], dl[i+1], l_[i], n_[i], q);
+        //printf("ni=%d\n",n_[i]);//n_[i]-=2;
+        if(n_[i]<=4)
+            n_[i]-=2;
         double l = dl[i];
         for (int j=0;j<n_[i];j++)
         {
@@ -490,7 +485,6 @@ void eFieldLagrangian::addQuad(vec2 p[5], double dl[5],double phi, int emit[4], 
             c_m.x+=x;
             c_m.y+=y;
             c_m.charge+=1.0;
-
 
             l = dl[i] * pow(q,j);
             s+=l;
