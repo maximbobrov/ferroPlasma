@@ -14,6 +14,8 @@ public:
     pzSolver* m_pzSolver;
     electronLagrangian* m_elecSolver;
 
+    int endPosTable[1000];
+
 
 
     multiSolver();
@@ -21,6 +23,9 @@ public:
     void updateEforPz();
     void updateEforElec();
     void electronEmission(double dt);
+    void electronEmissionEndMoveToElectrode(double dt);
+    void updateTrajTable();
+    int  getEndPos(int i);
     void solve(int itn);
     void init();
     void step();

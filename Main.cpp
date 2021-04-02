@@ -182,6 +182,71 @@ void print_stats()
 static double progress = 2.0;
 static int fileNum = 0;
 static double timePrev = 0;
+
+void draw_traj()
+{
+    for (int i=0;i<lagr_solver->m_elec_num;i++)
+    {
+        if (lagr_solver->m_electrodes[i].canEmit)
+        {
+            //double x,y;
+            glColor3f(0,1,0);
+            glBegin(GL_LINE_STRIP);
+            vec2 r=lagr_solver->m_electrodes[i].r;
+            for (int j=0;j<30;j++)
+            {
+                vec2 Ee = elec_solver->getEe(r.x,r.y);
+                vec2 Ed = lagr_solver->getE(r.x,r.y);
+                vec2 Epz = pz_solver->getEdepol(r.x,r.y);
+
+                vec2 E_;
+                E_.x = Ee.x + Ed.x + Epz.x;
+                E_.y = Ee.y + Ed.y + Epz.y;
+                double l=sqrt(E_.x*E_.x+E_.y*E_.y);
+                glVertex2f(r.x,r.y);
+                r.x-=3.0e-6*E_.x/l;
+                r.y-=3.0e-6*E_.y/l;
+                if (r.y<0) break;
+            }
+            glEnd();
+
+            glColor3f(1,0,1);
+            glBegin(GL_LINE_STRIP);
+            r=lagr_solver->m_electrodes[i].r;
+            vec2 v(0.0,0.0,0.0);
+            for (int j=0;j<3000;j++)
+            {
+                double Dt=1e-14;
+                //vec2 Ee = elec_solver->getEe(r.x,r.y);
+                vec2 Ed = lagr_solver->getE(r.x,r.y);
+                vec2 Epz = pz_solver->getEdepol(r.x,r.y);
+                vec2 E_;
+                E_.x = Ed.x + Epz.x;
+                E_.y = Ed.y + Epz.y;
+
+                double magn=qe/Me;//1e-1;
+
+                v.x += magn*(E_.x)*Dt;
+                v.y += magn*(E_.y)*Dt;
+                glVertex2f(r.x,r.y);
+                r.x+=Dt*v.x;
+                r.y+=Dt*v.y;
+
+                if (r.y<0) break;
+            }
+            glEnd();
+
+            glColor3f(1,0,0);
+            glBegin(GL_POINTS);
+            glPointSize(10);
+            r=lagr_solver->m_electrodes[i].r;
+            int n = multi_solver->getEndPos(i);
+            glVertex2f(pz_solver->m_p[n].r.x, pz_solver->m_p[n].r.y + pz_solver->m_p[n].dl * 0.5);
+            glEnd();
+        }
+    }
+}
+
 void display(void)
 {
     double phi_max=1e-20;
@@ -638,7 +703,7 @@ void display(void)
     glVertex2f(pz_solver->m_p[0].r.x, 0);
     glVertex2f(pz_solver->m_p[pz_solver->m_p_num - 1].r.x, 0);
     glEnd();*/
-
+    //draw_traj();
     glutSwapBuffers();
     if (redr==1 || serialRegime) glutPostRedisplay();
 

@@ -32,7 +32,7 @@ void eFieldLagrangian::init()
     vec2 p[5];
 
     p[0].x=w_x0-0e-6;         p[0].y=0.5*(w_y0+w_y1);
-    p[1].x=w_x0-40e-6;        p[1].y=w_y1;
+    p[1].x=w_x0 /*-40e-6*/;        p[1].y=w_y1;
     p[2].x=w_x0-50e-6;        p[2].y=w_y1;
     p[3].x=w_x0-50e-6;        p[3].y=0.5*(w_y0+w_y1);
     p[4].x=p[0].x;            p[4].y=p[0].y;
