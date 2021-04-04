@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/*#include  <GL/gl.h>
+#include  <GL/gl.h>
 #include  <GL/glu.h>
-#include  <GL/glut.h>*//* glut.h includes gl.h and glu.h*/
+#include  <GL/glut.h> /* glut.h includes gl.h and glu.h*/
 
 
-#include <my_include/gl.h>
+/*#include <my_include/gl.h>
 #include <my_include/glu.h>
-#include <my_include/glut.h>
+#include <my_include/glut.h>*/
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -142,7 +142,7 @@ void print_stats()
     y_min=(y_min-(w_y1+w_y0)*0.5)/(w_y1-w_y0);
     y_max=(y_max-(w_y1+w_y0)*0.5)/(w_y1-w_y0);
 
-    printf("phi_mean=%f phi_min=%f phi_max=%f y_min=%f y_max=%f phi2=%f \n",phi_mean,phi_min,phi_max,y_min,y_max,phi2);
+  //  printf("phi_mean=%f phi_min=%f phi_max=%f y_min=%f y_max=%f phi2=%f \n",phi_mean,phi_min,phi_max,y_min,y_max,phi2);
 
 
 
@@ -177,7 +177,7 @@ void print_stats()
     y_min=(y_min-(w_y1+w_y0)*0.5)/(w_y1-w_y0);
     y_max=(y_max-(w_y1+w_y0)*0.5)/(w_y1-w_y0);
 
-    printf("--------------------------------------------------phi_mean=%f phi_min=%f phi_max=%f y_min=%f y_max=%f phi2=%f \n",phi_mean,phi_min,phi_max,y_min,y_max,phi2);
+  //  printf("--------------------------------------------------phi_mean=%f phi_min=%f phi_max=%f y_min=%f y_max=%f phi2=%f \n",phi_mean,phi_min,phi_max,y_min,y_max,phi2);
 }
 static double progress = 2.0;
 static int fileNum = 0;
@@ -185,10 +185,28 @@ static double timePrev = 0;
 
 void draw_traj()
 {
+    double min_curr=1e10;
+    double max_curr=1e-20;
+
     for (int i=0;i<lagr_solver->m_elec_num;i++)
     {
+
         if (lagr_solver->m_electrodes[i].canEmit)
         {
+
+            double cur=lagr_solver->m_electrodes[i].eCurrent;
+            if (cur>max_curr) max_curr=cur;
+            if (cur<min_curr) min_curr=cur;
+
+        }
+    }
+
+   /* for (int i=0;i<lagr_solver->m_elec_num;i++)
+    {
+
+        if (lagr_solver->m_electrodes[i].canEmit)
+        {
+            glLineWidth(1.0);
             //double x,y;
             glColor3f(0,1,0);
             glBegin(GL_LINE_STRIP);
@@ -210,13 +228,17 @@ void draw_traj()
             }
             glEnd();
 
-            glColor3f(1,0,1);
+            glLineWidth(1.5);
+            double cur=lagr_solver->m_electrodes[i].eCurrent;
+            glColor3f(cur/max_curr,0,1.0-cur/max_curr);
             glBegin(GL_LINE_STRIP);
             r=lagr_solver->m_electrodes[i].r;
             vec2 v(0.0,0.0,0.0);
-            for (int j=0;j<3000;j++)
+            double Dl=0.5e-6;//
+            double Dt=1e-6;
+            for (int j=0;j<1000;j++)
             {
-                double Dt=1e-14;
+
                 //vec2 Ee = elec_solver->getEe(r.x,r.y);
                 vec2 Ed = lagr_solver->getE(r.x,r.y);
                 vec2 Epz = pz_solver->getEdepol(r.x,r.y);
@@ -224,7 +246,11 @@ void draw_traj()
                 E_.x = Ed.x + Epz.x;
                 E_.y = Ed.y + Epz.y;
 
+
                 double magn=qe/Me;//1e-1;
+                double a_=fmax(fabs(magn*(E_.x)),fabs(magn*(E_.y)));
+                double v_=fmax(fabs(v.x),fabs(v.y));
+                Dt=(sqrt(v_*v_+2*a_*Dl)-v_)/(a_+1e-20);
 
                 v.x += magn*(E_.x)*Dt;
                 v.y += magn*(E_.y)*Dt;
@@ -245,6 +271,66 @@ void draw_traj()
             glEnd();
         }
     }
+
+*/
+    //multi_solver->updateEforPz();
+
+    for (int i=0;i<pz_solver->m_p_num;i++)
+    {
+
+
+        vec2 Em = lagr_solver->getE(pz_solver->m_p[i].r.x,0.0);
+        vec2 Epm =pz_solver->getEdepol(pz_solver->m_p[i].r.x,0.0);
+        double Ey =Em.y+Epm.y;
+
+
+        //if (Ey<0)
+        {
+           // printf("I=%d E=%e <0 \n",i,Ey);
+           vec2 r;
+           r.x=pz_solver->m_p[i].r.x;
+           r.y=0.0;
+
+
+
+            glLineWidth(1.5);
+
+            glColor3f(0,0.5,0.5);
+            glBegin(GL_LINE_STRIP);
+
+            vec2 v(0.0,0.0,0.0);
+            double Dl=0.5e-6;//
+            double Dt=1e-6;
+            for (int j=0;j<100;j++)
+            {
+
+                //vec2 Ee = elec_solver->getEe(r.x,r.y);
+                vec2 Ed = lagr_solver->getE(r.x,r.y);
+                vec2 Epz = pz_solver->getEdepol(r.x,r.y);
+                vec2 E_;
+                E_.x = Ed.x + Epz.x;
+                E_.y = Ed.y + Epz.y;
+
+
+                double magn=qe/Me;//1e-1;
+                double a_=fmax(fabs(magn*(E_.x)),fabs(magn*(E_.y)));
+                double v_=fmax(fabs(v.x),fabs(v.y));
+                Dt=(sqrt(v_*v_+2*a_*Dl)-v_)/(a_+1e-20);
+
+                v.x += magn*(E_.x)*Dt;
+                v.y += magn*(E_.y)*Dt;
+                glVertex2f(r.x,r.y);
+                r.x+=Dt*v.x;
+                r.y+=Dt*v.y;
+
+                if (r.y<pz_solver->m_p[i].r.y + pz_solver->m_p[i].dl*0.5) break;
+            }
+            glEnd();
+
+
+        }
+    }
+
 }
 
 void display(void)
@@ -289,8 +375,8 @@ void display(void)
 
     if (redr==1)
     {
-        for (int i=0;i<10;i++)
-            multi_solver->solve(1);
+        for (int i=0;i<5;i++)
+            multi_solver->solve(5);
 
         // dtKoef*=1.003;
 
@@ -305,7 +391,7 @@ void display(void)
 
         // printf("pz_max=%e  E=%e E_in=%e \n",pzmax,E_global,E_in);
         updateEulFields();
-        print_stats();
+        //print_stats();
         /*double wall_coord = pz_solver->m_p[2].r.x - pz_solver->m_p[0].r.x;
         int i;
         for( i = 2; i < pz_solver->m_p_num && pz_solver->m_p[i].p > 0; i++ )
@@ -644,7 +730,7 @@ void display(void)
 
 
     glDisable(GL_DEPTH_TEST);
-    glLineWidth(3.5);
+    /*glLineWidth(3.5);
     glBegin(GL_LINE_STRIP);
 
     for( i=0; i < pz_solver->m_p_num; i++ )
@@ -652,15 +738,18 @@ void display(void)
         glColor3f(0.5,0.5,1.0);
         glVertex2f(pz_solver->m_p[i].r.x, 1e-3 * scale * (pz_solver->m_p[i].q_ext+pz_solver->m_p[i].q) * (w_y1 - w_y0)-5e-6);
     }
-    glEnd();
+    glEnd();*/
     glLineWidth(3.5);
     glBegin(GL_LINE_STRIP);
 
+        double q_extr=0.0;
     for( i=0; i < pz_solver->m_p_num; i++ )
     {
         glColor3f(0.1,0.5,0);
-        glVertex2f(pz_solver->m_p[i].r.x, 1e-3 * scale * (pz_solver->m_p[i].q_ext) * (w_y1 - w_y0)-5e-6);
+        glVertex2f(pz_solver->m_p[i].r.x, 1e-1 * scale * (pz_solver->m_p[i].q_ext) * (w_y1 - w_y0)-5e-6);
+        q_extr+=pz_solver->m_p[i].q_ext;
     }
+    printf(" \n qext=%e \n",q_extr);
     glEnd();
 
 
@@ -703,7 +792,7 @@ void display(void)
     glVertex2f(pz_solver->m_p[0].r.x, 0);
     glVertex2f(pz_solver->m_p[pz_solver->m_p_num - 1].r.x, 0);
     glEnd();*/
-    //draw_traj();
+    draw_traj();
     glutSwapBuffers();
     if (redr==1 || serialRegime) glutPostRedisplay();
 

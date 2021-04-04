@@ -153,6 +153,8 @@ extern double E_global;
 extern double dtKoef;
 extern double g_t;
 extern double g_phi;
+extern double g_phi_max;
+extern double g_t_max;
 extern double g_save_time;
 extern double g_save_time2;
 float my_rand(int i);

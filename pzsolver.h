@@ -9,9 +9,9 @@ class pzSolver : lagrangianSolver
 public:
     struct pElem   //linear electrode elem
     {
-        double p,p_prev, ds, dl,E,E_prev,RHS;//C/m2, m, V
+        double p,p_prev, ds, dl,E,Ex_s,Ey_s,E_prev,RHS;//C/m2, m, V
         vec2 r;
-        double q, q_ext; //q is dipolar charge; q_ext is the attached charge
+        double q, q_ext,q_tmp,q_0; //q is dipolar charge; q_ext is the attached charge
     };
 
 public:
@@ -27,6 +27,7 @@ public:
     pzSolver();
     void init();
     void solvePz(int itn);
+    void solvePz_steady(int itn);
     void getRHS();
     void get_q();
     void step();
@@ -35,6 +36,8 @@ public:
     void updateCharge();
     void updateGridProp();
     void setWallPos(double a);
+
+    void conduct(double sigma, double dt, int itn);
 
    // static vec2 getEField(const vec2& iCenterPos, const vec2& iFarPos);
    // static vec2 getPhiField(const vec2& iCenterPos, const vec2& iFarPos);

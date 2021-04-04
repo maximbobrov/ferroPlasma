@@ -10,11 +10,13 @@ int num_thread=1;
 uint32_t xr[32],yr[32],zr[32],wr[32];
 
 bool serialRegime=false;
-bool g_emitElectrons=true;
+bool g_emitElectrons=false;
 double E_global=1e7;
 double dtKoef = 1.;
 double g_t = 0;
-double g_phi = 250.;
+double g_t_max = 1e-5;
+double g_phi = 450.0;
+double g_phi_max= 450.0;
 double g_save_time = 0;
 double g_save_time2 = 0;
 double g_dphidt;
