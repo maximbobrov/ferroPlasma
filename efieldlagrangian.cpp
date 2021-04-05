@@ -966,13 +966,6 @@ double eFieldLagrangian::getPhi(double x, double y)
         q=qe/(eps0*pi2) * (m_charges[i].charge);
 
         sum+=-q*log(r+delta)/(w_z1 - w_z0);
-#ifdef USE_MIRROR
-        dx = m_mirrorCharges[i].x - x;
-        dy = m_mirrorCharges[i].y - y;
-        r=sqrt(dx*dx+dy*dy);
-        q=-((eps_pz-1.0)/(eps_pz+1.0))*qe/(eps0*pi2) * (m_charges[i].charge);
-        sum+=-q*log(r+delta)/(w_z1 - w_z0);
-#endif
     }
     //getPhiFromCharges(x,y);
 

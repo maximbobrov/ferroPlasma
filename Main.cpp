@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include  <GL/gl.h>
+/*#include  <GL/gl.h>
 #include  <GL/glu.h>
-#include  <GL/glut.h> /* glut.h includes gl.h and glu.h*/
+#include  <GL/glut.h>*//* glut.h includes gl.h and glu.h*/
 
 
-/*#include <my_include/gl.h>
+#include <my_include/gl.h>
 #include <my_include/glu.h>
-#include <my_include/glut.h>*/
+#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -375,8 +375,9 @@ void display(void)
 
     if (redr==1)
     {
-        for (int i=0;i<5;i++)
-            multi_solver->solve(5);
+        multi_solver->updateTrajTable();
+        for (int i=0;i<10;i++)
+            multi_solver->solve(3);
 
         // dtKoef*=1.003;
 
@@ -1432,37 +1433,8 @@ void init()
     multi_solver->m_pzSolver = pz_solver;
     multi_solver->m_elecSolver = elec_solver;
 
+    multi_solver->prepare_caches();
 
-    static double qem[100][10]; //E 10^5 - 10^9 ; dt  10^-15 10^-8
-    double ds  = lagr_solver->m_electrodes[0].dl*(w_z1-w_z0);
-
-    //for (int i=0; i<100; i++)
-    {
-        int i=4;
-        double E1 = 1.e6 + 1.0e7*i;
-        printf("\n E=%e \n ",E1);
-
-        for (int j=0;j<2;j++)
-        {
-            double d_t = pow(10.0,-8.0-j);
-            double E0=elec_solver->getEmult_dipole(2.0e-6);
-            double el_to_add = 0.99*E1/(E0);//elec_solver->calcJ(E1)*d_t*ds/(fabs(qe)/**num_in_pack*/);
-            //el_to_add = elec_solver->calcJ(E1)*d_t*ds/(fabs(qe)/**num_in_pack*/);
-            double el_to_add0=el_to_add;
-            printf("__E1=%e E0=%e n=%e;  \n",E1,E0*el_to_add);
-            //double J=elec_solver->calcJ(E1-E0*el_to_add)*d_t*ds/(fabs(qe));
-            for (int k = 0; k<6000;k++) {
-                el_to_add = el_to_add * 0.9995 + 0.0005 * elec_solver->calcJ(E1-E0*el_to_add)*d_t*ds/(fabs(qe));
-
-                // printf("E1=%e E0=%e n=%e; \n",E1,E0*el_to_add,el_to_add);
-            }
-            printf(" dt=%e E1=%e E0=%e n=%e; \n",d_t,E1,E0*el_to_add,el_to_add);
-            //    printf("dt=%e e=%e; ",d_t,el_to_add);
-            //         printf("%e %e %e; ",el_to_add0,el_to_add,el_to_add*E0/E1);
-        }
-    }
-
-    //lagr_solver->solvePhi(10);
 }
 
 void resize(int w, int h)

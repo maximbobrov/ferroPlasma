@@ -33,6 +33,11 @@ public:
     void getExtChargeField();
     void electronExchange(double dt);
     void pzEmission(double dt);
+    double getPhi_at_electrode(int n);
+    double getPhi_at_pz_down(int n);
+    double getPhi_at_pz_up(int n);
+    void prepare_caches();
+
 };
 
 #endif // MULTISOLVER_H
