@@ -1277,112 +1277,30 @@ void eFieldLagrangian::setElectrodeAngle(double deg)
 
 vec2 eFieldLagrangian::getE(double x, double y)
 {
-    /*vec2 EField;
-    vec2 pos(x,y,0.0);
-    //getFieldFast(pos, m_rCentre, getEField, EField);
-    //return EField;
+
     vec2 sum;
     sum.x=0.0; sum.y=0.0;
+    double delta=1e-6;
+    double d2=delta*delta;
+    double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
 
-    for (int i=0;i<m_elec_num;i++)
-    {
-        double r2;
-        double q;
-        double dxx,dyy;
-        double delta=1e-9;
-
-        dxx = m_electrodes[i].r.x  - x;
-        dyy = m_electrodes[i].r.y  - y;
-        r2=(dxx*dxx+dyy*dyy);
-        q=0.0;//(m_electrodes[i].rho1+m_electrodes[i].rho2)*0.5;
-
-        sum.x+=q*dxx/(r2+delta*delta)/log(delta);
-        sum.y+=q*dyy/(r2+delta*delta)/log(delta);
-    }
-    //printf("ex = %e ex2 = %e  ey = %e ey2 = %e\n", EField.x, sum.x, EField.y, sum.y );
-    return sum;*/
-
-    vec2 EField;
-    vec2 pos(x,y,0.0);
-    //getFieldFast(pos, m_rCentre, getEField, EField);
-    //return EField;
-    vec2 sum;
-    sum.x=0.0; sum.y=0.0;
     for (int i=0;i<m_chargeNum;i++)
     {
         double r2;
         double q;
         double dx,dy;
-        double delta=1e-6;
 
         dx = m_charges[i].x - x;
         dy = m_charges[i].y - y;
         r2=(dx*dx+dy*dy);
-        q=-qe/(eps0*pi2) * (m_charges[i].charge);
+        q=-qepspi* (m_charges[i].charge);
 
-        double c=q/((r2+delta*delta)*(w_z1 - w_z0));
-
-        sum.x+=c*dx;
-        sum.y+=c*dy;
-
-#ifdef USE_MIRROR
-        dx = m_mirrorCharges[i].x - x;
-        dy = m_mirrorCharges[i].y - y;
-        r2=(dx*dx+dy*dy);
-        q=-qe/(eps0*pi2) * (m_charges[i].charge);
-
-        c=-((eps_pz-1.0)/(eps_pz+1.0))*q/((r2+delta*delta)*(w_z1 - w_z0));
+        double c=q/(r2+d2);
 
         sum.x+=c*dx;
         sum.y+=c*dy;
-#endif
-
     }
 
-#ifdef USE_MIRROR
-
-    if ((y<w_y0+25e-6+dl_pz*0.5)&&(y>w_y0+25e-6-dl_pz*0.5))
-    {
-        sum.x=0.0; sum.y=0.0;
-        for (int i=0;i<m_chargeNum;i++)
-        {
-            double r2;
-            double q;
-            double dx,dy;
-            double delta=1e-6;
-
-            dx = m_charges[i].x - x;
-            dy = m_charges[i].y - y;
-            r2=(dx*dx+dy*dy);
-            q=-((2.0)/(eps_pz+1.0))*qe/(eps0*pi2) * (m_charges[i].charge);
-
-            double c=q/((r2+delta*delta)*(w_z1 - w_z0));
-
-            sum.x+=c*dx;
-            sum.y+=c*dy;
-
-        }
-    }
-
-#endif
-    /*for (int i=0;i<m_elec_num;i++)
-    {
-        double r2;
-        double q;
-        double dx,dy;
-        double delta=1e-9;
-
-        dx = m_electrodes[i].r.x - x;
-        dy = m_electrodes[i].r.y - y;
-        r2=(dx*dx+dy*dy);
-        q=-qe/(eps0*pi2) * (m_electrodes[i].charge);
-
-        double c=q/((r2+delta*delta)*(w_z1 - w_z0));
-
-        sum.x+=c*dx;
-        sum.y+=c*dy;
-
-    }*/
     return sum;
 }
 

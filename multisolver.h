@@ -42,6 +42,10 @@ public:
     void fast_Fields_recalculate();
     vec2 get_fast_E(double x,double y);
 
+    void near_Fields_recalculate_cell(int i_, int j_);
+    void slower_Fields_recalculate();
+    vec2 get_slower_E(double x, double y);
+      vec2 get_slow_E(double x, double y);
 
 };
 

@@ -395,28 +395,25 @@ vec2 pzSolver::getPhiField(const vec2& iCenterPos, const vec2& iFarPos)
 */
 vec2 pzSolver::getEdepol(double x, double y)
 {
-    vec2 EField;
-    vec2 pos(x,y,0.0);
-    //getFieldFast(pos, m_rCentre, getEField, EField);
-    //return EField;
     vec2 sum;
     sum.x=0.0; sum.y=0.0;
-
-    static double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
+     double delta=1e-6;
+    double d2=delta*delta;
+    double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
 
     for (int i=0;i<m_p_num;i++)
     {
         double r2;
         double q;
         double dx,dy;
-        double delta=1e-6;
+
 
         dx = m_p[i].r_top.x - x;
         dy = m_p[i].r_top.y - y;
         r2=(dx*dx+dy*dy);
         q=- qepspi *m_p[i].r_top.charge; // (m_p[i].q+m_p[i].q_ext);
 
-        double c=q/((r2+delta*delta));
+        double c=q/((r2+d2));
 
         sum.x+=c*dx;
         sum.y+=c*dy;
@@ -440,7 +437,8 @@ double pzSolver::getPhidepol(double x, double y)
     double q;
     double dx,dy;
     double delta=1e-6;
-    static double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
+
+     double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
     for (int i=0;i<m_p_num;i++)
     {
         //    int i=1;

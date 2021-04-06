@@ -375,6 +375,7 @@ void display(void)
         double t0 = get_time();
 
         multi_solver->fast_Fields_recalculate();
+        multi_solver->slower_Fields_recalculate();
         multi_solver->updateTrajTable();
         double t1 = get_time();
         for (int i=0;i<10;i++)
