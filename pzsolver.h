@@ -10,7 +10,8 @@ public:
     struct pElem   //linear electrode elem
     {
         double p,p_prev, ds, dl,E,Ex_s,Ey_s,E_prev,RHS;//C/m2, m, V
-        vec2 r;
+      //  vec2 r;
+        vec2 r_top;
         double q, q_ext,q_tmp,q_0; //q is dipolar charge; q_ext is the attached charge
     };
 
@@ -34,7 +35,7 @@ public:
     vec2 getEdepol(double x, double y);
     double getPhidepol(double x, double y);
     void updateCharge();
-    void updateGridProp();
+
     void setWallPos(double a);
 
     void conduct(double sigma, double dt, int itn);

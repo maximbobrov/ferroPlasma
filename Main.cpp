@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/*#include  <GL/gl.h>
+#include  <GL/gl.h>
 #include  <GL/glu.h>
-#include  <GL/glut.h>*//* glut.h includes gl.h and glu.h*/
+#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
 
 
-#include <my_include/gl.h>
+/*#include <my_include/gl.h>
 #include <my_include/glu.h>
-#include <my_include/glut.h>
+#include <my_include/glut.h>*/
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -201,7 +201,7 @@ void draw_traj()
         }
     }
 
-   /* for (int i=0;i<lagr_solver->m_elec_num;i++)
+    for (int i=0;i<lagr_solver->m_elec_num;i++)
     {
 
         if (lagr_solver->m_electrodes[i].canEmit)
@@ -213,14 +213,15 @@ void draw_traj()
             vec2 r=lagr_solver->m_electrodes[i].r;
             for (int j=0;j<30;j++)
             {
-                vec2 Ee = elec_solver->getEe(r.x,r.y);
+                /*vec2 Ee = elec_solver->getEe(r.x,r.y);
                 vec2 Ed = lagr_solver->getE(r.x,r.y);
                 vec2 Epz = pz_solver->getEdepol(r.x,r.y);
+                */
+                vec2 E_=multi_solver->get_fast_E(r.x,r.y);;
+                //E_.x = Ee.x + Ed.x + Epz.x;
+                //E_.y = Ee.y + Ed.y + Epz.y;
 
-                vec2 E_;
-                E_.x = Ee.x + Ed.x + Epz.x;
-                E_.y = Ee.y + Ed.y + Epz.y;
-                double l=sqrt(E_.x*E_.x+E_.y*E_.y);
+                double l=sqrt(E_.x*E_.x+E_.y*E_.y)+1e-10;
                 glVertex2f(r.x,r.y);
                 r.x-=3.0e-6*E_.x/l;
                 r.y-=3.0e-6*E_.y/l;
@@ -240,11 +241,11 @@ void draw_traj()
             {
 
                 //vec2 Ee = elec_solver->getEe(r.x,r.y);
-                vec2 Ed = lagr_solver->getE(r.x,r.y);
-                vec2 Epz = pz_solver->getEdepol(r.x,r.y);
-                vec2 E_;
-                E_.x = Ed.x + Epz.x;
-                E_.y = Ed.y + Epz.y;
+                //vec2 Ed = lagr_solver->getE(r.x,r.y);
+                //vec2 Epz = pz_solver->getEdepol(r.x,r.y);
+                vec2 E_=multi_solver->get_fast_E(r.x,r.y);
+                //E_.x = Ed.x + Epz.x;
+                //E_.y = Ed.y + Epz.y;
 
 
                 double magn=qe/Me;//1e-1;
@@ -267,20 +268,18 @@ void draw_traj()
             glPointSize(10);
             r=lagr_solver->m_electrodes[i].r;
             int n = multi_solver->getEndPos(i);
-            glVertex2f(pz_solver->m_p[n].r.x, pz_solver->m_p[n].r.y + pz_solver->m_p[n].dl * 0.5);
+            glVertex2f(pz_solver->m_p[n].r_top.x, pz_solver->m_p[n].r_top.y);
             glEnd();
         }
     }
 
-*/
-    //multi_solver->updateEforPz();
 
+    //multi_solver->updateEforPz();
+/*
     for (int i=0;i<pz_solver->m_p_num;i++)
     {
-
-
-        vec2 Em = lagr_solver->getE(pz_solver->m_p[i].r.x,0.0);
-        vec2 Epm =pz_solver->getEdepol(pz_solver->m_p[i].r.x,0.0);
+        vec2 Em = lagr_solver->getE(pz_solver->m_p[i].r_top.x,0.0);
+        vec2 Epm =pz_solver->getEdepol(pz_solver->m_p[i].r_top.x,0.0);
         double Ey =Em.y+Epm.y;
 
 
@@ -288,7 +287,7 @@ void draw_traj()
         {
            // printf("I=%d E=%e <0 \n",i,Ey);
            vec2 r;
-           r.x=pz_solver->m_p[i].r.x;
+           r.x=pz_solver->m_p[i].r_top.x;
            r.y=0.0;
 
 
@@ -323,14 +322,11 @@ void draw_traj()
                 r.x+=Dt*v.x;
                 r.y+=Dt*v.y;
 
-                if (r.y<pz_solver->m_p[i].r.y + pz_solver->m_p[i].dl*0.5) break;
+                if (r.y<pz_solver->m_p[i].r_top.y) break;
             }
             glEnd();
-
-
         }
-    }
-
+    }*/
 }
 
 void display(void)
@@ -375,9 +371,15 @@ void display(void)
 
     if (redr==1)
     {
+
+        double t0 = get_time();
+
+        multi_solver->fast_Fields_recalculate();
         multi_solver->updateTrajTable();
+        double t1 = get_time();
         for (int i=0;i<10;i++)
             multi_solver->solve(3);
+        double t2 = get_time();
 
         // dtKoef*=1.003;
 
@@ -392,6 +394,9 @@ void display(void)
 
         // printf("pz_max=%e  E=%e E_in=%e \n",pzmax,E_global,E_in);
         updateEulFields();
+        double t3 =get_time();
+
+            printf("traj_upd_time=%e solve_time=%e eul_fields_time=%e \n", t1-t0, t2-t1,t3-t2);
         //print_stats();
         /*double wall_coord = pz_solver->m_p[2].r.x - pz_solver->m_p[0].r.x;
         int i;
@@ -711,8 +716,8 @@ void display(void)
         for (int i=0;i<pz_solver->m_p_num;i++)
         {
             glColor3f(ck * pz_solver->m_p[i].p/0.26,-ck * pz_solver->m_p[i].p/0.26,0);
-            glVertex2f(pz_solver->m_p[i].r.x/*-pz_solver->m_dx*0.5*/,pz_solver->m_p[i].r.y -pz_solver->m_p[i].dl*0.5);
-            glVertex2f(pz_solver->m_p[i].r.x/*-pz_solver->m_dx*0.5*/,pz_solver->m_p[i].r.y +pz_solver->m_p[i].dl*0.5);
+            glVertex2f(pz_solver->m_p[i].r_top.x/*-pz_solver->m_dx*0.5*/,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl);
+            glVertex2f(pz_solver->m_p[i].r_top.x/*-pz_solver->m_dx*0.5*/,pz_solver->m_p[i].r_top.y);
         }
         glEnd();
     }
@@ -747,7 +752,7 @@ void display(void)
     for( i=0; i < pz_solver->m_p_num; i++ )
     {
         glColor3f(0.1,0.5,0);
-        glVertex2f(pz_solver->m_p[i].r.x, 1e-1 * scale * (pz_solver->m_p[i].q_ext) * (w_y1 - w_y0)-5e-6);
+        glVertex2f(pz_solver->m_p[i].r_top.x, 1e-1 * scale * (pz_solver->m_p[i].q_ext) * (w_y1 - w_y0)-5e-6);
         q_extr+=pz_solver->m_p[i].q_ext;
     }
     printf(" \n qext=%e \n",q_extr);
@@ -1076,12 +1081,12 @@ void saveInFile()
         double q_sum = 0;
         double p_pos=0.0;
         double p_full=0.0;
-        double wall_coord = pz_solver->m_p[1].r.x - pz_solver->m_p[0].r.x;
+        double wall_coord = pz_solver->m_p[1].r_top.x - pz_solver->m_p[0].r_top.x;
         int i;
         for( i = 1; i < pz_solver->m_p_num && pz_solver->m_p[i].p > 0; i++ )
         {
         }
-        wall_coord = pz_solver->m_p[i].r.x - pz_solver->m_p[0].r.x;
+        wall_coord = pz_solver->m_p[i].r_top.x - pz_solver->m_p[0].r_top.x;
 
         for( i = 0; i < pz_solver->m_p_num; i++ )
         {
@@ -1434,6 +1439,9 @@ void init()
     multi_solver->m_elecSolver = elec_solver;
 
     multi_solver->prepare_caches();
+
+    multi_solver->fast_Fields_prepare();
+
 
 }
 

@@ -8,6 +8,8 @@
  double to_pzDown_from_elec[400][400];
  double to_pzDown_from_pz[400][400];
 
+
+
 multiSolver::multiSolver()
 {
     dt_elec=1e-20;
@@ -192,6 +194,12 @@ void multiSolver::updateTrajTable()
             vec2 Ep=m_pzSolver->getEdepol(m_Esolver->m_electrodes[i].r.x,m_Esolver->m_electrodes[i].r.y);
             double ex=E.x+Ep.x;
             double ey=E.y+Ep.y;
+
+            /*vec2 E=get_fast_E();
+
+            double ex=E.x;
+            double ey=E.y;*/
+
             double l = ex * (-m_Esolver->m_electrodes[i].nx) + ey * (-m_Esolver->m_electrodes[i].ny);
             if (l>0)
             {
@@ -218,13 +226,11 @@ void multiSolver::updateTrajTable()
         double Dt=1e-6;
         for (int j=0;j<1000;j++)
         {
-
-            //vec2 Ee = elec_solver->getEe(r.x,r.y);
-            vec2 Ed = m_Esolver->getE(r.x,r.y);
-            vec2 Epz = m_pzSolver->getEdepol(r.x,r.y);
-            vec2 E_;
-            E_.x = Ed.x + Epz.x;
-            E_.y = Ed.y + Epz.y;
+            /*vec2 Ed = m_Esolver->getE(r.x,r.y);
+            vec2 Epz = m_pzSolver->getEdepol(r.x,r.y);*/
+            vec2 E_=get_fast_E(r.x,r.y);
+            /*E_.x = Ed.x + Epz.x;
+            E_.y = Ed.y + Epz.y;*/
 
 
             double magn=qe/Me;//1e-1;
@@ -240,8 +246,8 @@ void multiSolver::updateTrajTable()
         }
 
         int p_n=0;
-        double xx = (m_pzSolver->m_p[0].r.y + m_pzSolver->m_p[0].dl * 0.5 - (r.y - r.x * v.y / v.x)) * v.x / v.y;
-        p_n=(int) ((xx - m_pzSolver->m_p[0].r.x + 0.5 * m_pzSolver->m_dx) / m_pzSolver->m_dx);
+        double xx = (m_pzSolver->m_p[0].r_top.y - (r.y - r.x * v.y / v.x)) * v.x / v.y;
+        p_n=(int) ((xx - m_pzSolver->m_p[0].r_top.x + 0.5 * m_pzSolver->m_dx) / m_pzSolver->m_dx);
         if(p_n >=0 && p_n<m_pzSolver->m_p_num)
             endPosTable[i] = p_n;
         else
@@ -344,6 +350,7 @@ void multiSolver::electronEmissionEndMoveToElectrode(double d_t)
             }
         }
     }
+        m_pzSolver->get_q();
 
 }
 
@@ -354,6 +361,8 @@ void multiSolver::init()
     m_Esolver->init();
     m_elecSolver->init();
     m_pzSolver->init();
+
+
 }
 
 
@@ -411,8 +420,7 @@ void multiSolver::solve(int itn)
                 m_Esolver->m_electrodes[i].phi_fix=-g_phi_max;
         }
     }*/
-    double t0 = get_time();
-    double t10 = get_time();
+
     for (int nn=0;nn<itn;nn++)
     {
         double phi_depol0=m_pzSolver->getPhidepol(w_x0,w_y0);
@@ -448,8 +456,8 @@ void multiSolver::solve(int itn)
 
     pzEmission(dt_elec);
 
-    double t1 = get_time();
-    printf("tall= %e t=%e\n", t1-t0, t11-t10);
+   // double t1 = get_time();
+    //printf("tall= %e t=%e\n", t1-t0, t11-t10);
 }
 
 void multiSolver::step()
@@ -475,13 +483,13 @@ void multiSolver::electronExchange(double dt)
         x=m_elecSolver->m_bodyPos[i].x;
         y=m_elecSolver->m_bodyPos[i].y;
         
-        if (y<m_pzSolver->m_p[0].r.y+m_pzSolver->m_p[0].dl*0.5)
+        if (y<m_pzSolver->m_p[0].r_top.y)
         {
             double vx = m_elecSolver->m_bodyVel[i].x;
             double vy = m_elecSolver->m_bodyVel[i].y;
-            double xx = (m_pzSolver->m_p[0].r.y + m_pzSolver->m_p[0].dl * 0.5 - (y - x * vy / vx)) * vx / vy;
+            double xx = (m_pzSolver->m_p[0].r_top.y - (y - x * vy / vx)) * vx / vy;
             //int p_n=(int) ((x-m_pzSolver->m_p[0].r.x)/m_pzSolver->m_dx);
-            int p_n=(int) ((xx - m_pzSolver->m_p[0].r.x + 0.5 * m_pzSolver->m_dx) / m_pzSolver->m_dx);
+            int p_n=(int) ((xx - m_pzSolver->m_p[0].r_top.x + 0.5 * m_pzSolver->m_dx) / m_pzSolver->m_dx);
             //int p_n=(int) ((x-m_pzSolver->m_p[0].r.x-m_pzSolver->m_dx)/m_pzSolver->m_dx);
             if ((p_n>=0)&&(p_n<m_pzSolver->m_p_num))
             {
@@ -533,7 +541,7 @@ void multiSolver::pzEmission(double dt)
         }
     }*/
 
-    double yy=m_pzSolver->m_p[0].r.y + m_pzSolver->m_p[0].dl * 0.5;
+    double yy=m_pzSolver->m_p[0].r_top.y;
     for (int i=0;i<m_pzSolver->m_p_num;i++)
     {
         int q_extra=int(m_pzSolver->m_p[i].q_ext+m_pzSolver->m_p[i].q);
@@ -541,7 +549,7 @@ void multiSolver::pzEmission(double dt)
         if ((q_extra>1)&&(m_pzSolver->m_p[i].q_ext-m_pzSolver->m_p[i].q_0>1.0))
         {
             vec2 r;
-            r.x=m_pzSolver->m_p[i].r.x;
+            r.x=m_pzSolver->m_p[i].r_top.x;
             r.y=0.0;
             vec2 Ed = m_Esolver->getE(r.x,r.y);
             vec2 Epz = m_pzSolver->getEdepol(r.x,r.y);
@@ -576,7 +584,7 @@ void multiSolver::pzEmission(double dt)
                 int p_n=0;
 
                 double xx = (yy - (r.y - r.x * v.y / v.x)) * v.x / v.y;
-                p_n=(int) ((xx - m_pzSolver->m_p[0].r.x + 0.5 * m_pzSolver->m_dx) / m_pzSolver->m_dx);
+                p_n=(int) ((xx - m_pzSolver->m_p[0].r_top.x + 0.5 * m_pzSolver->m_dx) / m_pzSolver->m_dx);
 
                 double qq= q_extra*(rand()*0.5/RAND_MAX);
 
@@ -616,8 +624,8 @@ void multiSolver::prepare_caches()
 
         for (int i=0;i<m_pzSolver->m_p_num;i++)
         {
-            dx = m_pzSolver->m_p[i].r.x - x;
-            dy = m_pzSolver->m_p[i].r.y + m_pzSolver->m_p[i].dl*0.5 - y;
+            dx = m_pzSolver->m_p[i].r_top.x - x;
+            dy = m_pzSolver->m_p[i].r_top.y - y;
             r=sqrt(dx*dx+dy*dy);
             to_elec_from_pz[n][i]=-qepspi*log(r+delta)/(w_z1 - w_z0);
         }
@@ -625,8 +633,8 @@ void multiSolver::prepare_caches()
 
     for (int n=0;n<m_pzSolver->m_p_num;n++)
     {
-        x=m_pzSolver->m_p[n].r.x;
-        y=m_pzSolver->m_p[n].r.y + m_pzSolver->m_p[n].dl*0.5;
+        x=m_pzSolver->m_p[n].r_top.x;
+        y=m_pzSolver->m_p[n].r_top.y;
 
         for (int i=0;i<m_Esolver->m_chargeNum;i++)
         {
@@ -639,8 +647,8 @@ void multiSolver::prepare_caches()
 
         for (int i=0;i<m_pzSolver->m_p_num;i++)
         {
-            dx = m_pzSolver->m_p[i].r.x - x;
-            dy = m_pzSolver->m_p[i].r.y + m_pzSolver->m_p[i].dl*0.5 - y;
+            dx = m_pzSolver->m_p[i].r_top.x - x;
+            dy = m_pzSolver->m_p[i].r_top.y - y;
             r=sqrt(dx*dx+dy*dy);
             to_pzUp_from_pz[n][i]=-qepspi*log(r+delta)/(w_z1 - w_z0);
         }
@@ -648,8 +656,8 @@ void multiSolver::prepare_caches()
 
     for (int n=0;n<m_pzSolver->m_p_num;n++)
     {
-        x=m_pzSolver->m_p[n].r.x;
-        y=m_pzSolver->m_p[n].r.y - m_pzSolver->m_p[n].dl*0.5;
+        x=m_pzSolver->m_p[n].r_top.x;
+        y=m_pzSolver->m_p[n].r_top.y - m_pzSolver->m_p[n].dl;
 
         for (int i=0;i<m_Esolver->m_chargeNum;i++)
         {
@@ -662,8 +670,8 @@ void multiSolver::prepare_caches()
 
         for (int i=0;i<m_pzSolver->m_p_num;i++)
         {
-            dx = m_pzSolver->m_p[i].r.x - x;
-            dy = m_pzSolver->m_p[i].r.y + m_pzSolver->m_p[i].dl*0.5 - y;
+            dx = m_pzSolver->m_p[i].r_top.x - x;
+            dy = m_pzSolver->m_p[i].r_top.y - y;
             r=sqrt(dx*dx+dy*dy);
             to_pzDown_from_pz[n][i]=-qepspi*log(r+delta)/(w_z1 - w_z0);
         }
@@ -671,8 +679,6 @@ void multiSolver::prepare_caches()
 
 
 }
-
-
 
 double multiSolver::getPhi_at_electrode(int n)
 {
@@ -716,3 +722,132 @@ double multiSolver::getPhi_at_pz_down(int n)
     return sum;
 }
 
+
+//for fast fields
+double g_x_min=1e10;
+double g_x_max=-1e10;
+double g_y_min=1e10;
+double g_y_max=-1e10;
+double g_dx,g_dy;
+vec2 * g_grid[50][50][200];
+int g_grid_num[50][50];
+vec2 g_grid_Ephi[51][51];
+
+int g_Nx=20;
+int g_Ny=20;
+
+void multiSolver::fast_Fields_prepare()
+{
+//1. determine the domain boundaries:
+   g_x_min=1e10;
+   g_x_max=-1e10;
+   g_y_min=1e10;
+   g_y_max=-1e10;
+
+    for (int i=0;i<m_Esolver->m_chargeNum;i++)
+    {
+        if (g_x_max<m_Esolver->m_charges[i].x)
+            g_x_max=m_Esolver->m_charges[i].x;
+
+        if (g_y_max<m_Esolver->m_charges[i].y)
+            g_y_max=m_Esolver->m_charges[i].y;
+
+        if (g_x_min>m_Esolver->m_charges[i].x)
+            g_x_min=m_Esolver->m_charges[i].x;
+
+        if (g_y_min>m_Esolver->m_charges[i].y)
+            g_y_min=m_Esolver->m_charges[i].y;
+    }
+
+    for (int i=0;i<m_pzSolver->m_p_num;i++)
+    {
+        if (g_x_max<m_pzSolver->m_p[i].r_top.x)
+            g_x_max=m_pzSolver->m_p[i].r_top.x;
+
+        if (g_y_max<m_pzSolver->m_p[i].r_top.y)
+            g_y_max=m_pzSolver->m_p[i].r_top.y;
+
+        if (g_x_min>m_pzSolver->m_p[i].r_top.x)
+            g_x_min=m_pzSolver->m_p[i].r_top.x;
+
+        if (g_y_min>m_pzSolver->m_p[i].r_top.y)
+            g_y_min=m_pzSolver->m_p[i].r_top.y;
+
+    }
+
+    printf("xmin=%e xmax=%e ymin=%e ymax=%e \n",g_x_min,g_x_max,g_y_min,g_y_max);
+
+//2. fillilng the arrays
+    g_dx=(g_x_max-g_x_min)/g_Nx;
+    g_Ny=(int)((g_y_max-g_y_min)/g_dx);
+    g_dy=(g_y_max-g_y_min)/g_Ny;
+    printf("dx=%e dy=%e NX=%d Ny=%d \n",g_dx,g_dy,g_Nx,g_Ny);
+
+    for (int i=0;i<g_Nx;i++)
+    {
+        for (int j=0;j<g_Ny;j++)
+        {
+            g_grid_num[i][j]=0;
+        }
+    }
+    for (int i=0;i<m_Esolver->m_chargeNum;i++)
+    {
+        int ni,nj;
+        ni=(int)((m_Esolver->m_charges[i].x-g_x_min)/g_dx);
+        nj=(int)((m_Esolver->m_charges[i].y-g_y_min)/g_dy);
+
+        g_grid[ni][nj][g_grid_num[ni][nj]] = &(m_Esolver->m_charges[i]);
+        g_grid_num[ni][nj]++;
+    }
+    for (int i=0;i<m_pzSolver->m_p_num;i++)
+    {
+        int ni,nj;
+        ni=(int)((m_pzSolver->m_p[i].r_top.x-g_x_min)/g_dx);
+        nj=(int)((m_pzSolver->m_p[i].r_top.y-g_y_min)/g_dy);
+
+        g_grid[ni][nj][g_grid_num[ni][nj]] = &(m_Esolver->m_charges[i]);
+        g_grid_num[ni][nj]++;
+    }
+
+
+}
+
+void multiSolver::fast_Fields_recalculate()
+{
+    for (int i=0;i<=g_Nx;i++)
+    {
+        for (int j=0;j<=g_Ny;j++)
+        {
+            double x,y;
+            x=g_x_min+i*g_dx;
+            y=g_y_min+j*g_dy;
+            vec2 Ee = m_Esolver->getE(x,y);
+            vec2 Epz = m_pzSolver->getEdepol(x,y); //можно ускорить через кэш!
+            g_grid_Ephi[i][j].x = Ee.x +  Epz.x;
+            g_grid_Ephi[i][j].y = Ee.y +  Epz.y;
+        }
+    }
+}
+
+vec2 multiSolver::get_fast_E(double x, double y)
+{
+    int ni,nj;
+    double a=((x-g_x_min)/g_dx);
+    double b=((y-g_y_min)/g_dy);
+    ni=(int)(a);
+    nj=(int)(b);
+
+    a-=ni;
+    b-=nj;
+    double xa=1.0-a;
+    double xb=1.0-b;
+    vec2 res;
+    res.x=(g_grid_Ephi[ni][nj].x*(xa) + g_grid_Ephi[ni+1][nj].x*(a)) * (xb) +
+                (g_grid_Ephi[ni][nj+1].x*(xa) + g_grid_Ephi[ni+1][nj+1].x*(a)) * (b);
+
+    res.y=(g_grid_Ephi[ni][nj].y*(xa) + g_grid_Ephi[ni+1][nj].y*(a)) * (xb) +
+                (g_grid_Ephi[ni][nj+1].y*(xa) + g_grid_Ephi[ni+1][nj+1].y*(a)) * (b);
+
+
+    return res;
+}

@@ -16,7 +16,7 @@ public:
 
     int endPosTable[1000];
 
-
+    int points_distributed; //points are distributed over the grid
 
     multiSolver();
     void checkPotential();
@@ -37,6 +37,11 @@ public:
     double getPhi_at_pz_down(int n);
     double getPhi_at_pz_up(int n);
     void prepare_caches();
+
+    void fast_Fields_prepare(); //get fields on eul grid
+    void fast_Fields_recalculate();
+    vec2 get_fast_E(double x,double y);
+
 
 };
 

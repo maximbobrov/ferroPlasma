@@ -23,8 +23,11 @@ void pzSolver::init()
     {
         m_p[i].dl=dl_pz; //100 nm width;
         //double alpha=i*1.0/(m_p_num-1);
-        m_p[i].r.x = w_x0 + m_dx * i;//(w_x0/*-25e-6*/)*(1.0-alpha)+w_x1*alpha;
-        m_p[i].r.y = w_y0+25e-6;//(w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
+        m_p[i].r_top.x = w_x0 + m_dx * i;//(w_x0/*-25e-6*/)*(1.0-alpha)+w_x1*alpha;
+        m_p[i].r_top.y = w_y0+25e-6 +m_p[i].dl*0.5;//(w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
+
+        //m_p[i].r_top.x = ;m_p[i].r.x;
+        //m_p[i].r_top.y = m_p[i].r.y+m_p[i].dl*0.5;
 
         /*if (m_p[i].r.x<w_x0+50e-6 && m_p[i].r.x>w_x0+25e-6)
           m_p[i].p = 0.26;//-0.1*(rand()*1.0/RAND_MAX-0.5);//0.0;//-0.005;//-0.26;//+rand()*0.043/RAND_MAX;
@@ -76,6 +79,7 @@ void pzSolver::init()
     m_poly.C[2]=-4.0*bet *0.5;    //xxx
     m_poly.C[3]=0.0;              //x^4
     m_poly.C[4]=6.0*gam *0.5;     //o.5 from crank-nikolson
+    get_q();
 }
 
 
@@ -321,6 +325,7 @@ void pzSolver::get_q() //all charges are in elementary
     {
         m_p[i].q=(m_p[i].p)*m_p[i].ds/qe;
 
+        m_p[i].r_top.charge=m_p[i].q+m_p[i].q_ext;
         /*if (m_p[i].r.x<w_x0+50e-6 && m_p[i].r.x>w_x0+25e-6)
         {
             m_p[i].q=0.0;
@@ -345,62 +350,11 @@ void pzSolver::step()
         m_p[i].p_prev=m_p[i].p;
         m_p[i].E_prev=m_p[i].E;
     }
-    updateCharge();
+
 }
 
-void pzSolver::updateCharge()
-{
-    for( int i=0; i< m_p_num; i++ ){
-        m_rCentre[i].charge = -m_p[i].q;
-        m_rCentre[m_p_num + i].charge = m_p[i].q + m_p[i].q_ext;
-    }
-}
 
-void pzSolver::updateGridProp()
-{
-    m_gridProp.NX = 30;
-    m_gridProp.NY = 2;
-    m_gridProp.startx = w_x0 - (w_x1-w_x0)*0.01;
-    m_gridProp.starty = w_y0 - (w_y1-w_y0)*0.01;
-    m_gridProp.endx = w_x1 + (w_x1-w_x0)*0.01;
-    m_gridProp.endy =  w_y0 + (w_y1-w_y0)*0.501;
-    m_gridProp.dx = (m_gridProp.endx - m_gridProp.startx) / (m_gridProp.NX  - 1);
-    m_gridProp.dy = (m_gridProp.endy - m_gridProp.starty) / (m_gridProp.NY  - 1);
 
-    for (int i = 0; i < m_gridProp.NX; i++)
-        for (int j = 0; j < m_gridProp.NY; j++) {
-            m_gridProp.gridCenters[i][j].x = 0.0;
-            m_gridProp.gridCenters[i][j].y = 0.0;
-            m_gridProp.gridCenters[i][j].charge = 0.0;
-            m_gridProp.gridNeighbors[i][j].clear();
-        }
-    for( int i=0; i< m_p_num; i++ ){
-        vec2 pos1(m_p[i].r.x, m_p[i].r.y - m_p[i].dl*0.5, -m_p[i].q);
-        m_rCentre[i] = pos1;
-        int x1Idx = fmin(int((pos1.x - m_gridProp.startx) / m_gridProp.dx), m_gridProp.NX - 1);
-        int y1Idx = fmin(int((pos1.y - m_gridProp.starty) / m_gridProp.dy), m_gridProp.NY - 1);
-        m_gridProp.gridCenters[x1Idx][y1Idx].charge += pos1.charge;
-        m_gridProp.gridCenters[x1Idx][y1Idx].x += pos1.charge * pos1.x;
-        m_gridProp.gridCenters[x1Idx][y1Idx].y += pos1.charge * pos1.y;
-        m_gridProp.gridNeighbors[x1Idx][y1Idx].push_back(i);
-
-        vec2 pos2(m_p[i].r.x, m_p[i].r.y + m_p[i].dl*0.5, m_p[i].q + m_p[i].q_ext);
-        m_rCentre[m_p_num + i] = pos2;
-        int x2Idx = fmin(int((pos2.x - m_gridProp.startx) / m_gridProp.dx), m_gridProp.NX - 1);
-        int y2Idx = fmin(int((pos2.y - m_gridProp.starty) / m_gridProp.dy), m_gridProp.NY - 1);
-        m_gridProp.gridCenters[x2Idx][y2Idx].charge += pos2.charge;
-        m_gridProp.gridCenters[x2Idx][y2Idx].x += pos2.charge * pos2.x;
-        m_gridProp.gridCenters[x2Idx][y2Idx].y += pos2.charge * pos2.y;
-        m_gridProp.gridNeighbors[x2Idx][y2Idx].push_back(i);
-    }
-    for (int i = 0; i < m_gridProp.NX; i++)
-        for (int j = 0; j < m_gridProp.NY; j++) {
-            if(m_gridProp.gridNeighbors[i][j].size() == 0)
-                continue;
-            m_gridProp.gridCenters[i][j].x /= m_gridProp.gridCenters[i][j].charge;
-            m_gridProp.gridCenters[i][j].y /= m_gridProp.gridCenters[i][j].charge;
-        }
-}
 /*
 vec2 pzSolver::getEField(const vec2& iCenterPos, const vec2& iFarPos)
 {
@@ -447,6 +401,9 @@ vec2 pzSolver::getEdepol(double x, double y)
     //return EField;
     vec2 sum;
     sum.x=0.0; sum.y=0.0;
+
+    static double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
+
     for (int i=0;i<m_p_num;i++)
     {
         double r2;
@@ -454,12 +411,12 @@ vec2 pzSolver::getEdepol(double x, double y)
         double dx,dy;
         double delta=1e-6;
 
-        dx = m_p[i].r.x - x;
-        dy = m_p[i].r.y + m_p[i].dl*0.5 - y;
+        dx = m_p[i].r_top.x - x;
+        dy = m_p[i].r_top.y - y;
         r2=(dx*dx+dy*dy);
-        q=-qe/(eps0*pi2) * (m_p[i].q+m_p[i].q_ext);
+        q=- qepspi *m_p[i].r_top.charge; // (m_p[i].q+m_p[i].q_ext);
 
-        double c=q/((r2+delta*delta)*(w_z1 - w_z0));
+        double c=q/((r2+delta*delta));
 
         sum.x+=c*dx;
         sum.y+=c*dy;
@@ -483,16 +440,16 @@ double pzSolver::getPhidepol(double x, double y)
     double q;
     double dx,dy;
     double delta=1e-6;
-    static double qepspi = qe/(eps0*pi2);
+    static double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
     for (int i=0;i<m_p_num;i++)
     {
         //    int i=1;
-        dx = m_p[i].r.x - x;
-        dy = m_p[i].r.y + m_p[i].dl*0.5 - y;
+        dx = m_p[i].r_top.x - x;
+        dy = m_p[i].r_top.y - y;
         r=sqrt(dx*dx+dy*dy);
-        q= qepspi * (m_p[i].q+m_p[i].q_ext);
+        q= qepspi * m_p[i].r_top.charge;//(m_p[i].q+m_p[i].q_ext);
 
-        sum-=q*log(r+delta)/(w_z1 - w_z0);
+        sum-=q*log(r+delta);
 
         /*  dx = m_p[i].r.x - x;
         dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
