@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include  <GL/gl.h>
+/*#include  <GL/gl.h>
 #include  <GL/glu.h>
-#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
+#include  <GL/glut.h>*//* glut.h includes gl.h and glu.h*/
 
 
-/*#include <my_include/gl.h>
+#include <my_include/gl.h>
 #include <my_include/glu.h>
-#include <my_include/glut.h>*/
+#include <my_include/glut.h>
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -209,14 +209,12 @@ void draw_traj()
             glLineWidth(1.0);
             //double x,y;
             glColor3f(0,1,0);
-            glBegin(GL_LINE_STRIP);
-            vec2 r=lagr_solver->m_electrodes[i].r;
+             vec2 r=lagr_solver->m_electrodes[i].r;
+            /*glBegin(GL_LINE_STRIP);
+            //vec2 r=lagr_solver->m_electrodes[i].r;
             for (int j=0;j<30;j++)
             {
-                /*vec2 Ee = elec_solver->getEe(r.x,r.y);
-                vec2 Ed = lagr_solver->getE(r.x,r.y);
-                vec2 Epz = pz_solver->getEdepol(r.x,r.y);
-                */
+
                 vec2 E_=multi_solver->get_fast_E(r.x,r.y);;
                 //E_.x = Ee.x + Ed.x + Epz.x;
                 //E_.y = Ee.y + Ed.y + Epz.y;
@@ -227,7 +225,7 @@ void draw_traj()
                 r.y-=3.0e-6*E_.y/l;
                 if (r.y<0) break;
             }
-            glEnd();
+            glEnd();*/
 
             glLineWidth(1.5);
             double cur=lagr_solver->m_electrodes[i].eCurrent;
@@ -255,6 +253,7 @@ void draw_traj()
 
                 v.x += magn*(E_.x)*Dt;
                 v.y += magn*(E_.y)*Dt;
+                //if (v.y<0) break;
                 glVertex2f(r.x,r.y);
                 r.x+=Dt*v.x;
                 r.y+=Dt*v.y;
