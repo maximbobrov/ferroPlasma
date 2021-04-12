@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/*#include  <GL/gl.h>
+#include  <GL/gl.h>
 #include  <GL/glu.h>
-#include  <GL/glut.h>*//* glut.h includes gl.h and glu.h*/
+#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
 
 
-#include <my_include/gl.h>
+/*#include <my_include/gl.h>
 #include <my_include/glu.h>
-#include <my_include/glut.h>
+#include <my_include/glut.h>*/
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
@@ -40,7 +40,7 @@ void init();
 //void fmm_step(double dt);
 //void sweep();
 //void sweep_old();
-int view=VIEW_PHI;
+int view=VIEW_EY;
 
 int redr=0;
 
@@ -75,14 +75,9 @@ multiSolver* multi_solver;
 double wall_pos=0.0;
 void updateEulFields()
 {
-    //  lagr_solver->updatePhi();
-    //  lagr_solver->solvePhi(100);
-
-    pz_solver->get_q();
+/*    pz_solver->get_q();
     double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
     double phi_e0=elec_solver->getPhiSlow(w_x0,w_y0);
-    //double phi_fromCharges0 = lagr_solver->getPhiFromCharges(w_x0,w_y0);
-
     multi_solver->updateEforPz();
     for (int i=0;i<N_X;i++)
     {
@@ -92,10 +87,7 @@ void updateEulFields()
             x=(w_x0 - (w_x1 - w_x0) * 0.05+dx*0.8*(i));
             y=(w_y0 + 0.35*(w_y1-w_y0)+dy*0.3*j);
 
-
             Py_[i][j]=pz_solver->getPhidepol(x,y) - phi_depol0 +elec_solver->getPhiSlow(x,y) - phi_e0; //-phi_fromCharges0;//-phi_depol0;
-
-            // printf("P=%e \n",Py_[i][j]);
             phi_[i][j]=lagr_solver->getPhi(x,y)+Py_[i][j];
 
             vec2 Ee = elec_solver->getEe(x,y);
@@ -106,6 +98,32 @@ void updateEulFields()
             Ey[i][j] = Ee.y + Ed.y + Epz.y;
         }
     }
+ */
+
+    pz_solver->get_q();
+        for (int i=0;i<N_X;i++)
+        {
+            for (int j=0;j<N_Y;j++)
+            {
+                double x,y;
+                x=(w_x0 - (w_x1 - w_x0) * 0.05+dx*0.8*(i));
+                y=(w_y0 + 0.35*(w_y1-w_y0)+dy*0.3*j);
+
+                Py_[i][j]=0.0;//pz_solver->getPhidepol(x,y) - phi_depol0 +elec_solver->getPhiSlow(x,y) - phi_e0; //-phi_fromCharges0;//-phi_depol0;
+                phi_[i][j]=0.0;//lagr_solver->getPhi(x,y)+Py_[i][j];
+
+                /*vec2 Ee = elec_solver->getEe(x,y);
+                vec2 Ed = lagr_solver->getE(x,y);
+                vec2 Epz = pz_solver->getEdepol(x,y);
+
+                Ex[i][j] = Ee.x + Ed.x + Epz.x;
+                Ey[i][j] = Ee.y + Ed.y + Epz.y;*/
+
+                vec2 E_ = multi_solver->get_slower_E(x,y);
+                Ex[i][j] = E_.x;
+                Ey[i][j] = E_.y;
+            }
+        }
 }
 
 
@@ -472,11 +490,9 @@ void display(void)
                 l_2= ck*(0.01*(phi_[i][j]-250));
             if (view==VIEW_P)
                 l_2=ck*(Py_[i][j])/p_max;
-            if (view==VIEW_PX)
-                l_2=ck*(Px_[i][j])/px_max;
-            if (view==VIEW_E)
+            if (view==VIEW_EX)
                 l_2=ck*(Ey[i][j])/e_max;
-            if (view==VIEW_DIV)
+            if (view==VIEW_EY)
                 l_2=ck*(Ex[i][j])/div_max;
 
             glColor3f(l_2,l_2,-l_2);
@@ -486,11 +502,9 @@ void display(void)
                 l_2=ck*(0.01*(phi_[i+1][j]-250));
             if (view==VIEW_P)
                 l_2=ck*(Py_[i+1][j])/p_max;
-            if (view==VIEW_PX)
-                l_2=ck*(Px_[i+1][j])/px_max;
-            if (view==VIEW_E)
+            if (view==VIEW_EX)
                 l_2=ck*(Ey[i+1][j])/e_max;
-            if (view==VIEW_DIV)
+            if (view==VIEW_EY)
                 l_2=ck*(Ex[i+1][j])/div_max;
 
             glColor3f(l_2,l_2,-l_2);
@@ -963,78 +977,7 @@ void save_file()
     fclose(f);
 }
 int jc=0;
-void display_1d(void)
-{
-    glClear(GL_COLOR_BUFFER_BIT);
 
-    if (redr==1)
-    {
-        sim_emit(E1,dt1);
-        //printf("c_num=%d \n", c_num);
-    }
-
-    glLoadIdentity();
-
-    glPointSize(3);
-    glColor3f(1,1,1);
-    /*glBegin(GL_LINES);
-    glVertex3f(w_x0,0.0,0.0);
-    glVertex3f(w_x1,0.0,0.0);
-
-    for (int i=0;i<100;i++)
-    {
-        glVertex3f(w_x0+i*1.0e-7,3.0e-8,0.0);
-        glVertex3f(w_x0+i*1.0e-7,-3.0e-8,0.0);
-    }
-    glEnd();
-
-    glBegin(GL_LINES);
-
-    for (int i=0;i<c_num;i++)
-    {
-        glVertex3f(ch[i].x,6.0e-8+6.0e-8*0.001*ch[i].charge,0.0);
-        glVertex3f(ch[i].x,6.0e-8,0.0);
-    }
-    glEnd();
-*/
-    /*glColor3f(1,0,0);
-    glPointSize(3);
-    glBegin(GL_POINTS);
-
-    for (int i=0;i<c_num;i++)
-    {
-
-        glVertex3f(ch[i].x,6.0e-8,0.0);
-    }
-    glEnd();*/
-
-    glColor3f(1,0,0);
-    glBegin(GL_LINE_STRIP);
-    for (int i=0;i<emis_tab.nx;i++)
-    {
-        //for (int j=0;j<emis_tab.ny;j++)
-        {
-            glVertex3f(w_x0+scale*emis_tab.x[i]/emis_tab.x0*1.0e-7,ck*emis_tab.f[i][jc],0.0);
-
-        }
-    }
-    glEnd();
-
-    glColor3f(0,1,1);
-    glBegin(GL_POINTS);
-    for (int i=0;i<10000;i++)
-    {
-        //for (int j=0;j<emis_tab.ny;j++)
-        {
-            glVertex3f(w_x0+scale*(i * 1e5 + 1e5)/emis_tab.x0*1.0e-7,ck*emis_tab.get_f(i * 1e5 + 1e5, emis_tab.y0),0.0);
-
-        }
-    }
-    glEnd();
-
-    glutSwapBuffers();
-    if (redr==1) glutPostRedisplay();
-}
 
 void m_m(int x,int y) //mouse move
 {
@@ -1193,15 +1136,15 @@ void kb(unsigned char key, int x, int y)
 
     if (key=='3')
     {
-        view=VIEW_E;
-        printf("viewing E\n");
+        view=VIEW_EX;
+        printf("viewing Ex\n");
     }
 
     if (key=='4')
     {
-        view=VIEW_DIV;
+        view=VIEW_EY;
 
-        printf("viewing E_depol\n");
+        printf("viewing Ey\n");
     }
 
 
@@ -1337,85 +1280,6 @@ void kb(unsigned char key, int x, int y)
     glutPostRedisplay();
 }
 
-void kb_1d(unsigned char key, int x, int y)
-{
-
-
-    /*  if (key==' ')
-    {
-        redr=!redr;
-    }
-
-
-    if (key=='.')
-    {
-        dt1*=1.1;
-        printf("dt=%e \n",dt1);
-    }
-
-    if (key==',')
-    {
-        dt1/=1.1;
-        printf("dt=%e \n",dt1);
-    }
-
-
-    if (key==']')
-    {
-        E1*=1.1;
-        printf("E=%e \n",E1);
-    }
-
-    if (key=='[')
-    {
-        E1/=1.1;
-        printf("E=%e \n",E1);
-    }*/
-
-
-    if (key=='.')
-    {
-        jc++;
-        printf("jc=%d \n", jc);
-    }
-
-    if (key==',')
-    {
-        jc--;
-        printf("jc=%d \n", jc);
-    }
-
-
-    if (key==']')
-    {
-        ck*=1.1;
-        printf("ck=%e \n", ck);
-    }
-
-    if (key=='[')
-    {
-        ck/=1.1;
-        printf("ck=%e \n", ck);
-    }
-
-
-    if (key=='0')
-    {
-        scale*=1.1;
-        printf("ck=%e \n", ck);
-    }
-
-    if (key=='9')
-    {
-        scale/=1.1;
-        printf("ck=%e \n", ck);
-    }
-
-    glutPostRedisplay();
-}
-
-
-
 
 
 void init()
@@ -1439,10 +1303,7 @@ void init()
     multi_solver->m_elecSolver = elec_solver;
 
     multi_solver->prepare_caches();
-
     multi_solver->fast_Fields_prepare();
-
-
 }
 
 void resize(int w, int h)
@@ -1457,7 +1318,6 @@ void resize(int w, int h)
     h0=W_HEIGHT;//(w_y1-w_y0)*1.3;
     glOrtho(w_x0-(w_x1-w_x0)*0.11, w_x0-(w_x1-w_x0)*0.11+(w_x1*1.3-(w_x0-(w_x1-w_x0)*0.3))*w*1.0/w0*(h0*1.0/h), w_y0*1.3,w_y1*1.3, -10.0, 10.0);
     glMatrixMode (GL_MODELVIEW);
-
 }
 
 

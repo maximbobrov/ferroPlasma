@@ -33,12 +33,12 @@ void eFieldLagrangian::init()
 
     p[0].x=w_x0-0e-6;         p[0].y=0.5*(w_y0+w_y1);
     p[1].x=w_x0 /*-40e-6*/;        p[1].y=w_y1;
-    p[2].x=w_x0-50e-6;        p[2].y=w_y1;
-    p[3].x=w_x0-50e-6;        p[3].y=0.5*(w_y0+w_y1);
+    p[2].x=w_x0-30e-6;        p[2].y=w_y1;
+    p[3].x=w_x0-30e-6;        p[3].y=0.5*(w_y0+w_y1);
     p[4].x=p[0].x;            p[4].y=p[0].y;
 
     int emit_1[4] = {1,0,0,0};
-    double dl[5] = {0.5 * 0.5e-6,  6e-6,  8e-6,  6e-6, 0.5 * 0.5e-6};
+    double dl[5] = {0.5 * 0.5e-6,  2e-6,  4e-6,  2e-6, 0.5 * 0.5e-6};
 
     //double dl[5] = {2e-6, 2e-6, 2e-6, 2e-6, 2e-6};
    //addQuad(p,dl,-20 * 12.50,emit_1, w_y0+25e-6 + 0.5 * dl_pz, 30);
@@ -47,16 +47,16 @@ void eFieldLagrangian::init()
 
     printf("elecnum1 = %d\n", m_elec_num);
 
-    p[4].x=w_x0-50e-6;        p[4].y=w_y0;
+    p[4].x=w_x0-30e-6;        p[4].y=w_y0;
     p[3].x=w_x1;              p[3].y=w_y0;
     p[2].x=w_x1;              p[2].y=w_y0-10e-6;
-    p[1].x=w_x0-50e-6;        p[1].y=w_y0-10e-6;
+    p[1].x=w_x0-30e-6;        p[1].y=w_y0-10e-6;
     p[0].x=p[4].x;            p[0].y=p[4].y;
 
     int emit_2[4] = {0,0,0,0};
 
     double coef = 2.0;
-    double dl2[5] = {coef * 4e-6, coef * 4e-6,coef * 4e-6,coef * 4e-6,coef * 4e-6};
+    double dl2[5] = {coef * 2e-6, coef * 2e-6,coef * 2e-6,coef * 2e-6,coef * 2e-6};
     addQuad(p,dl2, g_phi,emit_2,  w_y0+25e-6 - 0.5 * dl_pz, 1);
     //addQuad_stabilized(p,dl2,20 * 12.50,emit_2,  w_y0+25e-6 - 0.5 * dl_pz, 1);
     //addQuad2Layers(p,dl,-20 * 12.50,emit_1);

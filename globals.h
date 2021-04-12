@@ -59,9 +59,9 @@
 #define RES2_MIN 0.000001
 
 #define VIEW_PHI  0
-#define VIEW_E  1
+#define VIEW_EX  1
 #define VIEW_P 2
-#define VIEW_PX 3
+#define VIEW_EY 3
 #define VIEW_DIV 4
 
 #include <vector>

@@ -4,7 +4,7 @@
 
 pzSolver::pzSolver()
 {
-    this->m_p_num=100;
+    this->m_p_num=800;
     m_p=new pElem[m_p_num];
     m_rCentre=new vec2[2 * m_p_num];
     m_dt=15.0*45e-14;//1e-11;
@@ -32,7 +32,7 @@ void pzSolver::init()
         /*if (m_p[i].r.x<w_x0+50e-6 && m_p[i].r.x>w_x0+25e-6)
           m_p[i].p = 0.26;//-0.1*(rand()*1.0/RAND_MAX-0.5);//0.0;//-0.005;//-0.26;//+rand()*0.043/RAND_MAX;
           else*/
-        m_p[i].p = -0.26;
+        m_p[i].p =0.0;// -0.26;
 #ifdef USE_MIRROR
         m_p[i].p=-0.26;
 #endif
@@ -47,7 +47,7 @@ void pzSolver::init()
         m_p[i].q_ext=0.0;
     }
 #ifndef USE_MIRROR
-    m_p[0].p = 0.26;//0.005;//0.26;
+    //m_p[0].p = 0.26;//0.005;//0.26;
     //m_p[1].p = 0.26;//0.005;//0.26;
     //m_p[2].p = 0.26;//0.005;//0.26;
 #endif
