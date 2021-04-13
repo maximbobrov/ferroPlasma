@@ -1,15 +1,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
+#ifdef __linux__
 #include  <GL/gl.h>
 #include  <GL/glu.h>
-#include  <GL/glut.h>/* glut.h includes gl.h and glu.h*/
-
-
-/*#include <my_include/gl.h>
+#include  <GL/glut.h>
+#elif _WIN32
+#include <my_include/gl.h>
 #include <my_include/glu.h>
-#include <my_include/glut.h>*/
+#include <my_include/glut.h>
+#endif
 #include  <math.h>
 #include <time.h>
 #include "globals.h"
