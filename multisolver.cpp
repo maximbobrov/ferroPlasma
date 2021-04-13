@@ -612,7 +612,7 @@ void multiSolver::pzEmission(double dt)
         E_p.y = Ed.y + Epz.y;
 
         double a = 0.001;
-        double b = 1e-11;
+        double b = 1e-12;
 
         m_pzSolver->m_p[0].q_ext=(m_pzSolver->m_p[0].q_tmp+ a*(m_pzSolver->m_p[1].q_ext)  + b*(E_p.x*(m_pzSolver->m_p[1].q_ext-m_pzSolver->m_p[1].q_0)))/(1+2*a);
 

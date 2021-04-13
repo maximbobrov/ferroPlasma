@@ -4,7 +4,7 @@
 
 pzSolver::pzSolver()
 {
-    this->m_p_num=800;
+    this->m_p_num=200;
     m_p=new pElem[m_p_num];
     m_rCentre=new vec2[2 * m_p_num];
     m_dt=15.0*45e-14;//1e-11;
@@ -32,10 +32,7 @@ void pzSolver::init()
         /*if (m_p[i].r.x<w_x0+50e-6 && m_p[i].r.x>w_x0+25e-6)
           m_p[i].p = 0.26;//-0.1*(rand()*1.0/RAND_MAX-0.5);//0.0;//-0.005;//-0.26;//+rand()*0.043/RAND_MAX;
           else*/
-        m_p[i].p =0.0;// -0.26;
-#ifdef USE_MIRROR
-        m_p[i].p=-0.26;
-#endif
+        m_p[i].p = -0.26;
 
         m_p[i].p_prev = m_p[i].p;
 
@@ -47,7 +44,7 @@ void pzSolver::init()
         m_p[i].q_ext=0.0;
     }
 #ifndef USE_MIRROR
-    //m_p[0].p = 0.26;//0.005;//0.26;
+    m_p[0].p = 0.26;//0.005;//0.26;
     //m_p[1].p = 0.26;//0.005;//0.26;
     //m_p[2].p = 0.26;//0.005;//0.26;
 #endif
@@ -203,6 +200,13 @@ void pzSolver::solvePz(int itn)
     poly_new.C[0]+=a;
     for(int n=0;n<itn;n++)
     {
+        double f_xp=m_p[1].p;
+
+        // if (i==1) f_xm=field[N_X-2][j];
+        // if (i==N_X-2) f_xp=field[1][j];
+
+        rhs_=m_p[0].RHS-(b_p*f_xp);
+        m_p[0].p=m_p[0].p*0.7+0.3*solve_poly(poly_new,m_p[0].p,rhs_,3);
         for (int i=1; i<m_p_num-1; i++)
         {
             double f_xm=m_p[i-1].p;
