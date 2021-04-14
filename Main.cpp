@@ -203,13 +203,14 @@ static double timePrev = 0;
 
 void draw_traj()
 {
+    static double y_max = w_y0 + 3 *(w_y1-w_y0)/5;
     double min_curr=1e10;
     double max_curr=1e-20;
 
     for (int i=0;i<lagr_solver->m_elec_num;i++)
     {
 
-        if (lagr_solver->m_electrodes[i].canEmit)
+        if (lagr_solver->m_electrodes[i].canEmit && lagr_solver->m_electrodes[i].r.y < y_max)
         {
 
             double cur=lagr_solver->m_electrodes[i].eCurrent;
@@ -219,10 +220,10 @@ void draw_traj()
         }
     }
 
-    for (int i=0;i<lagr_solver->m_elec_num;i++)
+    for (int i=0;i<lagr_solver->m_elec_num;i+=2)
     {
 
-        if (lagr_solver->m_electrodes[i].canEmit)
+        if (lagr_solver->m_electrodes[i].canEmit && lagr_solver->m_electrodes[i].r.y < y_max)
         {
             glLineWidth(1.0);
             //double x,y;
@@ -253,13 +254,13 @@ void draw_traj()
             vec2 v(0.0,0.0,0.0);
             double Dl=0.5e-6;//
             double Dt=1e-6;
-            for (int j=0;j<1000;j++)
+            for (int j=0;j<500;j++)
             {
 
                 //vec2 Ee = elec_solver->getEe(r.x,r.y);
                 //vec2 Ed = lagr_solver->getE(r.x,r.y);
                 //vec2 Epz = pz_solver->getEdepol(r.x,r.y);
-                vec2 E_=multi_solver->get_fast_E(r.x,r.y);
+                vec2 E_=multi_solver->get_slower_E(r.x,r.y);
                 //E_.x = Ed.x + Epz.x;
                 //E_.y = Ed.y + Epz.y;
 
@@ -396,7 +397,7 @@ void display(void)
         multi_solver->updateTrajTable();
         double t1 = get_time();
         for (int i=0;i<10;i++)
-            multi_solver->solve(3);
+            multi_solver->solve(10);
         double t2 = get_time();
 
         // dtKoef*=1.003;
