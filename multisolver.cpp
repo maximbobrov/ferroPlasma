@@ -528,7 +528,7 @@ void multiSolver::electronExchange(double dt)
 void multiSolver::pzEmission(double dt)
 {
     double yy=m_pzSolver->m_p[0].r_top.y;
-    /*for (int i=0;i<m_pzSolver->m_p_num;i++)
+    for (int i=0;i<m_pzSolver->m_p_num;i++)
     {
         if (m_pzSolver->m_p[i].q_ext-m_pzSolver->m_p[i].q_0>1.0)
         {
@@ -575,26 +575,27 @@ void multiSolver::pzEmission(double dt)
                 double dy;
                 dy = m_pzSolver->m_p[i].r_top.y;
                 r2=(dy*dy);
-                double qq = min(fabs(fabs(E0y/dy*(r2+d2)/qepspi)), m_pzSolver->m_p[i].q_ext - m_pzSolver->m_p[i].q_0);
+                double qq =min(fabs(fabs(E0y/dy*(r2+d2)/qepspi)), m_pzSolver->m_p[i].q_ext - m_pzSolver->m_p[i].q_0);
+                qq = 0.0005 * (m_pzSolver->m_p[i].q_ext  - m_pzSolver->m_p[i].q_0);
 
-                if(m_pzSolver->m_p[i].q_ext-qq - m_pzSolver->m_p[i].q_0>0){
+                if(m_pzSolver->m_p[i].q_ext - qq - m_pzSolver->m_p[i].q_0>0){
                     m_pzSolver->m_p[i].q_ext -= qq;
                     if (p_n >= 0 && p_n < m_pzSolver->m_p_num)   m_pzSolver->m_p[p_n].q_ext += qq;
-                    if (p_n < 0) m_pzSolver->m_p[0].q_ext += qq;
+                    //if (p_n < 0) m_pzSolver->m_p[0].q_ext += qq;
                 }else
                 {
-                    qq = m_pzSolver->m_p[i].q_ext - m_pzSolver->m_p[i].q_0;
+                    qq = 0.005 * (m_pzSolver->m_p[i].q_ext - m_pzSolver->m_p[i].q_0);
                     m_pzSolver->m_p[i].q_ext -= qq;
                     if (p_n >= 0 && p_n < m_pzSolver->m_p_num)   m_pzSolver->m_p[p_n].q_ext += qq;
-                    if (p_n < 0) m_pzSolver->m_p[0].q_ext += qq;
+                    //if (p_n < 0) m_pzSolver->m_p[0].q_ext += qq;
 
                 }
             }
         }
-    }*/
+    }
 
 
-    /*for (int i=0;i<m_pzSolver->m_p_num;i++) //drift and diffusion
+    for (int i=0;i<m_pzSolver->m_p_num;i++) //drift and diffusion
     {
         m_pzSolver->m_p[i].q_tmp=m_pzSolver->m_p[i].q_ext;
     }
@@ -611,7 +612,7 @@ void multiSolver::pzEmission(double dt)
         E_p.x = Ed.x + Epz.x;
         E_p.y = Ed.y + Epz.y;
 
-        double a = 0.00001;
+        double a = 0.001;
         double b = 1e-11;
 
         m_pzSolver->m_p[0].q_ext=(m_pzSolver->m_p[0].q_tmp + a*(m_pzSolver->m_p[1].q_ext)  + b*(E_p.x*(m_pzSolver->m_p[1].q_ext-m_pzSolver->m_p[1].q_0)))/(1+2*a);
@@ -640,7 +641,7 @@ void multiSolver::pzEmission(double dt)
 
         }
         m_pzSolver->m_p[m_pzSolver->m_p_num-1].q_ext = m_pzSolver->m_p[m_pzSolver->m_p_num-2].q_ext;
-    }*/
+    }
 }
 
 void multiSolver::pzEmissionHoriz(double dt)
