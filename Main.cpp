@@ -210,7 +210,7 @@ void draw_traj()
     for (int i=0;i<lagr_solver->m_elec_num;i++)
     {
 
-        if (lagr_solver->m_electrodes[i].canEmit && lagr_solver->m_electrodes[i].r.y < y_max)
+        if (lagr_solver->m_electrodes[i].canEmit && lagr_solver->m_electrodes[i].r.y < y_max && lagr_solver->m_electrodes[i].EdotN >0)
         {
 
             double cur=lagr_solver->m_electrodes[i].eCurrent;
@@ -223,7 +223,7 @@ void draw_traj()
     for (int i=0;i<lagr_solver->m_elec_num;i+=2)
     {
 
-        if (lagr_solver->m_electrodes[i].canEmit && lagr_solver->m_electrodes[i].r.y < y_max)
+        if (lagr_solver->m_electrodes[i].canEmit && lagr_solver->m_electrodes[i].r.y < y_max && lagr_solver->m_electrodes[i].EdotN >0)
         {
             glLineWidth(1.0);
             //double x,y;
@@ -294,14 +294,10 @@ void draw_traj()
 
     //multi_solver->updateEforPz();
     if(g_phi<0){
-        for (int i=0;i<pz_solver->m_p_num;i++)
+        for (int i=0;i<pz_solver->m_p_num;i+=3)
         {
-            vec2 Em = lagr_solver->getE(pz_solver->m_p[i].r_top.x,0.0);
-            vec2 Epm =pz_solver->getEdepol(pz_solver->m_p[i].r_top.x,0.0);
-            double Ey =Em.y+Epm.y;
-
-
-            //if (Ey<0)
+            vec2 E_=multi_solver->get_slower_E(pz_solver->m_p[i].r_top.x,0.0);
+            if (E_.y<0)
             {
                 // printf("I=%d E=%e <0 \n",i,Ey);
                 vec2 r;
@@ -316,18 +312,13 @@ void draw_traj()
                 glBegin(GL_LINE_STRIP);
 
                 vec2 v(0.0,0.0,0.0);
-                double Dl=0.5e-6;//
+                double Dl=0.5e-7;//
                 double Dt=1e-6;
                 for (int j=0;j<100;j++)
                 {
 
-                    //vec2 Ee = elec_solver->getEe(r.x,r.y);
-                    vec2 Ed = lagr_solver->getE(r.x,r.y);
-                    vec2 Epz = pz_solver->getEdepol(r.x,r.y);
-                    vec2 E_;
-                    E_.x = Ed.x + Epz.x;
-                    E_.y = Ed.y + Epz.y;
 
+                    vec2 E_=multi_solver->get_slower_E(r.x,r.y);
 
                     double magn=qe/Me;//1e-1;
                     double a_=fmax(fabs(magn*(E_.x)),fabs(magn*(E_.y)));
@@ -1058,6 +1049,68 @@ void saveInFile()
     }*/
 }
 
+
+void saveStatePZ()
+{
+    pz_solver->get_q();
+
+    FILE *file_data_=fopen("out.state","w");
+
+    fprintf(file_data_, "%d %e %e \n",pz_solver->m_p_num,g_phi,g_phi_max);
+
+        for (int i=0;i<pz_solver->m_p_num;i++) {
+            fprintf(file_data_,"%e %e %e %e %e %e %e\n", pz_solver->m_p[i].p,
+                                                      pz_solver->m_p[i].p_prev,
+                                                      pz_solver->m_p[i].E,
+                                                      pz_solver->m_p[i].E_prev,
+                                                      pz_solver->m_p[i].q_0,
+                                                      pz_solver->m_p[i].q,
+                                                      pz_solver->m_p[i].q_ext);
+        }
+    fclose(file_data_);
+    printf("\n SAVED \n");
+
+}
+
+void loadStatePZ()
+{
+    pz_solver->get_q();
+
+    FILE *file_data_=fopen("out.state","r");
+
+    int num;
+    fscanf(file_data_, "%d",&num);
+    if (num==pz_solver->m_p_num)
+    {
+    fscanf(file_data_, " %lf %lf",&g_phi,&g_phi_max);
+
+        for (int i=0;i<pz_solver->m_p_num;i++) {
+            fscanf(file_data_,"%lf %lf %lf %lf %lf %lf %lf\n", &(pz_solver->m_p[i].p),
+                                                      &(pz_solver->m_p[i].p_prev),
+                                                      &(pz_solver->m_p[i].E),
+                                                      &(pz_solver->m_p[i].E_prev),
+                                                      &(pz_solver->m_p[i].q_0),
+                                                      &(pz_solver->m_p[i].q),
+                                                      &(pz_solver->m_p[i].q_ext)
+                                                        );
+        }
+
+        multi_solver->fast_Fields_recalculate();
+        multi_solver->slower_Fields_recalculate();
+        multi_solver->updateTrajTable();
+        multi_solver->solve(10);
+        updateEulFields();
+        printf("\n LOADED! \n");
+    }
+    else
+    {
+        printf("\n \n \n FAILED TO LOAD!!!! m_num=%d m_p_num_in=%d \n \n \n",num,pz_solver->m_p_num);
+    }
+    fclose(file_data_);
+
+}
+
+
 void savePotential()
 {
     int nx, ny;
@@ -1129,20 +1182,13 @@ void kb(unsigned char key, int x, int y)
         printf("viewing PHI \n");
     }
 
-
     if (key=='2')
-    {
-        view=VIEW_P;
-        printf("viewing phi_depol \n");
-    }
-
-    if (key=='3')
     {
         view=VIEW_EX;
         printf("viewing Ex\n");
     }
 
-    if (key=='4')
+    if (key=='3')
     {
         view=VIEW_EY;
 
@@ -1150,16 +1196,26 @@ void kb(unsigned char key, int x, int y)
     }
 
 
-    if (key=='m')
-    {
-        move_particles=!move_particles;
-    }
 
     if (key=='5')
     {
         // clearc=!clearc;
         view_px=!view_px;
     }
+
+
+    if (key=='6')
+    {
+        // clearc=!clearc;
+        saveStatePZ();
+    }
+
+    if (key=='7')
+    {
+        // clearc=!clearc;
+        loadStatePZ();
+    }
+
 
 
     if (key=='8')
@@ -1172,22 +1228,6 @@ void kb(unsigned char key, int x, int y)
         g_emitElectrons=!g_emitElectrons;
     }
 
-    if (key=='0')
-    {
-        //    wall_pos+=0.01;
-        //    pz_solver->setWallPos(wall_pos);
-        dtKoef*=1.1;
-        printf("dtKoef=%e \n",dtKoef);
-    }
-
-    if (key=='9')
-    {
-        //  wall_pos-=0.01;
-        // pz_solver->setWallPos(wall_pos);
-        dtKoef/=1.1;
-        printf("dtKoef=%e \n",dtKoef);
-
-    }
 
     if (key=='=')
     {
@@ -1215,11 +1255,11 @@ void kb(unsigned char key, int x, int y)
 
     if (key=='-')
     {
-        for (int i=0;i<lagr_solver->m_elec_num;i++)
+     /*   for (int i=0;i<lagr_solver->m_elec_num;i++)
         {
             lagr_solver->m_electrodes[i].phi_fix *=-1.0;
-        }
-        g_phi = -g_phi;
+        }*/
+        g_phi_max *= -1;
     }
     if (key=='d')
     {
@@ -1238,41 +1278,6 @@ void kb(unsigned char key, int x, int y)
         serialRegime =!serialRegime;
         display();
         glutPostRedisplay();
-        /*for (int i = 0;i<5;i+=1)
-        {
-            g_t = 0;
-            g_phi = (250 + i*5);
-            char filename[64];
-            sprintf(filename, "output%d.txt", i+1);
-            file_data=fopen(filename,"w");
-            multi_solver->init();
-            double timePrev = g_t;
-            double progress = 0.0;
-            while (progress < 1.0)
-            {
-                progress = (g_t / multi_solver->dt_elec)/((g_phi / 10 + 1) * 1000.0);
-                multi_solver->solve(1);
-                if(g_t > timePrev + multi_solver->dt_elec * 100)
-                {
-                    timePrev = g_t;
-                    double pzmax=0.0;
-                    double E_in=0.0;
-                    for (int i=0;i<pz_solver->m_p_num;i++)
-                    {
-                        if (fabs(pz_solver->m_p[i].p)>fabs(pzmax)) pzmax=(pz_solver->m_p[i].p);
-                        E_in+=pz_solver->m_p[i].E;
-                    }
-                    printf("progress(%d) = %d \n", i, int(progress * 100));
-                    E_in/=pz_solver->m_p_num;
-                    updateEulFields();
-                    glutPostRedisplay();
-                    glutIdleFunc(display);
-                    //display();
-                    saveInFile();
-                }
-            }
-            fclose(file_data);
-        }*/
     }
 
     if (key==' ')

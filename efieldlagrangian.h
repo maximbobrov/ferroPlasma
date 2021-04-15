@@ -13,10 +13,12 @@ public:
         vec2 r;
         bool canEmit;
         double eToEmit;
+        double EdotN;
         //double charge;
         double dl;
         double eCurrent;
         double nx, ny;
+        int INDX;
     };
     vec2* m_rCentre;
     eElem * m_electrodes;
@@ -36,10 +38,10 @@ public:
     //double getPhiFromCharges(double x,double y);
     void setElectrodeAngle(double deg);
     void updateGridProp();
-    void addQuad(vec2 p[4], double dl[4], double phi, int emit[4], double coordYDIel, int smoothingCount);
+    void addQuad(vec2 p[4], double dl[4], double phi, int emit[4], double coordYDIel, int smoothingCount, int I);
     void addQuad2Layers(vec2 p[4], double dl[4], double phi, int emit[4]);
     void addQuadRegular(vec2 p[4], double dl, double phi, int emit[4]);
-    void addQuad_stabilized(vec2 p[], double dl[], double phi, int emit[], double coordYDIel, int smoothingCount);
+    void addQuad_stabilized(vec2 p[], double dl[], double phi, int emit[], double coordYDIel, int smoothingCount, int I);
     static vec2 getEField(const vec2& iPos1, const vec2& iPos2);
     static vec2 getPhiField(const vec2& iPos1, const vec2& iPos2);
 

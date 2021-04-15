@@ -201,6 +201,7 @@ void multiSolver::updateTrajTable()
             double ey=E.y;*/
 
             double l = ex * (-m_Esolver->m_electrodes[i].nx) + ey * (-m_Esolver->m_electrodes[i].ny);
+            m_Esolver->m_electrodes[i].EdotN=l;
             if (l>0)
             {
                 double ds = m_Esolver->m_electrodes[i].dl*(w_z1-w_z0);
@@ -224,13 +225,13 @@ void multiSolver::updateTrajTable()
         bool inArea = true;
         double Dl=0.5e-7;
         double Dt=1e-6;
+
+        vec2 E_=get_slower_E(r.x,r.y);
+        if (m_Esolver->m_electrodes[i].EdotN>0)
         for (int j=0;j<1000;j++)
         {
-            /*vec2 Ed = m_Esolver->getE(r.x,r.y);
-            vec2 Epz = m_pzSolver->getEdepol(r.x,r.y);*/
-            vec2 E_=get_slower_E(r.x,r.y);
-            /*E_.x = Ed.x + Epz.x;
-            E_.y = Ed.y + Epz.y;*/
+
+            E_=get_slower_E(r.x,r.y);
 
 
             double magn=qe/Me;//1e-1;
@@ -408,23 +409,18 @@ int traj_table_calculated=0;
 void multiSolver::solve(int itn)
 {
 
-    /*
+
     for (int i=0;i<m_Esolver->m_elec_num;i++)
     {
-        if (m_Esolver->m_electrodes[i].phi_fix>0)
+        g_phi=g_phi*0.999+g_phi_max*0.001;
+        if (m_Esolver->m_electrodes[i].INDX==0) //first electrode -gphi
         {
-            if (g_t<g_t_max)
-                m_Esolver->m_electrodes[i].phi_fix=(g_t/g_t_max)*g_phi_max;
-            else
-                m_Esolver->m_electrodes[i].phi_fix=g_phi_max;
+                m_Esolver->m_electrodes[i].phi_fix=-g_phi;
         }else
         {
-            if (g_t<g_t_max)
-                m_Esolver->m_electrodes[i].phi_fix=-(g_t/g_t_max)*g_phi_max;
-            else
-                m_Esolver->m_electrodes[i].phi_fix=-g_phi_max;
+                m_Esolver->m_electrodes[i].phi_fix=g_phi;
         }
-    }*/
+    }
 
     for (int nn=0;nn<itn;nn++)
     {

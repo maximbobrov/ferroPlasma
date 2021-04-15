@@ -42,7 +42,7 @@ double dl[5] = {1 * 0.5e-6, 4e-6, 4e-6, 4e-6, 1 * 0.5e-6};
 
     //double dl[5] = {2e-6, 2e-6, 2e-6, 2e-6, 2e-6};
    //addQuad(p,dl,-20 * 12.50,emit_1, w_y0+25e-6 + 0.5 * dl_pz, 30);
-    addQuad_stabilized(p,dl, -g_phi ,emit_1, w_y0+25e-6 + 0.5 * dl_pz, 30);
+    addQuad_stabilized(p,dl, -g_phi ,emit_1, w_y0+25e-6 + 0.5 * dl_pz, 30,0);
    // addQuad2Layers(p,dl,-20 * 12.50,emit_1);
 
     printf("elecnum1 = %d\n", m_elec_num);
@@ -57,7 +57,7 @@ double dl[5] = {1 * 0.5e-6, 4e-6, 4e-6, 4e-6, 1 * 0.5e-6};
 
     double coef = 2.0;
     double dl2[5] = {coef * 2e-6, coef * 2e-6,coef * 2e-6,coef * 2e-6,coef * 2e-6};
-    addQuad(p,dl2, g_phi,emit_2,  w_y0+25e-6 - 0.5 * dl_pz, 1);
+    addQuad(p,dl2, g_phi,emit_2,  w_y0+25e-6 - 0.5 * dl_pz, 1,1);
     //addQuad_stabilized(p,dl2,20 * 12.50,emit_2,  w_y0+25e-6 - 0.5 * dl_pz, 1);
     //addQuad2Layers(p,dl,-20 * 12.50,emit_1);
 
@@ -282,7 +282,7 @@ void  getProgrCoef(double b1, double bn, double l, int& n, double &q)
     q = pow(bn/b1, 1.0/(n-1));
 }
 
-void eFieldLagrangian::addQuad_stabilized(vec2 p[5], double dl[5],double phi, int emit[4], double coordYDIel, int smoothingCount) //the field direction is stabilized here
+void eFieldLagrangian::addQuad_stabilized(vec2 p[5], double dl[5],double phi, int emit[4], double coordYDIel, int smoothingCount,int I) //the field direction is stabilized here
 {
     static double l_[4];
     static int n_[4];
@@ -306,6 +306,7 @@ void eFieldLagrangian::addQuad_stabilized(vec2 p[5], double dl[5],double phi, in
             x = p[i].x*(1.0-alpha)+p[i+1].x*(alpha);
             y = p[i].y*(1.0-alpha)+p[i+1].y*(alpha);
 
+            m_electrodes[m_elec_num].INDX=I;
             m_electrodes[m_elec_num].r.x=x;
             m_electrodes[m_elec_num].r.y=y;
             m_electrodes[m_elec_num].dl=l;
@@ -390,6 +391,7 @@ void eFieldLagrangian::addQuad_stabilized(vec2 p[5], double dl[5],double phi, in
 //additional monitoring points with 0 potentioal for stability.
 // this leads to dimminishing of the practical surface potential by 2 times but the field direction is now stable
 
+        m_electrodes[m_elec_num].INDX=I;
         m_electrodes[m_elec_num].r.x=xCoord[i];
         m_electrodes[m_elec_num].r.y=yCoord[i];
         m_electrodes[m_elec_num].phi_fix=phi*0.0;
@@ -438,7 +440,7 @@ void eFieldLagrangian::addQuad_stabilized(vec2 p[5], double dl[5],double phi, in
 }
 
 
-void eFieldLagrangian::addQuad(vec2 p[5], double dl[5],double phi, int emit[4], double coordYDIel, int smoothingCount) //last point should coincide with the first one emit is the side number that can emit
+void eFieldLagrangian::addQuad(vec2 p[5], double dl[5],double phi, int emit[4], double coordYDIel, int smoothingCount, int I) //last point should coincide with the first one emit is the side number that can emit
 {
     static double l_[4];
     static int n_[4];
@@ -465,6 +467,7 @@ void eFieldLagrangian::addQuad(vec2 p[5], double dl[5],double phi, int emit[4], 
             x = p[i].x*(1.0-alpha)+p[i+1].x*(alpha);
             y = p[i].y*(1.0-alpha)+p[i+1].y*(alpha);
 
+            m_electrodes[m_elec_num].INDX=I;
             m_electrodes[m_elec_num].r.x=x;
             m_electrodes[m_elec_num].r.y=y;
             m_electrodes[m_elec_num].dl=l;
