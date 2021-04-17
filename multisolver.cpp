@@ -228,27 +228,27 @@ void multiSolver::updateTrajTable()
 
         vec2 E_=get_slower_E(r.x,r.y);
         if (m_Esolver->m_electrodes[i].EdotN>0)
-        for (int j=0;j<1000;j++)
-        {
+            for (int j=0;j<1000;j++)
+            {
 
-            E_=get_slower_E(r.x,r.y);
+                E_=get_slower_E(r.x,r.y);
 
 
-            double magn=qe/Me;//1e-1;
-            double a_=fmax(fabs(magn*(E_.x)),fabs(magn*(E_.y)));
-            double v_=fmax(fabs(v.x),fabs(v.y));
-            Dt=(sqrt(v_*v_+2*a_*Dl)-v_)/(a_+1e-20);
+                double magn=qe/Me;//1e-1;
+                double a_=fmax(fabs(magn*(E_.x)),fabs(magn*(E_.y)));
+                double v_=fmax(fabs(v.x),fabs(v.y));
+                Dt=(sqrt(v_*v_+2*a_*Dl)-v_)/(a_+1e-20);
 
-            v.x += magn*(E_.x)*Dt;
-            v.y += magn*(E_.y)*Dt;
-            if (r.y+Dt*v.y<0) break;
-            r.x+=Dt*v.x;
-            r.y+=Dt*v.y;
-            if(r.y > w_y1){
-                inArea = false;
-                break;
+                v.x += magn*(E_.x)*Dt;
+                v.y += magn*(E_.y)*Dt;
+                if (r.y+Dt*v.y<0) break;
+                r.x+=Dt*v.x;
+                r.y+=Dt*v.y;
+                if(r.y > w_y1){
+                    inArea = false;
+                    break;
+                }
             }
-        }
 
         int p_n=0;
         double xx = (m_pzSolver->m_p[0].r_top.y - (r.y - r.x * v.y / v.x)) * v.x / v.y;
@@ -415,10 +415,10 @@ void multiSolver::solve(int itn)
         g_phi=g_phi*0.999+g_phi_max*0.001;
         if (m_Esolver->m_electrodes[i].INDX==0) //first electrode -gphi
         {
-                m_Esolver->m_electrodes[i].phi_fix=-g_phi;
+            m_Esolver->m_electrodes[i].phi_fix=-g_phi;
         }else
         {
-                m_Esolver->m_electrodes[i].phi_fix=g_phi;
+            m_Esolver->m_electrodes[i].phi_fix=g_phi;
         }
     }
 
@@ -523,8 +523,8 @@ void multiSolver::electronExchange(double dt)
 
 void multiSolver::pzEmission(double dt)
 {
-    double yy=m_pzSolver->m_p[0].r_top.y;
-    for (int i=0;i<m_pzSolver->m_p_num;i++)
+    double yy=0;//m_pzSolver->m_p[0].r_top.y;
+    /*for (int i=0;i<m_pzSolver->m_p_num;i++)
     {
         if (m_pzSolver->m_p[i].q_ext-m_pzSolver->m_p[i].q_0>1.0)
         {
@@ -583,56 +583,42 @@ void multiSolver::pzEmission(double dt)
                 }
             }
         }
-    }
+    }*/
 
-/*
-    for (int i=0;i<m_pzSolver->m_p_num;i++) //drift and diffusion
+
+    for (int itn=0;itn<20;itn++)
     {
-        m_pzSolver->m_p[i].q_tmp=m_pzSolver->m_p[i].q_ext;
-    }
-    for (int itn=0;itn<2;itn++)
-    {
-        //m_pzSolver->m_p[0].q_ext =m_pzSolver->m_p[1].q_ext;
-
-        vec2 r;
-        r.x=m_pzSolver->m_p[1].r_top.x;
-        r.y=yy;
-        vec2 Ed = m_Esolver->getE(r.x,r.y);
-        vec2 Epz = m_pzSolver->getEdepol(r.x,r.y);
-        vec2 E_p;
-        E_p.x = Ed.x + Epz.x;
-        E_p.y = Ed.y + Epz.y;
-
-        double a = 0.001;
-        double b = 1e-11;
-
-        m_pzSolver->m_p[0].q_ext=(m_pzSolver->m_p[0].q_tmp + a*(m_pzSolver->m_p[1].q_ext)  + b*(E_p.x*(m_pzSolver->m_p[1].q_ext-m_pzSolver->m_p[1].q_0)))/(1+2*a);
+        double b = 2e-12;
+        static vec2 Ef[1000];
 
         for (int i=0;i<m_pzSolver->m_p_num;i++)
         {
             vec2 r;
-            r.x=m_pzSolver->m_p[i+1].r_top.x;
+            r.x=m_pzSolver->m_p[i].r_top.x;
             r.y=yy;
-            vec2 Ed = m_Esolver->getE(r.x,r.y);
-            vec2 Epz = m_pzSolver->getEdepol(r.x,r.y);
-            vec2 E_p;
-            E_p.x = Ed.x + Epz.x;
-            E_p.y = Ed.y + Epz.y;
-
-            r.x=m_pzSolver->m_p[i-1].r_top.x;
-            r.y=yy;
-            Ed = m_Esolver->getE(r.x,r.y);
-            Epz = m_pzSolver->getEdepol(r.x,r.y);
-            vec2 E_m;
-            E_m.x = Ed.x + Epz.x;
-            E_m.y = Ed.y + Epz.y;
-
-
-            m_pzSolver->m_p[i].q_ext=(m_pzSolver->m_p[i].q_tmp+ a*(m_pzSolver->m_p[i+1].q_ext+m_pzSolver->m_p[i-1].q_ext)  + b*(E_p.x*(m_pzSolver->m_p[i+1].q_ext - m_pzSolver->m_p[i+1].q_0) - E_m.x*(m_pzSolver->m_p[i-1].q_ext-m_pzSolver->m_p[i-1].q_0)))/(1+2*a);
-
+            Ef[i] = get_slower_E(r.x,r.y);
         }
-        m_pzSolver->m_p[m_pzSolver->m_p_num-1].q_ext = m_pzSolver->m_p[m_pzSolver->m_p_num-2].q_ext;
-    }*/
+
+        //m_pzSolver->m_p[0].q_ext=(m_pzSolver->m_p[0].q_tmp + a*(m_pzSolver->m_p[1].q_ext)  + b*(E_.x*(m_pzSolver->m_p[1].q_ext-m_pzSolver->m_p[1].q_0)))/(1+2*a);
+
+        for (int i=0;i<m_pzSolver->m_p_num;i++)
+        {
+            if(m_pzSolver->m_p[i].q_ext - m_pzSolver->m_p[i].q_0 > 0){
+                vec2 E_ = Ef[i];
+                double qq = fabs(E_.x * b) * (m_pzSolver->m_p[i].q_ext - m_pzSolver->m_p[i].q_0);
+                if(qq > (m_pzSolver->m_p[i].q_ext - m_pzSolver->m_p[i].q_0))
+                    qq  = (m_pzSolver->m_p[i].q_ext - m_pzSolver->m_p[i].q_0);
+
+                m_pzSolver->m_p[i].q_ext-=qq;
+                if(E_.x>0 && i != 0)
+                    m_pzSolver->m_p[i-1].q_ext+=qq;
+                if(E_.x<0 && i != m_pzSolver->m_p_num-1)
+                    m_pzSolver->m_p[i+1].q_ext+=qq;
+
+            }
+        }
+        //m_pzSolver->m_p[m_pzSolver->m_p_num-1].q_ext = m_pzSolver->m_p[m_pzSolver->m_p_num-2].q_ext;
+    }
 }
 
 void multiSolver::pzEmissionHoriz(double dt)

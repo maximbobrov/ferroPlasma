@@ -656,65 +656,6 @@ void display(void)
     glEnd();
 
 
-    /*glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-    glBegin(GL_QUADS);
-
-    for( i=0; i<elec_solver->m_numParticles; i++ )
-    {
-        int p_n=(int) ((elec_solver->m_bodyPos[i].x-pz_solver->m_p[0].r.x+0.5 * pz_solver->m_dx)/pz_solver->m_dx);
-
-        glColor3f(1,1,1);
-        glVertex2f(pz_solver->m_p[p_n].r.x-pz_solver->m_dx*0.5,pz_solver->m_p[p_n].r.y -pz_solver->m_p[p_n].dl*0.5);
-        glVertex2f(pz_solver->m_p[p_n].r.x-pz_solver->m_dx*0.5,pz_solver->m_p[p_n].r.y +pz_solver->m_p[p_n].dl*0.5);
-
-
-        glVertex2f(pz_solver->m_p[p_n].r.x+pz_solver->m_dx*0.5,pz_solver->m_p[p_n].r.y +pz_solver->m_p[p_n].dl*0.5);
-        glVertex2f(pz_solver->m_p[p_n].r.x+pz_solver->m_dx*0.5,pz_solver->m_p[p_n].r.y -pz_solver->m_p[p_n].dl*0.5);
-
-
-    }
-    glEnd();
-*/
-
-
-    /*double vel_scale=1900000.0;//sqrt(vel_scale/numParticles+0.0001);
-    double leng_sacle=0.03*(w_x1-w_x0);
-    glLineWidth(4);
-    glBegin(GL_LINES);
-
-    for( i=0; i<elec_solver->m_numParticles; i++ )
-    {
-        // float pot=get_nearwall_potential(bodyPos[i].x,bodyPos[i].y);
-        glColor3f(1,0,0);
-        // glColor3f(ck*pot,ck*pot,-ck*pot);
-        glVertex2f(elec_solver->m_bodyPos[i].x,elec_solver->m_bodyPos[i].y);
-        glColor3f(0.0,0.0,0.0);
-        glVertex2f(elec_solver->m_bodyPos[i].x+leng_sacle*elec_solver->m_bodyVel[i].x/vel_scale,
-                   elec_solver->m_bodyPos[i].y+leng_sacle*elec_solver->m_bodyVel[i].y/vel_scale);
-    }
-    glEnd();*/
-
-
-    /*   glColor3f(0.5,0.5,0.5);
-
-    glBegin(GL_LINE_LOOP);
-
-    glVertex3f(w_x0,w_y0,w_z0);
-    glVertex3f(w_x1,w_y0,w_z0);
-    glVertex3f(w_x1,w_y1,w_z0);
-    glVertex3f(w_x0,w_y1,w_z0);
-    glEnd();
-
-    glColor3f(1,1,1);
-
-    glBegin(GL_LINE_LOOP);
-
-    glVertex3f(w_x0,w_y0,w_z1);
-    glVertex3f(w_x1,w_y0,w_z1);
-    glVertex3f(w_x1,w_y1,w_z1);
-    glVertex3f(w_x0,w_y1,w_z1);
-    glEnd();
-*/
 
     if (view_px)
     {
@@ -743,15 +684,7 @@ void display(void)
 
 
     glDisable(GL_DEPTH_TEST);
-    /*glLineWidth(3.5);
-    glBegin(GL_LINE_STRIP);
 
-    for( i=0; i < pz_solver->m_p_num; i++ )
-    {
-        glColor3f(0.5,0.5,1.0);
-        glVertex2f(pz_solver->m_p[i].r.x, 1e-3 * scale * (pz_solver->m_p[i].q_ext+pz_solver->m_p[i].q) * (w_y1 - w_y0)-5e-6);
-    }
-    glEnd();*/
     glLineWidth(3.5);
     glBegin(GL_LINE_STRIP);
 
@@ -765,46 +698,26 @@ void display(void)
     printf(" \n qext=%e \n",q_extr);
     glEnd();
 
-
-    /* double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
-    double phi_e0=elec_solver->getPhiSlow(w_x0,w_y0);
-    double phi_electr0=lagr_solver->getPhi(w_x0,w_y0);*/
-
-    /*glLineWidth(3.5);
-    glBegin(GL_LINE_STRIP);
-
-    for( i=0; i < pz_solver->m_p_num; i++ )
+    static vec2 Ef[1000];
+    for (int i=0;i< pz_solver->m_p_num;i++)
     {
-        glColor3f(1.0,0.0,1.0);
-        glVertex2f(pz_solver->m_p[i].r.x, 1e-10 * scale * pz_solver->m_p[i].E * (w_y1 - w_y0));
+        vec2 r;
+        r.x= pz_solver->m_p[i].r_top.x;
+        r.y=0;
+        Ef[i] = multi_solver->get_slower_E(r.x,r.y);
     }
-    glEnd();*/
 
-    /*double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
-    double phi_e0=elec_solver->getPhiSlow(w_x0,w_y0);
-    double phi_electr0=lagr_solver->getPhi(w_x0,w_y0);
-
-    glLineWidth(3.);
+    glLineWidth(3.5);
     glBegin(GL_LINE_STRIP);
 
     for( i=0; i < pz_solver->m_p_num; i++ )
     {
 
-
-        double phi = pz_solver->getPhidepol(pz_solver->m_p[i].r.x,pz_solver->m_p[i].r.y) - phi_depol0
-                +elec_solver->getPhiSlow(pz_solver->m_p[i].r.x,pz_solver->m_p[i].r.y) - phi_e0;
-                //+lagr_solver->getPhi(pz_solver->m_p[i].r.x,pz_solver->m_p[i].r.y) - phi_electr0;
-        glColor3f(1.0,1.0,1.0);
-        glVertex2f(pz_solver->m_p[i].r.x, 1e-1 *  scale * phi * (w_y1 - w_y0));
+        glColor3f(1,0,0);
+        glVertex2f(pz_solver->m_p[i].r_top.x, scale * (Ef[i].x /Ef[0].x ) * (w_y1 - w_y0)-5e-6);
     }
-    glEnd();*/
+    glEnd();
 
-    /*glLineWidth(3.5);
-    glBegin(GL_LINE_STRIP);
-    glColor3f(1.0,1.0,1.0);
-    glVertex2f(pz_solver->m_p[0].r.x, 0);
-    glVertex2f(pz_solver->m_p[pz_solver->m_p_num - 1].r.x, 0);
-    glEnd();*/
     draw_traj();
     glutSwapBuffers();
     if (redr==1 || serialRegime) glutPostRedisplay();
