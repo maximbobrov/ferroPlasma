@@ -455,7 +455,8 @@ void multiSolver::solve(int itn)
     if (g_emitElectrons)
         electronEmissionEndMoveToElectrode(dt_elec);
 
-    pzEmission(dt_elec);
+    //pzEmission(dt_elec);
+
     //pzEmissionHoriz(dt_elec);
 
     // double t1 = get_time();
@@ -588,7 +589,7 @@ void multiSolver::pzEmission(double dt)
 
     for (int itn=0;itn<20;itn++)
     {
-        double b = 2e-12;
+        double b = 5e-13;
         static vec2 Ef[1000];
 
         for (int i=0;i<m_pzSolver->m_p_num;i++)
@@ -602,6 +603,23 @@ void multiSolver::pzEmission(double dt)
         //m_pzSolver->m_p[0].q_ext=(m_pzSolver->m_p[0].q_tmp + a*(m_pzSolver->m_p[1].q_ext)  + b*(E_.x*(m_pzSolver->m_p[1].q_ext-m_pzSolver->m_p[1].q_0)))/(1+2*a);
 
         for (int i=0;i<m_pzSolver->m_p_num;i++)
+        {
+            if(m_pzSolver->m_p[i].q_ext - m_pzSolver->m_p[i].q_0 > 0){
+                vec2 E_ = Ef[i];
+                double qq = fabs(E_.x * b) * (m_pzSolver->m_p[i].q_ext - m_pzSolver->m_p[i].q_0);
+                if(qq > (m_pzSolver->m_p[i].q_ext - m_pzSolver->m_p[i].q_0))
+                    qq  = (m_pzSolver->m_p[i].q_ext - m_pzSolver->m_p[i].q_0);
+
+                m_pzSolver->m_p[i].q_ext-=qq;
+                if(E_.x>0 && i != 0)
+                    m_pzSolver->m_p[i-1].q_ext+=qq;
+                if(E_.x<0 && i != m_pzSolver->m_p_num-1)
+                    m_pzSolver->m_p[i+1].q_ext+=qq;
+
+            }
+        }
+
+        for (int i=m_pzSolver->m_p_num-1;i>=0;i--)
         {
             if(m_pzSolver->m_p[i].q_ext - m_pzSolver->m_p[i].q_0 > 0){
                 vec2 E_ = Ef[i];

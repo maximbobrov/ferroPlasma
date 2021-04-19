@@ -73,6 +73,9 @@ multiSolver* multi_solver;
 
 
 double wall_pos=0.0;
+
+int g_i_wall=0;
+
 void updateEulFields()
 {
     /*    pz_solver->get_q();
@@ -685,6 +688,20 @@ void display(void)
 
     glDisable(GL_DEPTH_TEST);
 
+
+
+    glLineWidth(3.5);
+    glBegin(GL_LINE_STRIP);
+
+
+    for( i=0; i < pz_solver->m_p_num; i++ )
+    {
+        glColor3f(0.5,0.5,0);
+        glVertex2f(pz_solver->m_p[i].r_top.x, 1e-1 * scale * (-pz_solver->m_p[i].q) * (w_y1 - w_y0)-5e-6);
+
+    }
+     glEnd();
+
     glLineWidth(3.5);
     glBegin(GL_LINE_STRIP);
 
@@ -707,16 +724,38 @@ void display(void)
         Ef[i] = multi_solver->get_slower_E(r.x,r.y);
     }
 
-    glLineWidth(3.5);
+    glLineWidth(1.5);
     glBegin(GL_LINE_STRIP);
 
     for( i=0; i < pz_solver->m_p_num; i++ )
     {
 
         glColor3f(1,0,0);
-        glVertex2f(pz_solver->m_p[i].r_top.x, scale * (Ef[i].x /Ef[0].x ) * (w_y1 - w_y0)-5e-6);
+        glVertex2f(pz_solver->m_p[i].r_top.x, scale * 15000.0*(-Ef[i].x /fabs(Ef[0].x) ) * (w_y1 - w_y0)-5e-6);
     }
     glEnd();
+
+    glBegin(GL_LINE_STRIP);
+
+    for( i=0; i < pz_solver->m_p_num; i++ )
+    {
+
+        glColor3f(0,0,1);
+        glVertex2f(pz_solver->m_p[i].r_top.x, scale * 15000.0*(-Ef[i].y /fabs(Ef[0].x) ) * (w_y1 - w_y0)-5e-6);
+    }
+    glEnd();
+
+
+    glBegin(GL_LINE_STRIP);
+
+    for( i=0; i < pz_solver->m_p_num; i++ )
+    {
+
+        glColor3f(1,1,1);
+        glVertex2f(pz_solver->m_p[i].r_top.x, scale * 15000.0*(0.0 ) * (w_y1 - w_y0)-5e-6);
+    }
+    glEnd();
+
 
     draw_traj();
     glutSwapBuffers();
@@ -1059,6 +1098,52 @@ void savePotential()
 }
 
 double angle=0.0;
+
+void spec(int key, int x, int y)
+{
+    if (key==GLUT_KEY_UP)
+    {
+    }
+
+    if (key==GLUT_KEY_DOWN)
+    {
+    }
+
+    if (key==GLUT_KEY_LEFT)
+    {
+        g_i_wall--;
+        if (g_i_wall<0) g_i_wall=0;
+
+        for (int i=0; i<pz_solver->m_p_num;i++)
+        {
+            if (i<g_i_wall)
+                pz_solver->m_p[i].q=9.5e-4;
+            else
+                pz_solver->m_p[i].q=-8.5e-4;
+        }
+        printf("g_i_wall %d \n",g_i_wall);
+    }
+
+    if (key==GLUT_KEY_RIGHT)
+    {
+        g_i_wall++;
+        if (g_i_wall>pz_solver->m_p_num-1) g_i_wall=g_i_wall>pz_solver->m_p_num-1;
+
+        for (int i=0; i<pz_solver->m_p_num;i++)
+        {
+            if (i<g_i_wall)
+                pz_solver->m_p[i].q=9.5e-4;
+            else
+                pz_solver->m_p[i].q=-8.5e-4;
+        }
+        printf("g_i_wall %d \n",g_i_wall);
+
+    }
+
+
+        glutPostRedisplay();
+}
+
 void kb(unsigned char key, int x, int y)
 {
     int i,j,k,nn,n;
@@ -1255,6 +1340,7 @@ int main(int argc, char** argv)
     glutMotionFunc(m_m);
     glutMouseFunc(m_d);
     glutKeyboardFunc(kb);
+    glutSpecialUpFunc(spec);
     init();
 
     //save_file();
