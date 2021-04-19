@@ -28,7 +28,7 @@
 #define w_z0 -1.0e-7
 #define w_z1 1.0e-7
 
-#define dl_pz 49e-6
+#define dl_pz (0.5 * 50e-6)
 #define eps_pz 100
 /*#define w_x0 0.0
 #define w_x1 1.0e-5

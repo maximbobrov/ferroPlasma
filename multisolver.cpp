@@ -183,7 +183,7 @@ void multiSolver::electronEmission(double d_t)
 void multiSolver::updateTrajTable()
 {
 
-
+    double l_max = -1e10;
     double full_flux=1; //in electrons/s
     double electrons_in_pack=200;
     for (int i=0;i<m_Esolver->m_elec_num-1;i++)
@@ -204,6 +204,8 @@ void multiSolver::updateTrajTable()
             m_Esolver->m_electrodes[i].EdotN=l;
             if (l>0)
             {
+                if(l>l_max)
+                    l_max = l;
                 double ds = m_Esolver->m_electrodes[i].dl*(w_z1-w_z0);
                 double flux = m_elecSolver->calcJ(l)*ds/(fabs(qe));
                 full_flux+=flux;
@@ -216,7 +218,7 @@ void multiSolver::updateTrajTable()
 
 
 
-    printf("full_flux= %e el/s dt=%e t=%e phi=%f \n",full_flux,dt_elec,g_t,m_Esolver->m_electrodes[0].phi_fix);
+    printf("full_flux= %e maxL = %e el/s dt=%e t=%e phi=%f \n",full_flux,l_max,dt_elec,g_t,m_Esolver->m_electrodes[0].phi_fix);
 
 
     for (int i=0;i<m_Esolver->m_elec_num;i++) {

@@ -31,10 +31,10 @@ void eFieldLagrangian::init()
 
     vec2 p[5];
 
-    p[0].x=w_x0-0e-6;         p[0].y=0.5*(w_y0+w_y1);
+    p[0].x=w_x0-0e-6;         p[0].y=0;
     p[1].x=w_x0 /*-40e-6*/;        p[1].y=w_y1;
     p[2].x=w_x0-30e-6;        p[2].y=w_y1;
-    p[3].x=w_x0-30e-6;        p[3].y=0.5*(w_y0+w_y1);
+    p[3].x=w_x0-30e-6;        p[3].y=0;
     p[4].x=p[0].x;            p[4].y=p[0].y;
 
     int emit_1[4] = {1,0,0,0};
@@ -47,10 +47,10 @@ double dl[5] = {1 * 0.5e-6, 4e-6, 4e-6, 4e-6, 1 * 0.5e-6};
 
     printf("elecnum1 = %d\n", m_elec_num);
 
-    p[4].x=w_x0-30e-6;        p[4].y=w_y0;
-    p[3].x=w_x1;              p[3].y=w_y0;
-    p[2].x=w_x1;              p[2].y=w_y0-10e-6;
-    p[1].x=w_x0-30e-6;        p[1].y=w_y0-10e-6;
+    p[4].x=w_x0-30e-6;        p[4].y=-dl_pz;//w_y0;
+    p[3].x=w_x1;              p[3].y=-dl_pz;
+    p[2].x=w_x1;              p[2].y=-dl_pz-10e-6;
+    p[1].x=w_x0-30e-6;        p[1].y=-dl_pz-10e-6;
     p[0].x=p[4].x;            p[0].y=p[4].y;
 
     int emit_2[4] = {0,0,0,0};

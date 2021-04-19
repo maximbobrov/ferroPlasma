@@ -1114,12 +1114,12 @@ void spec(int key, int x, int y)
         g_i_wall--;
         if (g_i_wall<0) g_i_wall=0;
 
-        for (int i=0; i<pz_solver->m_p_num;i++)
+        for (int i=1; i<pz_solver->m_p_num;i++)
         {
             if (i<g_i_wall)
-                pz_solver->m_p[i].q=9.5e-4;
+                pz_solver->m_p[i].q_ext=9.5e4;
             else
-                pz_solver->m_p[i].q=-8.5e-4;
+                pz_solver->m_p[i].q_ext=-8.5e4;
         }
         printf("g_i_wall %d \n",g_i_wall);
     }
@@ -1129,12 +1129,12 @@ void spec(int key, int x, int y)
         g_i_wall++;
         if (g_i_wall>pz_solver->m_p_num-1) g_i_wall=g_i_wall>pz_solver->m_p_num-1;
 
-        for (int i=0; i<pz_solver->m_p_num;i++)
+        for (int i=1; i<pz_solver->m_p_num;i++)
         {
             if (i<g_i_wall)
-                pz_solver->m_p[i].q=9.5e-4;
+                pz_solver->m_p[i].q_ext=9.5e4;
             else
-                pz_solver->m_p[i].q=-8.5e-4;
+                pz_solver->m_p[i].q_ext=-8.5e4;
         }
         printf("g_i_wall %d \n",g_i_wall);
 
