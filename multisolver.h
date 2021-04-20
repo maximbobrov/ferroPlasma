@@ -19,7 +19,7 @@ public:
     int points_distributed; //points are distributed over the grid
 
     multiSolver();
-    void checkPotential();
+
     void updateEforPz();
     void updateEforElec();
     void electronEmission(double dt);
@@ -34,6 +34,7 @@ public:
     void electronExchange(double dt);
     void pzEmission(double dt);
     void pzEmissionHoriz(double dt);
+    void pzEmission_monte_carlo(double dt,int itn,double rat);
     double getPhi_at_electrode(int n);
     double getPhi_at_pz_down(int n);
     double getPhi_at_pz_up(int n);

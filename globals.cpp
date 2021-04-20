@@ -180,7 +180,8 @@ double Py_[N_X][N_Y],Py0_[N_X][N_Y];
 double Pins_top[N_X];  //nera electrode pinning
 double Pins_bottom[N_Y];
 
-
+double delta_phi=1e-7;
+double delta_E=1e-8;
 double sasign = 1.0;
 double n_1[N_X][N_Y],n_1_prev[N_X][N_Y];
 double n_2[N_X][N_Y];

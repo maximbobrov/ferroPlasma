@@ -35,15 +35,11 @@ public:
     void solvePhi(int itn); //update potential
     vec2 getE(double x,double y);
     double getPhi(double x,double y);
-    //double getPhiFromCharges(double x,double y);
-    void setElectrodeAngle(double deg);
     void updateGridProp();
     void addQuad(vec2 p[4], double dl[4], double phi, int emit[4], double coordYDIel, int smoothingCount, int I);
     void addQuad2Layers(vec2 p[4], double dl[4], double phi, int emit[4]);
     void addQuadRegular(vec2 p[4], double dl, double phi, int emit[4]);
     void addQuad_stabilized(vec2 p[], double dl[], double phi, int emit[], double coordYDIel, int smoothingCount, int I);
-    static vec2 getEField(const vec2& iPos1, const vec2& iPos2);
-    static vec2 getPhiField(const vec2& iPos1, const vec2& iPos2);
 
     void initW();
     void initW_PhiE();

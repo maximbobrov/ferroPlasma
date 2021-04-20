@@ -4,7 +4,7 @@
 
 pzSolver::pzSolver()
 {
-    this->m_p_num=800;
+    this->m_p_num=400;
     m_p=new pElem[m_p_num];
     m_rCentre=new vec2[2 * m_p_num];
     m_dt=15.0*45e-14;//1e-11;
@@ -242,8 +242,8 @@ void pzSolver::solvePz_steady(int itn) //1d steady state version
     T0=381;
     rh=0.0;
     //E_self=(m_p[i].p) * log(delta) *m_p[i].ds/(eps0*pi2)/(w_z1 - w_z0)/m_p[i].dl;
-    double delta=1e-6;
-    double mult=  log(delta) *m_p[0].ds/(eps0*pi2)/(w_z1 - w_z0)/m_p[0].dl;
+   // double delta=1e-6;
+    double mult=  log(delta_phi) *m_p[0].ds/(eps0*pi2)/(w_z1 - w_z0)/m_p[0].dl;
     m_poly.order=5;
     m_poly.C[0]=2*alp*(T-T0) -mult;//+1/eps_0 ;//(T-T0); //x
     m_poly.C[1]=0.0;              //xx
@@ -329,6 +329,8 @@ void pzSolver::get_q() //all charges are in elementary
     {
         m_p[i].q=(m_p[i].p)*m_p[i].ds/qe;
 
+       // m_p[i].q_ext=-m_p[i].q;
+
         m_p[i].r_top.charge=m_p[i].q+m_p[i].q_ext;
         /*if (m_p[i].r.x<w_x0+50e-6 && m_p[i].r.x>w_x0+25e-6)
         {
@@ -359,50 +361,12 @@ void pzSolver::step()
 
 
 
-/*
-vec2 pzSolver::getEField(const vec2& iCenterPos, const vec2& iFarPos)
-{
-    vec2 E;
-    vec2 dist;
-
-    double r2;
-    double q;
-    double dx,dy;
-    double delta=1e-9;
-
-    dx = iFarPos.x - iCenterPos.x;
-    dy = iFarPos.y - iCenterPos.y;
-    r2=(dx*dx+dy*dy);
-    q=qe/eps0*(iFarPos.charge);
-
-    E.x=q*dx*40000/(r2+delta*delta);
-    E.y=q*dy*40000/(r2+delta*delta);
-
-    return  E;
-}
-
-vec2 pzSolver::getPhiField(const vec2& iCenterPos, const vec2& iFarPos)
-{
-    vec2 E;
-    vec2 dist;
-    float invDist2;
-    double delta=1e-9;
-
-    dist.x = iCenterPos.x - iFarPos.x;
-    dist.y = iCenterPos.y - iFarPos.y;
-
-    invDist2 = iFarPos.charge / (dist.x*dist.x+dist.y*dist.y+1e-14)/log(delta);
-
-    E.x = iFarPos.charge*log((dist.x*dist.x+dist.y*dist.y+1e-14)+delta)/log(delta);
-    return  E;
-}
-*/
 vec2 pzSolver::getEdepol(double x, double y)
 {
     vec2 sum;
     sum.x=0.0; sum.y=0.0;
-     double delta=1e-6;
-    double d2=delta*delta;
+   //  double delta=1e-6;
+    double d2=delta_phi*delta_phi;
     double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
 
     for (int i=0;i<m_p_num;i++)
@@ -440,7 +404,7 @@ double pzSolver::getPhidepol(double x, double y)
     double r;
     double q;
     double dx,dy;
-    double delta=1e-6;
+    //double delta=1e-6;
 
      double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
     for (int i=0;i<m_p_num;i++)
@@ -451,7 +415,7 @@ double pzSolver::getPhidepol(double x, double y)
         r=sqrt(dx*dx+dy*dy);
         q= qepspi * m_p[i].r_top.charge;//(m_p[i].q+m_p[i].q_ext);
 
-        sum-=q*log(r+delta);
+        sum-=q*log(r+delta_phi);
 
         /*  dx = m_p[i].r.x - x;
         dy = m_p[i].r.y - m_p[i].dl*0.5 - y;

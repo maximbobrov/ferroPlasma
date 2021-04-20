@@ -28,7 +28,7 @@
 #define w_z0 -1.0e-7
 #define w_z1 1.0e-7
 
-#define dl_pz (0.5 * 50e-6)
+#define dl_pz (1.0 * 50e-6)
 #define eps_pz 100
 /*#define w_x0 0.0
 #define w_x1 1.0e-5
@@ -149,6 +149,9 @@ double solve_poly(poly &p,double _x0, double rhs,int itn);
 void rand_init();
 extern bool serialRegime;
 extern bool g_emitElectrons;
+extern double delta_phi;
+extern double delta_E;
+
 extern double E_global;
 extern double dtKoef;
 extern double g_t;
