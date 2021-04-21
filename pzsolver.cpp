@@ -4,7 +4,7 @@
 
 pzSolver::pzSolver()
 {
-    this->m_p_num=400;
+    this->m_p_num=500;
     m_p=new pElem[m_p_num];
     m_rCentre=new vec2[2 * m_p_num];
     m_dt=15.0*45e-14;//1e-11;
@@ -23,7 +23,7 @@ void pzSolver::init()
     {
         m_p[i].dl=dl_pz - 1e-6; //100 nm width;
         //double alpha=i*1.0/(m_p_num-1);
-        m_p[i].r_top.x = w_x0 + m_dx * i;//(w_x0/*-25e-6*/)*(1.0-alpha)+w_x1*alpha;
+        m_p[i].r_top.x = w_x0 + m_dx * i -18e-6;//(w_x0/*-25e-6*/)*(1.0-alpha)+w_x1*alpha;
         m_p[i].r_top.y = -1e-6;//(w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
 
         //m_p[i].r_top.x = ;m_p[i].r.x;
@@ -329,7 +329,7 @@ void pzSolver::get_q() //all charges are in elementary
     {
         m_p[i].q=(m_p[i].p)*m_p[i].ds/qe;
 
-       // m_p[i].q_ext=-m_p[i].q;
+     //  m_p[i].q_ext=-m_p[i].q;
 
         m_p[i].r_top.charge=m_p[i].q+m_p[i].q_ext;
         /*if (m_p[i].r.x<w_x0+50e-6 && m_p[i].r.x>w_x0+25e-6)

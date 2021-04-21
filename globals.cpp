@@ -17,6 +17,8 @@ double g_t = 0;
 double g_t_max = 1e-5;
 double g_phi = 225.0;
 double g_phi_max= 225.0;
+double delta_phi=2e-6;
+double delta_E=1e-8;
 double g_save_time = 0;
 double g_save_time2 = 0;
 double g_dphidt;
@@ -180,8 +182,7 @@ double Py_[N_X][N_Y],Py0_[N_X][N_Y];
 double Pins_top[N_X];  //nera electrode pinning
 double Pins_bottom[N_Y];
 
-double delta_phi=1e-7;
-double delta_E=1e-8;
+
 double sasign = 1.0;
 double n_1[N_X][N_Y],n_1_prev[N_X][N_Y];
 double n_2[N_X][N_Y];

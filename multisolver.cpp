@@ -150,6 +150,7 @@ void multiSolver::updateTrajTable()
 
     double l_max = -1e10;
     double full_flux=1; //in electrons/s
+    double max_flux=1;
     double electrons_in_pack=100;//200;
     for (int i=0;i<m_Esolver->m_elec_num-1;i++)
     {
@@ -173,13 +174,17 @@ void multiSolver::updateTrajTable()
                     l_max = l;
                 double ds = m_Esolver->m_electrodes[i].dl*(w_z1-w_z0);
                 double flux = m_elecSolver->calcJ(l)*ds/(fabs(qe));
+
+
                 full_flux+=flux;
+                if (max_flux<flux) max_flux=flux;
             }
         }
     }
 
 
-    dt_elec=fmin(electrons_in_pack/full_flux,1e-8);
+    dt_elec=fmin(electrons_in_pack/full_flux,1e-9);
+    //dt_elec=fmin(electrons_in_pack/max_flux,1e-9);
 
 
 
