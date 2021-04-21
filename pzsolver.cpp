@@ -329,7 +329,8 @@ void pzSolver::get_q() //all charges are in elementary
     {
         m_p[i].q=(m_p[i].p)*m_p[i].ds/qe;
 
-     //  m_p[i].q_ext=-m_p[i].q;
+
+        //m_p[i].q_ext=-m_p[i].q;
 
         m_p[i].r_top.charge=m_p[i].q+m_p[i].q_ext;
         /*if (m_p[i].r.x<w_x0+50e-6 && m_p[i].r.x>w_x0+25e-6)

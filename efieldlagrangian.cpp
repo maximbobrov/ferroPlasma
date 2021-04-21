@@ -38,12 +38,12 @@ void eFieldLagrangian::init()
     p[4].x=p[0].x;            p[4].y=p[0].y;
 
     int emit_1[4] = {1,0,0,1};
-double dl[5] = {1 * 0.5e-6, 4e-6, 4e-6, 4e-6, 1 * 0.5e-6};
+    double dl[5] = {1 * 0.5e-6, 4e-6, 4e-6, 4e-6, 1 * 0.5e-6};
 
     //double dl[5] = {2e-6, 2e-6, 2e-6, 2e-6, 2e-6};
-   //addQuad(p,dl,-20 * 12.50,emit_1, w_y0+25e-6 + 0.5 * dl_pz, 30);
+    //addQuad(p,dl,-20 * 12.50,emit_1, w_y0+25e-6 + 0.5 * dl_pz, 30);
     addQuad_stabilized(p,dl, -g_phi ,emit_1, w_y0+25e-6 + 0.5 * dl_pz, 30,0);
-   // addQuad2Layers(p,dl,-20 * 12.50,emit_1);
+    // addQuad2Layers(p,dl,-20 * 12.50,emit_1);
 
     printf("elecnum1 = %d\n", m_elec_num);
 
@@ -56,8 +56,15 @@ double dl[5] = {1 * 0.5e-6, 4e-6, 4e-6, 4e-6, 1 * 0.5e-6};
     int emit_2[4] = {0,0,0,0};
 
     double coef = 1.0;
-    double dl2[5] = {coef * 2e-6, coef * 2e-6,coef * 2e-6,coef * 2e-6,coef * 2e-6};
-    addQuad(p,dl2, g_phi,emit_2,  w_y0+25e-6 - 0.5 * dl_pz, 1,1);
+    double dl2 = coef * 2e-6;
+    vec2 p2[2];
+
+    p2[1].x=w_x1;               p2[1].y=-dl_pz-1e-6;
+    p2[0].x=w_x0-30e-6;         p2[0].y=-dl_pz-1e-6;
+
+    addLine( p2, dl2,g_phi, 2e-6, 1);
+    /*    double dl2[5] = {coef * 2e-6, coef * 2e-6,coef * 2e-6,coef * 2e-6,coef * 2e-6};
+     * addQuad(p,dl2, g_phi,emit_2,  w_y0+25e-6 - 0.5 * dl_pz, 1,1);*/
     //addQuad_stabilized(p,dl2,20 * 12.50,emit_2,  w_y0+25e-6 - 0.5 * dl_pz, 1);
     //addQuad2Layers(p,dl,-20 * 12.50,emit_1);
 
@@ -383,13 +390,13 @@ void eFieldLagrangian::addQuad_stabilized(vec2 p[5], double dl[5],double phi, in
         m_mirrorCharges[m_chargeNum].x = xCoord[i];
         m_mirrorCharges[m_chargeNum].y = coordYDIel - (yCoord[i] - coordYDIel);
         m_chargeNum++;
-       /* xCoord[i] = m_electrodes[i].r.x - m_electrodes[i].nx * m_electrodes[i].dl*1.0;
+        /* xCoord[i] = m_electrodes[i].r.x - m_electrodes[i].nx * m_electrodes[i].dl*1.0;
         yCoord[i] = m_electrodes[i].r.y - m_electrodes[i].ny * m_electrodes[i].dl*1.0;
         m_charges[m_chargeNum].x = xCoord[i];
         m_charges[m_chargeNum].y = yCoord[i];
         m_chargeNum++;*/
-//additional monitoring points with 0 potentioal for stability.
-// this leads to dimminishing of the practical surface potential by 2 times but the field direction is now stable
+        //additional monitoring points with 0 potentioal for stability.
+        // this leads to dimminishing of the practical surface potential by 2 times but the field direction is now stable
 
         m_electrodes[m_elec_num].INDX=I;
         m_electrodes[m_elec_num].r.x=xCoord[i];
@@ -543,13 +550,13 @@ void eFieldLagrangian::addQuad(vec2 p[5], double dl[5],double phi, int emit[4], 
         m_mirrorCharges[m_chargeNum].x = xCoord[i];
         m_mirrorCharges[m_chargeNum].y = coordYDIel - (yCoord[i] - coordYDIel);
         m_chargeNum++;
-       /* xCoord[i] = m_electrodes[i].r.x - m_electrodes[i].nx * m_electrodes[i].dl*1.0;
+        /* xCoord[i] = m_electrodes[i].r.x - m_electrodes[i].nx * m_electrodes[i].dl*1.0;
         yCoord[i] = m_electrodes[i].r.y - m_electrodes[i].ny * m_electrodes[i].dl*1.0;
         m_charges[m_chargeNum].x = xCoord[i];
         m_charges[m_chargeNum].y = yCoord[i];
         m_chargeNum++;*/
-//additional monitoring points with 0 potentioal for stability.
-// this leads to dimminishing of the practical surface potential by 2 times but the field direction is now stable
+        //additional monitoring points with 0 potentioal for stability.
+        // this leads to dimminishing of the practical surface potential by 2 times but the field direction is now stable
 
 
     }
@@ -588,6 +595,45 @@ void eFieldLagrangian::addQuad(vec2 p[5], double dl[5],double phi, int emit[4], 
         m_charges[m_chargeNum].charge=0.0;
         m_chargeNum++;
     }*/
+}
+
+void eFieldLagrangian::addLine(vec2 p[2], double dl,double phi, double h, int I) //last point should coincide with the first one emit is the side number that can emit
+{
+    static double l_[2];
+    static int n_[2];
+    int n0=m_elec_num;
+    double n = (p[1].x - p[0].x) / dl;
+    for (int i=0;i< n;i++)
+    {
+        double alpha= i * 1.0/n;
+        double x,y;
+        x = p[0].x*(1.0-alpha)+p[1].x*(alpha);
+        y = p[0].y*(1.0-alpha)+p[1].y*(alpha);
+
+        m_electrodes[m_elec_num].INDX=I;
+        m_electrodes[m_elec_num].r.x=x;
+        m_electrodes[m_elec_num].r.y=y;
+        m_electrodes[m_elec_num].dl=dl;
+
+        m_electrodes[m_elec_num].phi_fix=phi;
+        m_electrodes[m_elec_num].phi_ext=0.0;
+
+
+        m_electrodes[m_elec_num].canEmit=false;
+        m_electrodes[m_elec_num].nx = 0;
+        m_electrodes[m_elec_num].ny = 1;
+        m_electrodes[m_elec_num].eToEmit=0.0;
+
+        m_elec_num++;
+    }
+
+    int el_num0=m_elec_num;
+    for (int i=n0;i<el_num0;i++)
+    {
+        m_charges[m_chargeNum].x = m_electrodes[i].r.x;
+        m_charges[m_chargeNum].y = m_electrodes[i].r.y - h;
+        m_chargeNum++;
+    }
 }
 
 void eFieldLagrangian::addQuad2Layers(vec2 p[5], double dl[5],double phi, int emit[4]) //last point should coincide with the first one emit is the side number that can emit
@@ -936,7 +982,7 @@ double eFieldLagrangian::getW_E(int elecNum, int chargeNum)
     double r;
     double q;
     double dx,dy;
-   // double delta=1e-6;
+    // double delta=1e-6;
 
     double r2;
 

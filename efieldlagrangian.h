@@ -36,6 +36,7 @@ public:
     vec2 getE(double x,double y);
     double getPhi(double x,double y);
     void updateGridProp();
+    void addLine(vec2 p[2], double dl,double phi, double h, int I);
     void addQuad(vec2 p[4], double dl[4], double phi, int emit[4], double coordYDIel, int smoothingCount, int I);
     void addQuad2Layers(vec2 p[4], double dl[4], double phi, int emit[4]);
     void addQuadRegular(vec2 p[4], double dl, double phi, int emit[4]);
