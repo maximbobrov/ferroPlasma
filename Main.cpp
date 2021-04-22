@@ -220,13 +220,13 @@ void draw_fields_pz_1d()
          glVertex2f(pz_solver->m_p[i].r_top.x, scale * 15000.0*(-Ef[i].y /fabs(Ef[0].x) ) * (w_y1 - w_y0)-5e-6);
      }
      glEnd();*/
-
+glLineWidth(2);
      glBegin(GL_LINE_STRIP);
 
      for(int i=0; i < pz_solver->m_p_num; i++ )
      {
 
-         glColor3f(1,0,1);
+         glColor3f(1,1,1);
          glVertex2f(pz_solver->m_p[i].r_top.x, scale * /*(1.0/g_phi_max)*/100.0*(-phi_f[i]) * (w_y1 - w_y0)-5e-6);
      }
      glEnd();
@@ -244,25 +244,25 @@ void draw_fields_pz_1d()
 
 void draw_charges_pz_1d()
 {
-    glLineWidth(1.5);
+    glLineWidth(2.5);
     glBegin(GL_LINE_STRIP);
 
 
     for(int i=0; i < pz_solver->m_p_num; i++ )
     {
-        glColor3f(0.85,0.5,0);
+        glColor3f(0.4,0.4,0);
         glVertex2f(pz_solver->m_p[i].r_top.x, 1e-1 * scale * (-pz_solver->m_p[i].q) * (w_y1 - w_y0)-5e-6);
 
     }
      glEnd();
 
-    glLineWidth(1.5);
+    glLineWidth(2.5);
     glBegin(GL_LINE_STRIP);
 
     double q_extr=0.0;
     for(int i=0; i < pz_solver->m_p_num; i++ )
     {
-        glColor3f(1.0,0.0,1);
+        glColor3f(0.0,0.0,1);
         glVertex2f(pz_solver->m_p[i].r_top.x, 1e-1 * scale * (pz_solver->m_p[i].q_ext) * (w_y1 - w_y0)-5e-6);
         q_extr+=pz_solver->m_p[i].q_ext;
     }

@@ -59,10 +59,10 @@ void eFieldLagrangian::init()
     double dl2 = coef * 2e-6;
     vec2 p2[2];
 
-    p2[1].x=w_x1;               p2[1].y=-dl_pz-1e-6;
-    p2[0].x=w_x0-30e-6;         p2[0].y=-dl_pz-1e-6;
+    p2[1].x=w_x1-20e-6;               p2[1].y=-dl_pz-1e-6;
+    p2[0].x=w_x0-20e-6;         p2[0].y=-dl_pz-1e-6;
 
-    addLine( p2, dl2,g_phi, 2e-6, 1);
+    addLine( p2, 1e-6,g_phi, 1e-6, 1);
     /*    double dl2[5] = {coef * 2e-6, coef * 2e-6,coef * 2e-6,coef * 2e-6,coef * 2e-6};
      * addQuad(p,dl2, g_phi,emit_2,  w_y0+25e-6 - 0.5 * dl_pz, 1,1);*/
     //addQuad_stabilized(p,dl2,20 * 12.50,emit_2,  w_y0+25e-6 - 0.5 * dl_pz, 1);

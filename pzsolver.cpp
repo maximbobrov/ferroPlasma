@@ -4,7 +4,7 @@
 
 pzSolver::pzSolver()
 {
-    this->m_p_num=500;
+    this->m_p_num=400;
     m_p=new pElem[m_p_num];
     m_rCentre=new vec2[2 * m_p_num];
     m_dt=15.0*45e-14;//1e-11;
@@ -56,7 +56,7 @@ void pzSolver::init()
         m_p[i].q_0=m_p[i].q_ext;
     }
     //m_dx = 1e-9;
-    kappa=0.1 * 1.38e-10*0.15;//1.38e-10*0.15;
+    kappa=1000000.1 * 1.38e-10*0.15;//1.38e-10*0.15;
     m_par.a=(1.0/(m_dt))+(kappa*2.0/(m_dx*m_dx));
     m_par.bp=-kappa/(m_dx*m_dx);
     m_par.bm=-kappa/(m_dx*m_dx);
@@ -229,7 +229,7 @@ void pzSolver::solvePz_steady(int itn) //1d steady state version
 {
     //euler:
 
-    kappa=0.1 * 1.38e-10*0.15;//1.38e-10*0.15;
+   // kappa=0.1 * 1.38e-10*0.15;//1.38e-10*0.15;
     m_par.a=(kappa*2.0/(m_dx*m_dx));
     m_par.bp=-kappa/(m_dx*m_dx);
     m_par.bm=-kappa/(m_dx*m_dx);
@@ -330,7 +330,7 @@ void pzSolver::get_q() //all charges are in elementary
         m_p[i].q=(m_p[i].p)*m_p[i].ds/qe;
 
 
-        //m_p[i].q_ext=-m_p[i].q;
+       // m_p[i].q_ext=-m_p[i].q;
 
         m_p[i].r_top.charge=m_p[i].q+m_p[i].q_ext;
         /*if (m_p[i].r.x<w_x0+50e-6 && m_p[i].r.x>w_x0+25e-6)

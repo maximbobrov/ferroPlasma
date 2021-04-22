@@ -1,12 +1,12 @@
 #include "multisolver.h"
 
-double to_elec_from_elec[900][900];
-double to_elec_from_pz[900][900];
-double to_pzUp_from_elec[900][900];
-double to_pzUp_from_pz[900][900];
+double to_elec_from_elec[1100][1100];
+double to_elec_from_pz[1100][1100];
+double to_pzUp_from_elec[1100][1100];
+double to_pzUp_from_pz[1100][1100];
 
-double to_pzDown_from_elec[900][900];
-double to_pzDown_from_pz[900][900];
+double to_pzDown_from_elec[1100][1100];
+double to_pzDown_from_pz[1100][1100];
 
 
 
@@ -57,11 +57,11 @@ void multiSolver::solve(int itn)
     {
        electronEmissionEndMoveToElectrode(dt_elec);
          // pzEmission(dt_elec);
-         pzEmission_monte_carlo(5e-15,100,0.0003);
+         pzEmission_monte_carlo(15e-15,100,0.0003);
 
     }//else
     {
-
+ pzEmission_monte_carlo(15e-15,100,0.0003);
     }
 
 
@@ -553,7 +553,7 @@ void multiSolver::pzEmission_monte_carlo(double dt,int itn,double rat)
     double dx_=m_pzSolver->m_p[1].r_top.x - m_pzSolver->m_p[0].r_top.x;
     for (int i=0;i<m_pzSolver->m_p_num;i++)
     {
-        double q_delta=(m_pzSolver->m_p[i].q_ext>0)*(m_pzSolver->m_p[i].q_ext-m_pzSolver->m_p[i].q);
+        double q_delta=(m_pzSolver->m_p[i].q_ext>0)*(m_pzSolver->m_p[i].q_ext)*0.00021;//-m_pzSolver->m_p[i].q);
         if (q_delta>1.0)
         {
             vec2 r;
