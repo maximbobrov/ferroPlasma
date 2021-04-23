@@ -63,7 +63,7 @@ multiSolver* multi_solver;
 
 double wall_pos=0.0;
 
-int g_i_wall=0;
+
 
 void updateEulFields()
 {  
@@ -250,8 +250,8 @@ void draw_charges_pz_1d()
 
     for(int i=0; i < pz_solver->m_p_num; i++ )
     {
-        glColor3f(0.4,0.4,0);
-        glVertex2f(pz_solver->m_p[i].r_top.x, 1e-1 * scale * (-pz_solver->m_p[i].q) * (w_y1 - w_y0)-5e-6);
+        glColor3f(0.9,0.4,0);
+        glVertex2f(pz_solver->m_p[i].r_top.x, 100e-1 * scale * (pz_solver->m_p[i].q_ext+pz_solver->m_p[i].q) * (w_y1 - w_y0)-5e-6);
 
     }
      glEnd();
@@ -904,13 +904,13 @@ void spec(int key, int x, int y)
         g_i_wall--;
         if (g_i_wall<0) g_i_wall=0;
 
-        for (int i=1; i<pz_solver->m_p_num;i++)
+       /* for (int i=1; i<pz_solver->m_p_num;i++)
         {
             if (i<g_i_wall)
                 pz_solver->m_p[i].q_ext=q_spec;
             else
                 pz_solver->m_p[i].q_ext=-q_spec*0.9;
-        }
+        }*/
         printf("g_i_wall %d \n",g_i_wall);
     }
 
@@ -919,15 +919,29 @@ void spec(int key, int x, int y)
         g_i_wall++;
         if (g_i_wall>pz_solver->m_p_num-1) g_i_wall=g_i_wall>pz_solver->m_p_num-1;
 
-        for (int i=1; i<pz_solver->m_p_num;i++)
+       /* for (int i=1; i<pz_solver->m_p_num;i++)
         {
             if (i<g_i_wall)
                 pz_solver->m_p[i].q_ext=q_spec;
             else
                 pz_solver->m_p[i].q_ext=-q_spec*0.9;
-        }
+        }*/
         printf("g_i_wall %d \n",g_i_wall);
 
+    }
+
+    if (key==GLUT_KEY_PAGE_UP)
+    {
+        electrons_in_pack*=1.1;
+
+        printf("electrons in pack= %f \n",electrons_in_pack);
+    }
+
+    if (key==GLUT_KEY_PAGE_DOWN)
+    {
+        electrons_in_pack/=1.1;
+
+        printf("electrons in pack= %f \n",electrons_in_pack);
     }
 
 

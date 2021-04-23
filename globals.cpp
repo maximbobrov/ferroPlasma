@@ -21,6 +21,8 @@ double delta_phi=1e-6;
 double delta_E=1e-8;
 double g_save_time = 0;
 double g_save_time2 = 0;
+ double electrons_in_pack=100;//200;
+int g_i_wall=0;
 double g_dphidt;
 double get_time(void) {
     struct timeval tv;

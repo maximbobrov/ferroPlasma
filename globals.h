@@ -151,7 +151,8 @@ extern bool serialRegime;
 extern bool g_emitElectrons;
 extern double delta_phi;
 extern double delta_E;
-
+extern int g_i_wall;
+extern double electrons_in_pack;//200;
 extern double E_global;
 extern double dtKoef;
 extern double g_t;
