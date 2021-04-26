@@ -114,33 +114,33 @@ void draw_traj()
             double cur=lagr_solver->m_electrodes[i].eCurrent;
             glColor3f(cur/max_curr,0,1.0-cur/max_curr);
             glBegin(GL_LINE_STRIP);
-                r=lagr_solver->m_electrodes[i].r;
-                vec2 v(0.0,0.0,0.0);
-                double Dl=0.5e-6;//
-                double Dt=1e-6;
-                for (int j=0;j<500;j++)
-                {
+            r=lagr_solver->m_electrodes[i].r;
+            vec2 v(0.0,0.0,0.0);
+            double Dl=0.5e-6;//
+            double Dt=1e-6;
+            for (int j=0;j<500;j++)
+            {
 
-                    vec2 E_=multi_solver->get_slower_E(r.x,r.y);
-                    double magn=qe/Me;//1e-1;
-                    double a_=fmax(fabs(magn*(E_.x)),fabs(magn*(E_.y)));
-                    double v_=fmax(fabs(v.x),fabs(v.y));
-                    Dt=(sqrt(v_*v_+2*a_*Dl)-v_)/(a_+1e-20);
+                vec2 E_=multi_solver->get_slower_E(r.x,r.y);
+                double magn=qe/Me;//1e-1;
+                double a_=fmax(fabs(magn*(E_.x)),fabs(magn*(E_.y)));
+                double v_=fmax(fabs(v.x),fabs(v.y));
+                Dt=(sqrt(v_*v_+2*a_*Dl)-v_)/(a_+1e-20);
 
-                    v.x += magn*(E_.x)*Dt;
-                    v.y += magn*(E_.y)*Dt;
-                    glVertex2f(r.x,r.y);
-                    r.x+=Dt*v.x;
-                    r.y+=Dt*v.y;
-                    if (r.y<0) break;
-                }
+                v.x += magn*(E_.x)*Dt;
+                v.y += magn*(E_.y)*Dt;
+                glVertex2f(r.x,r.y);
+                r.x+=Dt*v.x;
+                r.y+=Dt*v.y;
+                if (r.y<0) break;
+            }
             glEnd();
             glColor3f(1,0,0);
             glBegin(GL_POINTS);
-                glPointSize(10);
-                r=lagr_solver->m_electrodes[i].r;
-                int n = multi_solver->getEndPos(i);
-                glVertex2f(pz_solver->m_p[n].r_top.x, pz_solver->m_p[n].r_top.y);
+            glPointSize(10);
+            r=lagr_solver->m_electrodes[i].r;
+            int n = multi_solver->getEndPos(i);
+            glVertex2f(pz_solver->m_p[n].r_top.x, pz_solver->m_p[n].r_top.y);
             glEnd();
         }
     }
@@ -149,7 +149,7 @@ void draw_traj()
         for (int i=0;i<pz_solver->m_p_num;i+=3)
         {
             vec2 E_=multi_solver->get_slower_E(pz_solver->m_p[i].r_top.x,0.0);
-           // if (E_.y<0)
+            // if (E_.y<0)
             {
                 vec2 r;
                 r.x=pz_solver->m_p[i].r_top.x;
@@ -185,22 +185,22 @@ void draw_traj()
 
 void draw_fields_pz_1d()
 {
-     static vec2 Ef[1000];
-     static double  phi_f[1000];
-         double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
+    static vec2 Ef[1000];
+    static double  phi_f[1000];
+    double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
 
-     for (int i=0;i< pz_solver->m_p_num;i++)
-     {
-         vec2 r;
-         r.x= pz_solver->m_p[i].r_top.x;
-         r.y=0;
+    for (int i=0;i< pz_solver->m_p_num;i++)
+    {
+        vec2 r;
+        r.x= pz_solver->m_p[i].r_top.x;
+        r.y=0;
         // Ef[i] = multi_solver->get_slower_E(r.x,r.y);
 
-          phi_f[i]=multi_solver->getPhi_at_pz_up(i)-phi_depol0;
-         // printf("phi+f=%f \n",phi_f[i]);
-     }
+        phi_f[i]=multi_solver->getPhi_at_pz_up(i)-phi_depol0;
+        // printf("phi+f=%f \n",phi_f[i]);
+    }
 
-     /*glLineWidth(1.5);
+    /*glLineWidth(1.5);
      glBegin(GL_LINE_STRIP);
 
      for( i=0; i < pz_solver->m_p_num; i++ )
@@ -220,26 +220,26 @@ void draw_fields_pz_1d()
          glVertex2f(pz_solver->m_p[i].r_top.x, scale * 15000.0*(-Ef[i].y /fabs(Ef[0].x) ) * (w_y1 - w_y0)-5e-6);
      }
      glEnd();*/
-glLineWidth(2);
-     glBegin(GL_LINE_STRIP);
+    glLineWidth(2);
+    glBegin(GL_LINE_STRIP);
 
-     for(int i=0; i < pz_solver->m_p_num; i++ )
-     {
+    for(int i=0; i < pz_solver->m_p_num; i++ )
+    {
 
-         glColor3f(1,1,1);
-         glVertex2f(pz_solver->m_p[i].r_top.x, scale * /*(1.0/g_phi_max)*/100.0*(-phi_f[i]) * (w_y1 - w_y0)-5e-6);
-     }
-     glEnd();
+        glColor3f(1,1,1);
+        glVertex2f(pz_solver->m_p[i].r_top.x, scale * /*(1.0/g_phi_max)*/100.0*(-phi_f[i]) * (w_y1 - w_y0)-5e-6);
+    }
+    glEnd();
 
-     glBegin(GL_LINE_STRIP);
+    glBegin(GL_LINE_STRIP);
 
-     for(int i=0; i < pz_solver->m_p_num; i++ )
-     {
+    for(int i=0; i < pz_solver->m_p_num; i++ )
+    {
 
-         glColor3f(1,1,1);
-         glVertex2f(pz_solver->m_p[i].r_top.x, scale * 15000.0*(0.0 ) * (w_y1 - w_y0)-5e-6);
-     }
-     glEnd();
+        glColor3f(1,1,1);
+        glVertex2f(pz_solver->m_p[i].r_top.x, scale * 15000.0*(0.0 ) * (w_y1 - w_y0)-5e-6);
+    }
+    glEnd();
 }
 
 void draw_charges_pz_1d()
@@ -254,7 +254,7 @@ void draw_charges_pz_1d()
         glVertex2f(pz_solver->m_p[i].r_top.x, 100e-1 * scale * (pz_solver->m_p[i].q_ext+pz_solver->m_p[i].q) * (w_y1 - w_y0)-5e-6);
 
     }
-     glEnd();
+    glEnd();
 
     glLineWidth(2.5);
     glBegin(GL_LINE_STRIP);
@@ -469,7 +469,7 @@ void display(void)
         double t3 =get_time();
 
         printf("traj_upd_time=%e solve_time=%e eul_fields_time=%e \n", t1-t0, t2-t1,t3-t2);
-     }
+    }
 
     if(serialRegime)
     {
@@ -477,30 +477,60 @@ void display(void)
         {
             if(file_data)
                 fclose(file_data);
-            fileNum++;
+            g_emitElectrons = false;
             g_t = 0;
-            g_phi = (270 + fileNum*20);
+            g_phi = (172 + fileNum*20);
+            g_phi_max = g_phi;
+            fileNum++;
             char filename[64];
             sprintf(filename, "output%d.txt", fileNum);
             file_data=fopen(filename,"w");
             multi_solver->init();
             progress=0;
+            g_q_enable = true;
+            g_phi_max *= -1;
+            for (int kk=0;kk<300;kk++)
+                multi_solver->solve(10);
+            g_phi_max *= -1;
+            g_i_wall=35;
+            for (int i=1; i<pz_solver->m_p_num;i++)
+            {
+                if (i<g_i_wall){
+                    pz_solver->m_p[i].q_ext=0;
+                    pz_solver->m_p[i].p = 0.3;
+                    pz_solver->m_p[i].p_prev = 0.3;
+                    pz_solver->m_p[i].q = 0;
+                }
+            }
+            for (int kk=0;kk<100;kk++)
+                multi_solver->solve(10);
+            g_q_enable = false;
+            g_emitElectrons = true;
+            g_t=0;
+            g_save_time=0;
+            g_save_time2=0;
         }
         else{
-            for (int kk=0;kk<100;kk++)
-                multi_solver->solve(1);
-            double pzmax=0.0;
-            double E_in=0.0;
-            for (int i=0;i<pz_solver->m_p_num;i++)
+            for (int kk=0;kk<10;kk++){
+                multi_solver->fast_Fields_recalculate();
+                multi_solver->slower_Fields_recalculate();
+                multi_solver->updateTrajTable();
+                for (int i=0;i<10;i++)
+                    multi_solver->solve(10);
+            }
+            //for (int kk=0;kk<100;kk++)
+            //    multi_solver->solve(1);
+            //double pzmax=0.0;
+            //double E_in=0.0;
+            /*for (int i=0;i<pz_solver->m_p_num;i++)
             {
                 if (fabs(pz_solver->m_p[i].p)>fabs(pzmax)) pzmax=(pz_solver->m_p[i].p);
-                E_in+=pz_solver->m_p[i].E;
-            }
+                //E_in+=pz_solver->m_p[i].E;
+            }*/
             printf("progress(%d) = %d \n", fileNum, int(progress * 100));
-            E_in/=pz_solver->m_p_num;
+            //E_in/=pz_solver->m_p_num;
             updateEulFields();
             saveInFile();
-
         }
         progress = (g_t / multi_solver->dt_elec)/((g_phi / 10 + 1) * 1000.0);
     }
@@ -780,15 +810,15 @@ void saveStatePZ()
 
     fprintf(file_data_, "%d %e %e \n",pz_solver->m_p_num,g_phi,g_phi_max);
 
-        for (int i=0;i<pz_solver->m_p_num;i++) {
-            fprintf(file_data_,"%e %e %e %e %e %e %e\n", pz_solver->m_p[i].p,
-                                                      pz_solver->m_p[i].p_prev,
-                                                      pz_solver->m_p[i].E,
-                                                      pz_solver->m_p[i].E_prev,
-                                                      pz_solver->m_p[i].q_0,
-                                                      pz_solver->m_p[i].q,
-                                                      pz_solver->m_p[i].q_ext);
-        }
+    for (int i=0;i<pz_solver->m_p_num;i++) {
+        fprintf(file_data_,"%e %e %e %e %e %e %e\n", pz_solver->m_p[i].p,
+                pz_solver->m_p[i].p_prev,
+                pz_solver->m_p[i].E,
+                pz_solver->m_p[i].E_prev,
+                pz_solver->m_p[i].q_0,
+                pz_solver->m_p[i].q,
+                pz_solver->m_p[i].q_ext);
+    }
     fclose(file_data_);
     printf("\n SAVED \n");
 
@@ -804,17 +834,17 @@ void loadStatePZ()
     fscanf(file_data_, "%d",&num);
     if (num==pz_solver->m_p_num)
     {
-    fscanf(file_data_, " %lf %lf",&g_phi,&g_phi_max);
+        fscanf(file_data_, " %lf %lf",&g_phi,&g_phi_max);
 
         for (int i=0;i<pz_solver->m_p_num;i++) {
             fscanf(file_data_,"%lf %lf %lf %lf %lf %lf %lf\n", &(pz_solver->m_p[i].p),
-                                                      &(pz_solver->m_p[i].p_prev),
-                                                      &(pz_solver->m_p[i].E),
-                                                      &(pz_solver->m_p[i].E_prev),
-                                                      &(pz_solver->m_p[i].q_0),
-                                                      &(pz_solver->m_p[i].q),
-                                                      &(pz_solver->m_p[i].q_ext)
-                                                        );
+                   &(pz_solver->m_p[i].p_prev),
+                   &(pz_solver->m_p[i].E),
+                   &(pz_solver->m_p[i].E_prev),
+                   &(pz_solver->m_p[i].q_0),
+                   &(pz_solver->m_p[i].q),
+                   &(pz_solver->m_p[i].q_ext)
+                   );
         }
 
         multi_solver->fast_Fields_recalculate();
@@ -904,7 +934,7 @@ void spec(int key, int x, int y)
         g_i_wall--;
         if (g_i_wall<0) g_i_wall=0;
 
-       /* for (int i=1; i<pz_solver->m_p_num;i++)
+        /* for (int i=1; i<pz_solver->m_p_num;i++)
         {
             if (i<g_i_wall)
                 pz_solver->m_p[i].q_ext=q_spec;
@@ -919,7 +949,7 @@ void spec(int key, int x, int y)
         g_i_wall++;
         if (g_i_wall>pz_solver->m_p_num-1) g_i_wall=g_i_wall>pz_solver->m_p_num-1;
 
-       /* for (int i=1; i<pz_solver->m_p_num;i++)
+        /* for (int i=1; i<pz_solver->m_p_num;i++)
         {
             if (i<g_i_wall)
                 pz_solver->m_p[i].q_ext=q_spec;
@@ -943,9 +973,21 @@ void spec(int key, int x, int y)
 
         printf("electrons in pack= %f \n",electrons_in_pack);
     }
+    if (key==GLUT_KEY_INSERT)
+    {
+        g_i_wall=35;
+        for (int i=1; i<pz_solver->m_p_num;i++)
+        {
+            if (i<g_i_wall){
+                pz_solver->m_p[i].q_ext=0;
+                pz_solver->m_p[i].p = 0.3;
+                pz_solver->m_p[i].p_prev = 0.3;
+                pz_solver->m_p[i].q = 0;
+            }
+        }
+    }
 
-
-        glutPostRedisplay();
+    glutPostRedisplay();
 }
 
 void kb(unsigned char key, int x, int y)
@@ -1053,7 +1095,7 @@ void kb(unsigned char key, int x, int y)
 
     if (key=='-')
     {
-     /*   for (int i=0;i<lagr_solver->m_elec_num;i++)
+        /*   for (int i=0;i<lagr_solver->m_elec_num;i++)
         {
             lagr_solver->m_electrodes[i].phi_fix *=-1.0;
         }*/

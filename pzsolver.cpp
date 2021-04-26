@@ -229,7 +229,7 @@ void pzSolver::solvePz_steady(int itn) //1d steady state version
 {
     //euler:
 
-   // kappa=0.1 * 1.38e-10*0.15;//1.38e-10*0.15;
+    // kappa=0.1 * 1.38e-10*0.15;//1.38e-10*0.15;
     m_par.a=(kappa*2.0/(m_dx*m_dx));
     m_par.bp=-kappa/(m_dx*m_dx);
     m_par.bm=-kappa/(m_dx*m_dx);
@@ -242,7 +242,7 @@ void pzSolver::solvePz_steady(int itn) //1d steady state version
     T0=381;
     rh=0.0;
     //E_self=(m_p[i].p) * log(delta) *m_p[i].ds/(eps0*pi2)/(w_z1 - w_z0)/m_p[i].dl;
-   // double delta=1e-6;
+    // double delta=1e-6;
     double mult=  log(delta_phi) *m_p[0].ds/(eps0*pi2)/(w_z1 - w_z0)/m_p[0].dl;
     m_poly.order=5;
     m_poly.C[0]=2*alp*(T-T0) -mult;//+1/eps_0 ;//(T-T0); //x
@@ -329,15 +329,17 @@ void pzSolver::get_q() //all charges are in elementary
     {
         m_p[i].q=(m_p[i].p)*m_p[i].ds/qe;
 
-        /*  if (g_i_wall>0)
-          {
-              if (i<g_i_wall)
-        m_p[i].q_ext=-m_p[i].q;
+        if(g_q_enable){
+            if (g_i_wall>0)
+            {
+                if (i<g_i_wall)
+                    m_p[i].q_ext=-m_p[i].q;
 
-          }else
-          {
-              m_p[i].q_ext=-m_p[i].q;
-          }*/
+            }else
+            {
+                m_p[i].q_ext=-m_p[i].q;
+            }
+        }
 
         m_p[i].r_top.charge=m_p[i].q+m_p[i].q_ext;
         /*if (m_p[i].r.x<w_x0+50e-6 && m_p[i].r.x>w_x0+25e-6)
@@ -373,7 +375,7 @@ vec2 pzSolver::getEdepol(double x, double y)
 {
     vec2 sum;
     sum.x=0.0; sum.y=0.0;
-   //  double delta=1e-6;
+    //  double delta=1e-6;
     double d2=delta_phi*delta_phi;
     double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
 
@@ -414,7 +416,7 @@ double pzSolver::getPhidepol(double x, double y)
     double dx,dy;
     //double delta=1e-6;
 
-     double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
+    double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
     for (int i=0;i<m_p_num;i++)
     {
         //    int i=1;

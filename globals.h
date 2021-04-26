@@ -188,6 +188,7 @@ extern double q[N_X],gau[N_Y];
 extern double BoundaryLayer[N_X],WallEnergy[N_X];
 extern double BoundaryLayerGauss[N_X];
 extern int gaussL;
+extern bool g_q_enable;
 extern double scale;
 extern double Pins_top[N_X];  //nera electrode pinning
 extern double Pins_bottom[N_Y];
