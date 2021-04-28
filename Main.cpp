@@ -470,7 +470,7 @@ void display(void)
 
         printf("traj_upd_time=%e solve_time=%e eul_fields_time=%e \n", t1-t0, t2-t1,t3-t2);
     }
-
+    double wall_coord;
     if(serialRegime)
     {
         if(progress>1.0)
@@ -479,7 +479,7 @@ void display(void)
                 fclose(file_data);
             g_emitElectrons = false;
             g_t = 0;
-            g_phi = (172 + fileNum*20);
+            g_phi = (175 + fileNum*50);
             g_phi_max = g_phi;
             fileNum++;
             char filename[64];
@@ -492,7 +492,7 @@ void display(void)
             for (int kk=0;kk<300;kk++)
                 multi_solver->solve(10);
             g_phi_max *= -1;
-            g_i_wall=35;
+            g_i_wall=17;
             for (int i=1; i<pz_solver->m_p_num;i++)
             {
                 if (i<g_i_wall){
@@ -515,7 +515,7 @@ void display(void)
                 multi_solver->fast_Fields_recalculate();
                 multi_solver->slower_Fields_recalculate();
                 multi_solver->updateTrajTable();
-                for (int i=0;i<10;i++)
+                for (int i=0;i<20;i++)
                     multi_solver->solve(10);
             }
             //for (int kk=0;kk<100;kk++)
@@ -531,8 +531,15 @@ void display(void)
             //E_in/=pz_solver->m_p_num;
             updateEulFields();
             saveInFile();
+            wall_coord = pz_solver->m_p[1].r_top.x - pz_solver->m_p[0].r_top.x;
+            int i;
+            for( i = 1; i < pz_solver->m_p_num && pz_solver->m_p[i].p > 0; i++ )
+            {
+            }
+            wall_coord = pz_solver->m_p[i].r_top.x - pz_solver->m_p[0].r_top.x;
+
         }
-        progress = (g_t / multi_solver->dt_elec)/((g_phi / 10 + 1) * 1000.0);
+        progress = (g_t / multi_solver->dt_elec)/((g_phi / 10 + 1) * 5000.0);
     }
 
     if (clearc)
@@ -558,6 +565,13 @@ void display(void)
     draw_fields_pz_1d();
 
     draw_traj();
+
+    glLineWidth(2.5);
+    glColor3f(0,0,1);
+    glBegin(GL_LINE_STRIP);
+    glVertex3f(pz_solver->m_p[0].r_top.x + wall_coord,1,0.0);
+    glVertex3f(pz_solver->m_p[0].r_top.x + wall_coord,-1,0.0);
+    glEnd();
 
     glutSwapBuffers();
     if (redr==1 || serialRegime) glutPostRedisplay();
@@ -763,9 +777,9 @@ void m_d(int button, int state,int x, int y)  //mouse down
 
 void saveInFile()
 {
-    if(g_save_time2 * 1e15 >200)
+    //if(g_save_time2 * 1e15 >200)
     {
-        g_save_time2=0;
+
         double q_sum = 0;
         double p_pos=0.0;
         double p_full=0.0;
