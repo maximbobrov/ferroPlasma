@@ -454,17 +454,6 @@ void display(void)
             multi_solver->solve(10);
         double t2 = get_time();
 
-        // dtKoef*=1.003;
-
-        double pzmax=0.0;
-        double E_in=0.0;
-        for (int i=0;i<pz_solver->m_p_num;i++)
-        {
-            if (fabs(pz_solver->m_p[i].p)>fabs(pzmax)) pzmax=(pz_solver->m_p[i].p);
-            E_in+=pz_solver->m_p[i].E;
-        }
-        E_in/=pz_solver->m_p_num;
-
         updateEulFields();
         double t3 =get_time();
 
@@ -479,20 +468,20 @@ void display(void)
                 fclose(file_data);
             g_emitElectrons = false;
             g_t = 0;
-            g_phi = (175 + fileNum*50);
+            g_phi = -(175 + fileNum*50);
             g_phi_max = g_phi;
             fileNum++;
             char filename[64];
             sprintf(filename, "output%d.txt", fileNum);
             file_data=fopen(filename,"w");
+            g_i_wall=0;
             multi_solver->init();
             progress=0;
             g_q_enable = true;
-            g_phi_max *= -1;
             for (int kk=0;kk<300;kk++)
                 multi_solver->solve(10);
             g_phi_max *= -1;
-            g_i_wall=17;
+            g_i_wall=g_i_wall_edge;
             for (int i=1; i<pz_solver->m_p_num;i++)
             {
                 if (i<g_i_wall){
@@ -515,7 +504,7 @@ void display(void)
                 multi_solver->fast_Fields_recalculate();
                 multi_solver->slower_Fields_recalculate();
                 multi_solver->updateTrajTable();
-                for (int i=0;i<20;i++)
+                for (int i=0;i<10;i++)
                     multi_solver->solve(10);
             }
             //for (int kk=0;kk<100;kk++)
@@ -533,13 +522,13 @@ void display(void)
             saveInFile();
             wall_coord = pz_solver->m_p[1].r_top.x - pz_solver->m_p[0].r_top.x;
             int i;
-            for( i = 1; i < pz_solver->m_p_num && pz_solver->m_p[i].p > 0; i++ )
+            for( i = g_i_wall_edge; i < pz_solver->m_p_num && pz_solver->m_p[i].p > 0; i++ )
             {
             }
             wall_coord = pz_solver->m_p[i].r_top.x - pz_solver->m_p[0].r_top.x;
 
         }
-        progress = (g_t / multi_solver->dt_elec)/((g_phi / 10 + 1) * 5000.0);
+        progress +=fabs(g_phi_max/175.0)/350.0 ;//(g_t / multi_solver->dt_elec)/((g_phi / 10 + 1) * 5000.0);
     }
 
     if (clearc)
@@ -1001,6 +990,37 @@ void spec(int key, int x, int y)
         }
     }
 
+    if (key==GLUT_KEY_HOME)
+    {
+        g_emitElectrons = false;
+        g_t = 0;
+        g_phi = -175;
+        g_phi_max = g_phi;
+        g_i_wall=0;
+        multi_solver->init();
+        progress=0;
+        g_q_enable = true;
+        for (int kk=0;kk<300;kk++)
+            multi_solver->solve(10);
+        g_phi_max *= -1;
+        g_i_wall=g_i_wall_edge;
+        for (int i=1; i<pz_solver->m_p_num;i++)
+        {
+            if (i<g_i_wall){
+                pz_solver->m_p[i].q_ext=0;
+                pz_solver->m_p[i].p = 0.3;
+                pz_solver->m_p[i].p_prev = 0.3;
+                pz_solver->m_p[i].q = 0;
+            }
+        }
+        for (int kk=0;kk<100;kk++)
+            multi_solver->solve(10);
+        g_q_enable = false;
+        g_emitElectrons = true;
+        g_t=0;
+        g_save_time=0;
+        g_save_time2=0;
+    }
     glutPostRedisplay();
 }
 

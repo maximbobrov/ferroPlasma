@@ -23,7 +23,7 @@ public:
     vec2* m_rCentre;
     eElem * m_electrodes;
     vec2 m_charges[2000];
-    vec2 m_mirrorCharges[2000];
+   // vec2 m_mirrorCharges[2000];
     int m_chargeNum;
     int m_elec_num;
 
@@ -37,6 +37,7 @@ public:
     double getPhi(double x,double y);
     void updateGridProp();
     void addLine(vec2 p[2], double dl,double phi, double h, int I);
+    void addLinePZ(vec2 p[2], double dl,double phi, double h, int I);
     void addQuad(vec2 p[4], double dl[4], double phi, int emit[4], double coordYDIel, int smoothingCount, int I);
     void addQuad2Layers(vec2 p[4], double dl[4], double phi, int emit[4]);
     void addQuadRegular(vec2 p[4], double dl, double phi, int emit[4]);
@@ -45,7 +46,7 @@ public:
     void initW();
     void initW_PhiE();
     double getW(double s_x, double s_y, double t_x, double t_y);
-    double getWMirror(int iCharge, int iElec);
+
     double getW_E(int elecNum, int chargeNum);
     void solve_ls();
     void getInv();

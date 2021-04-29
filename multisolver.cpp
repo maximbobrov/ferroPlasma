@@ -188,7 +188,7 @@ void multiSolver::updateTrajTable()
 
 
 
-    printf("full_flux= %e maxL = %e el/s dt=%e t=%e phi=%f \n",full_flux,l_max,dt_elec,g_t,m_Esolver->m_electrodes[0].phi_fix);
+   // printf("full_flux= %e maxL = %e el/s dt=%e t=%e phi=%f \n",full_flux,l_max,dt_elec,g_t,m_Esolver->m_electrodes[0].phi_fix);
 
 
     for (int i=0;i<m_Esolver->m_elec_num;i++) {
