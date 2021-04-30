@@ -468,7 +468,7 @@ void display(void)
                 fclose(file_data);
             g_emitElectrons = false;
             g_t = 0;
-            g_phi = -(175 + fileNum*50);
+            g_phi = -(175 + fileNum*25);
             g_phi_max = g_phi;
             fileNum++;
             char filename[64];
@@ -504,7 +504,7 @@ void display(void)
                 multi_solver->fast_Fields_recalculate();
                 multi_solver->slower_Fields_recalculate();
                 multi_solver->updateTrajTable();
-                for (int i=0;i<10;i++)
+                for (int i=0;i<20;i++)
                     multi_solver->solve(10);
             }
             //for (int kk=0;kk<100;kk++)
@@ -528,7 +528,7 @@ void display(void)
             wall_coord = pz_solver->m_p[i].r_top.x - pz_solver->m_p[0].r_top.x;
 
         }
-        progress +=fabs(g_phi_max/175.0)/350.0 ;//(g_t / multi_solver->dt_elec)/((g_phi / 10 + 1) * 5000.0);
+        progress +=fabs(g_phi_max/175.0)/2000.0 ;//(g_t / multi_solver->dt_elec)/((g_phi / 10 + 1) * 5000.0);
     }
 
     if (clearc)
