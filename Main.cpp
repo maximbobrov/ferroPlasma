@@ -450,7 +450,7 @@ void display(void)
         multi_solver->slower_Fields_recalculate();
         multi_solver->updateTrajTable();
         double t1 = get_time();
-        for (int i=0;i<10;i++)
+        for (int i=0;i<5;i++)
             multi_solver->solve(10);
         double t2 = get_time();
 
@@ -468,7 +468,7 @@ void display(void)
                 fclose(file_data);
             g_emitElectrons = false;
             g_t = 0;
-            g_phi = -(175 + fileNum*25);
+            g_phi = -(275 + fileNum*75);
             g_phi_max = g_phi;
             fileNum++;
             char filename[64];
@@ -504,7 +504,7 @@ void display(void)
                 multi_solver->fast_Fields_recalculate();
                 multi_solver->slower_Fields_recalculate();
                 multi_solver->updateTrajTable();
-                for (int i=0;i<20;i++)
+                for (int i=0;i<10;i++)
                     multi_solver->solve(10);
             }
             //for (int kk=0;kk<100;kk++)
@@ -911,10 +911,13 @@ void spec(int key, int x, int y)
         q_spec+=0.01e4;
         for (int i=1; i<pz_solver->m_p_num;i++)
         {
-            if (i<g_i_wall)
-                pz_solver->m_p[i].q_ext=q_spec;
-            else
-                pz_solver->m_p[i].q_ext=-q_spec*0.9;
+
+                     if (i<g_i_wall){
+                pz_solver->m_p[i].q_ext=0;
+                pz_solver->m_p[i].p = 0.3;
+                pz_solver->m_p[i].p_prev = 0.3;
+                pz_solver->m_p[i].q = 0;
+            }
         }
         printf("q_spec= %e \n",q_spec);
     }
@@ -994,7 +997,7 @@ void spec(int key, int x, int y)
     {
         g_emitElectrons = false;
         g_t = 0;
-        g_phi = -175;
+        g_phi = -275;
         g_phi_max = g_phi;
         g_i_wall=0;
         multi_solver->init();

@@ -61,7 +61,7 @@ void eFieldLagrangian::init()
     p2[1].x=w_x1-10e-6;               p2[1].y=-dl_pz-1e-6;
     p2[0].x=w_x0-20e-6;         p2[0].y=-dl_pz-1e-6;
 
-    addLine( p2, 3e-6,g_phi, 1e-6, 1);
+    addLinePZ( p2, 3e-6,g_phi, 1e-6, 1);
     /*    double dl2[5] = {coef * 2e-6, coef * 2e-6,coef * 2e-6,coef * 2e-6,coef * 2e-6};
      * addQuad(p,dl2, g_phi,emit_2,  w_y0+25e-6 - 0.5 * dl_pz, 1,1);*/
     //addQuad_stabilized(p,dl2,20 * 12.50,emit_2,  w_y0+25e-6 - 0.5 * dl_pz, 1);
@@ -636,7 +636,7 @@ void eFieldLagrangian::addLinePZ(vec2 p[2], double dl,double phi, double h, int 
    int n0=m_elec_num;
     /////////////////line similar to pz
     double _dx;
-    int m_p_num=200;
+    int m_p_num=100;
     _dx= (w_x1- w_x0)/(m_p_num-1);
 
 
