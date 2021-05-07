@@ -42,7 +42,7 @@ public:
     void addQuad2Layers(vec2 p[4], double dl[4], double phi, int emit[4]);
     void addQuadRegular(vec2 p[4], double dl, double phi, int emit[4]);
     void addQuad_stabilized(vec2 p[], double dl[], double phi, int emit[], double coordYDIel, int smoothingCount, int I);
-
+    void addQuad_noSmooth(vec2 p[5], double dl[5],double phi, int emit[4],int I);
     void initW();
     void initW_PhiE();
     double getW(double s_x, double s_y, double t_x, double t_y);

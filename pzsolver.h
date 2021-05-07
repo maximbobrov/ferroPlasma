@@ -40,6 +40,7 @@ public:
 
     void conduct(double sigma, double dt, int itn);
 
+    double getE_self(int j);
    // static vec2 getEField(const vec2& iCenterPos, const vec2& iFarPos);
    // static vec2 getPhiField(const vec2& iCenterPos, const vec2& iFarPos);
 };

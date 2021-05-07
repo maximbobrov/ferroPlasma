@@ -21,18 +21,21 @@ public:
     multiSolver();
 
     void updateEforPz();
+    void updateEforPz_self();
     void updateEforElec();
     void electronEmission(double dt);
     void electronEmissionEndMoveToElectrode(double dt);
     void updateTrajTable();
     int  getEndPos(int i);
     void solve(int itn);
+        void solve__(int itn); //debug purposes
     void init();
     void step();
     void preparePz();
     void getExtChargeField();
     void electronExchange(double dt);
     void pzEmission(double dt);
+    void pzEmission_self(double dt);
     void pzEmissionHoriz(double dt);
     void pzEmission_monte_carlo(double dt,int itn,double rat);
     double getPhi_at_electrode(int n);

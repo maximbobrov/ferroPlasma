@@ -28,7 +28,7 @@ void load_fields();
 void display(void);
 void sweep_init();
 void init();
-
+void saveStatePZ(char* fname);
 int view=VIEW_EY;
 
 int redr=0;
@@ -186,7 +186,7 @@ void draw_traj()
 void draw_fields_pz_1d()
 {
     static vec2 Ef[1000];
-    static double  phi_f[1000];
+    static double  phi_f[1000],phi_f2[1000];
     double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
 
     for (int i=0;i< pz_solver->m_p_num;i++)
@@ -196,7 +196,9 @@ void draw_fields_pz_1d()
         r.y=0;
         // Ef[i] = multi_solver->get_slower_E(r.x,r.y);
 
-        phi_f[i]=multi_solver->getPhi_at_pz_up(i)-phi_depol0;
+        phi_f[i]=pz_solver->m_p[i].E*pz_solver->m_p[i].dl;//pz_solver->getE_self(i)*pz_solver->m_p[i].dl;//multi_solver->getPhi_at_pz_up(i)-phi_depol0;
+
+        phi_f2[i]=multi_solver->getPhi_at_pz_down(i)-phi_depol0;
         // printf("phi+f=%f \n",phi_f[i]);
     }
 
@@ -231,6 +233,18 @@ void draw_fields_pz_1d()
     }
     glEnd();
 
+
+    glLineWidth(2);
+    glBegin(GL_LINE_STRIP);
+
+    for(int i=0; i < pz_solver->m_p_num; i++ )
+    {
+
+        glColor3f(0.5,0.5,0.5);
+        glVertex2f(pz_solver->m_p[i].r_top.x, scale * /*(1.0/g_phi_max)*/100.0*(-phi_f2[i]) * (w_y1 - w_y0)-5e-6);
+    }
+    glEnd();
+
     glBegin(GL_LINE_STRIP);
 
     for(int i=0; i < pz_solver->m_p_num; i++ )
@@ -250,8 +264,13 @@ void draw_charges_pz_1d()
 
     for(int i=0; i < pz_solver->m_p_num; i++ )
     {
+
+        if (pz_solver->m_p[i].q_ext + pz_solver->m_p[i].q>0)
         glColor3f(0.9,0.4,0);
-        glVertex2f(pz_solver->m_p[i].r_top.x, 100e-1 * scale * (pz_solver->m_p[i].q_ext+pz_solver->m_p[i].q) * (w_y1 - w_y0)-5e-6);
+        else
+            glColor3f(0.0,0.4,0.9);
+
+        glVertex2f(pz_solver->m_p[i].r_top.x, 100e-1 * scale * (pz_solver->m_p[i].q_ext + pz_solver->m_p[i].q) * (w_y1 - w_y0)-5e-6);
 
     }
     glEnd();
@@ -390,8 +409,8 @@ void draw_electrode()
             glColor3f(1,0,1);
             glVertex3f(x,y,0.0);
 
-            E_x =ck*nx * scale*(lagr_solver->m_electrodes[i].eCurrent)*35e-13;
-            E_y = ck*ny * scale*(lagr_solver->m_electrodes[i].eCurrent)*35e-13;
+            E_x =ck*nx* scale;//*(lagr_solver->m_electrodes[i].eCurrent)*35e-13;
+            E_y = ck*ny * scale;//*(lagr_solver->m_electrodes[i].eCurrent)*35e-13;
 
             glVertex3f(x + E_x,y + E_y,-30e-7);
         }
@@ -464,11 +483,18 @@ void display(void)
     {
         if(progress>1.0)
         {
+            if (fileNum>0)
+            {
+                   char nme[1000];
+                  sprintf(nme, "output_%dV_%d.state",int(g_phi_max), fileNum);
+                  saveStatePZ(nme);
+            }
+
             if(file_data)
                 fclose(file_data);
             g_emitElectrons = false;
             g_t = 0;
-            g_phi = -(275 + fileNum*75);
+            g_phi = -(100 + fileNum*50);
             g_phi_max = g_phi;
             fileNum++;
             char filename[64];
@@ -480,7 +506,14 @@ void display(void)
             g_q_enable = true;
             for (int kk=0;kk<300;kk++)
                 multi_solver->solve(10);
-            g_phi_max *= -1;
+
+            g_phi_max =0.0;//*= -1;
+
+            for (int kk=0;kk<300;kk++)
+                multi_solver->solve(10);
+
+
+            g_phi_max = (100 + fileNum*50);
             g_i_wall=g_i_wall_edge;
             for (int i=1; i<pz_solver->m_p_num;i++)
             {
@@ -560,6 +593,12 @@ void display(void)
     glBegin(GL_LINE_STRIP);
     glVertex3f(pz_solver->m_p[0].r_top.x + wall_coord,1,0.0);
     glVertex3f(pz_solver->m_p[0].r_top.x + wall_coord,-1,0.0);
+    glEnd();
+
+    glColor3f(0,1,1);
+    glBegin(GL_LINE_STRIP);
+    glVertex3f(pz_solver->m_p[g_i_wall].r_top.x ,1,0.0);
+    glVertex3f(pz_solver->m_p[g_i_wall].r_top.x ,-1,0.0);
     glEnd();
 
     glutSwapBuffers();
@@ -805,11 +844,11 @@ void saveInFile()
 }
 
 
-void saveStatePZ()
+void saveStatePZ(char* fname)
 {
     pz_solver->get_q();
 
-    FILE *file_data_=fopen("out.state","w");
+    FILE *file_data_=fopen(fname,"w");
 
     fprintf(file_data_, "%d %e %e \n",pz_solver->m_p_num,g_phi,g_phi_max);
 
@@ -914,8 +953,8 @@ void spec(int key, int x, int y)
 
                      if (i<g_i_wall){
                 pz_solver->m_p[i].q_ext=0;
-                pz_solver->m_p[i].p = 0.3;
-                pz_solver->m_p[i].p_prev = 0.3;
+                pz_solver->m_p[i].p = 0.26;
+                pz_solver->m_p[i].p_prev = 0.26;
                 pz_solver->m_p[i].q = 0;
             }
         }
@@ -924,13 +963,13 @@ void spec(int key, int x, int y)
 
     if (key==GLUT_KEY_DOWN)
     {
-        q_spec-=0.01e4;
+        //q_spec-=0.01e4;
         for (int i=1; i<pz_solver->m_p_num;i++)
         {
             if (i<g_i_wall)
-                pz_solver->m_p[i].q_ext=q_spec;
-            else
-                pz_solver->m_p[i].q_ext=-q_spec*0.9;
+                pz_solver->m_p[i].q_ext+=180000.0*pow((rand()*1.0/RAND_MAX),4);
+            //else
+              //  pz_solver->m_p[i].q_ext=-q_spec*0.9;
         }
         printf("q_spec= %e \n",q_spec);
     }
@@ -997,7 +1036,7 @@ void spec(int key, int x, int y)
     {
         g_emitElectrons = false;
         g_t = 0;
-        g_phi = -275;
+        g_phi = -175;
         g_phi_max = g_phi;
         g_i_wall=0;
         multi_solver->init();
@@ -1005,8 +1044,13 @@ void spec(int key, int x, int y)
         g_q_enable = true;
         for (int kk=0;kk<300;kk++)
             multi_solver->solve(10);
-        g_phi_max *= -1;
+        g_phi_max =0.0;//*= -1;
+
+        for (int kk=0;kk<300;kk++)
+            multi_solver->solve(10);
+
         g_i_wall=g_i_wall_edge;
+                g_phi_max =175;//*= -1;
         for (int i=1; i<pz_solver->m_p_num;i++)
         {
             if (i<g_i_wall){
@@ -1018,11 +1062,13 @@ void spec(int key, int x, int y)
         }
         for (int kk=0;kk<100;kk++)
             multi_solver->solve(10);
-        g_q_enable = false;
+       // g_q_enable = false;
         g_emitElectrons = true;
         g_t=0;
         g_save_time=0;
         g_save_time2=0;
+
+        g_phi_max =175;//*= -1;
     }
     glutPostRedisplay();
 }
@@ -1088,7 +1134,7 @@ void kb(unsigned char key, int x, int y)
     if (key=='6')
     {
         // clearc=!clearc;
-        saveStatePZ();
+        saveStatePZ("out.state");
     }
 
     if (key=='7')

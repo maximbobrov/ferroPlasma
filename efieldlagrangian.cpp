@@ -36,13 +36,14 @@ void eFieldLagrangian::init()
     p[3].x=w_x0-30e-6;        p[3].y=0;
     p[4].x=p[0].x;            p[4].y=p[0].y;
 
-    int emit_1[4] = {1,0,0,1};
-    double dl[5] = {1 * 0.5e-6, 4e-6, 4e-6, 4e-6, 1 * 0.5e-6};
+    int emit_1[4] = {1,0,0,0};
+  //  double dl[5] = {0.5 * 0.125e-6, 2e-6, 4e-6, 2e-6, 0.5 * 0.25e-6};
 
-    //double dl[5] = {2e-6, 2e-6, 2e-6, 2e-6, 2e-6};
-    //addQuad(p,dl,-20 * 12.50,emit_1, w_y0+25e-6 + 0.5 * dl_pz, 30);
-    addQuad_stabilized(p,dl, -g_phi ,emit_1, w_y0+25e-6 + 0.5 * dl_pz, 30,0);
-    // addQuad2Layers(p,dl,-20 * 12.50,emit_1);
+      double dl[5] = {1.5 * 0.5e-6, 2e-6, 4e-6, 2e-6, 1.5 * 0.5e-6};
+
+ //   addQuad_stabilized(p,dl, -g_phi ,emit_1, w_y0+25e-6 + 0.5 * dl_pz, 30,0);
+
+       addQuad_noSmooth(p,dl, -g_phi ,emit_1, 0);
 
     printf("elecnum1 = %d\n", m_elec_num);
 
@@ -58,10 +59,10 @@ void eFieldLagrangian::init()
     double dl2 = coef * 2e-6;
     vec2 p2[2];
 
-    p2[1].x=w_x1-10e-6;               p2[1].y=-dl_pz-1e-6;
-    p2[0].x=w_x0-20e-6;         p2[0].y=-dl_pz-1e-6;
+    p2[1].x=w_x1-10e-6;               p2[1].y=-dl_pz;//-1e-6;
+    p2[0].x=w_x0-20e-6;         p2[0].y=-dl_pz;//-1e-6;
 
-    addLinePZ( p2, 3e-6,g_phi, 1e-6, 1);
+    addLine( p2, 3e-6,g_phi, 1e-6, 1);
     /*    double dl2[5] = {coef * 2e-6, coef * 2e-6,coef * 2e-6,coef * 2e-6,coef * 2e-6};
      * addQuad(p,dl2, g_phi,emit_2,  w_y0+25e-6 - 0.5 * dl_pz, 1,1);*/
     //addQuad_stabilized(p,dl2,20 * 12.50,emit_2,  w_y0+25e-6 - 0.5 * dl_pz, 1);
@@ -390,12 +391,7 @@ void eFieldLagrangian::addQuad_stabilized(vec2 p[5], double dl[5],double phi, in
         m_charges[m_chargeNum].x = xCoord[i];
         m_charges[m_chargeNum].y = yCoord[i];
         m_chargeNum++;
-        /* xCoord[i] = m_electrodes[i].r.x - m_electrodes[i].nx * m_electrodes[i].dl*1.0;
-        yCoord[i] = m_electrodes[i].r.y - m_electrodes[i].ny * m_electrodes[i].dl*1.0;
-        m_charges[m_chargeNum].x = xCoord[i];
-        m_charges[m_chargeNum].y = yCoord[i];
-        m_chargeNum++;*/
-        //additional monitoring points with 0 potentioal for stability.
+           //additional monitoring points with 0 potentioal for stability.
         // this leads to dimminishing of the practical surface potential by 2 times but the field direction is now stable
 
         m_electrodes[m_elec_num].INDX=I;
@@ -414,37 +410,10 @@ void eFieldLagrangian::addQuad_stabilized(vec2 p[5], double dl[5],double phi, in
     c_m.y/=c_m.charge;
 
     int n1=m_elec_num;
-
-
-    /*int i0 = m_chargeNum;
-    for (int i=i0;i<i0+m_elec_num;i++)
-    {
-        double x,y;
-        x = 0.955*(m_electrodes[i-i0].r.x -c_m.x)+c_m.x;
-        y = 0.955*(m_electrodes[i-i0].r.y -c_m.y)+c_m.y;
-
-        m_charges[m_chargeNum].x=x;
-        m_charges[m_chargeNum].y=y;
-        m_charges[m_chargeNum].charge=0.0;
-        m_chargeNum++;
-    }*/
-
-    /*m_charges[m_chargeNum].x=c_m.x;
-    m_charges[m_chargeNum].y=c_m.y;
-    m_charges[m_chargeNum].charge=0.0;
-    m_chargeNum++;*/
-    /*for (int i=0;i<4;i++)
-    {
-        double x,y;
-        x = 0.985*(p[i].x-c_m.x)+c_m.x;
-        y = 0.985*(p[i].y-c_m.y)+c_m.y;
-
-        m_charges[m_chargeNum].x=x;
-        m_charges[m_chargeNum].y=y;
-        m_charges[m_chargeNum].charge=0.0;
-        m_chargeNum++;
-    }*/
 }
+
+
+
 
 
 void eFieldLagrangian::addQuad(vec2 p[5], double dl[5],double phi, int emit[4], double coordYDIel, int smoothingCount, int I) //last point should coincide with the first one emit is the side number that can emit
@@ -593,6 +562,174 @@ void eFieldLagrangian::addQuad(vec2 p[5], double dl[5],double phi, int emit[4], 
         m_charges[m_chargeNum].charge=0.0;
         m_chargeNum++;
     }*/
+}
+
+
+
+void eFieldLagrangian::addQuad_noSmooth(vec2 p[5], double dl[5],double phi, int emit[4],int I) //last point should coincide with the first one emit is the side number that can emit
+{
+    static double l_[4];
+    static int n_[4];
+    vec2 p_inner[5],n_inner[5];
+    int n0=m_elec_num;
+    vec2 c_m(0,0,0);
+    double nx, ny;
+
+
+    for (int i=0;i<4;i++)
+    {
+
+        int ip,im;
+        ip=i+1;  if (ip>=4) ip=0;
+        im=i-1;  if (im<0) im=3;
+
+        double nx_m,ny_m,nx_p, ny_p,lp,lm,l;
+
+        nx_p = p[ip].y - p[i].y;
+        ny_p = -p[ip].x + p[i].x;
+        lp = sqrt(nx_p*nx_p + ny_p*ny_p);
+        nx_p /= lp;
+        ny_p /= lp;
+
+        nx_m = p[i].y - p[im].y;
+        ny_m = -p[i].x + p[im].x;
+        lm = sqrt(nx_m*nx_m + ny_m*ny_m);
+        nx_m /= lm;
+        ny_m /= lm;
+
+        nx=nx_m+nx_p;
+        ny=ny_m+ny_p;
+        l = sqrt(nx*nx + ny*ny);
+        nx /= l;
+        ny /= l;
+
+        n_inner[i].x=nx;
+        n_inner[i].y=ny;
+
+        nx*=dl[i];
+        ny*=dl[i];
+
+        p_inner[i].x=p[i].x-nx;
+        p_inner[i].y=p[i].y-ny;
+    }
+
+    p_inner[4]=p_inner[0];
+    n_inner[4]=n_inner[0];
+
+    for (int i=0;i<4;i++)
+    {
+        nx = p[i+1].y - p[i].y;
+        ny = -p[i+1].x + p[i].x;
+        l_[i]=sqrt((p[i+1].x-p[i].x)*(p[i+1].x-p[i].x)+(p[i+1].y-p[i].y)*(p[i+1].y-p[i].y));
+        double q;
+        double s=0;
+        getProgrCoef(dl[i], dl[i+1], l_[i], n_[i], q);
+        //printf("ni=%d\n",n_[i]);//n_[i]-=2;
+        if(n_[i]<=4)
+            n_[i]-=2;
+        double l = dl[i];
+        for (int j=0;j<n_[i]-1;j++)
+        {
+
+            double alpha=s*1.0/(l_[i]);
+            double x,y;
+            x = p[i].x*(1.0-alpha)+p[i+1].x*(alpha);
+            y = p[i].y*(1.0-alpha)+p[i+1].y*(alpha);
+
+            m_electrodes[m_elec_num].INDX=I;
+            m_electrodes[m_elec_num].r.x=x;
+            m_electrodes[m_elec_num].r.y=y;
+            m_electrodes[m_elec_num].dl=l;
+
+            m_electrodes[m_elec_num].phi_fix=phi*2;
+            m_electrodes[m_elec_num].phi_ext=0.0;
+
+            if (emit[i]>0)
+                m_electrodes[m_elec_num].canEmit=true;
+            else
+                m_electrodes[m_elec_num].canEmit=false;
+
+
+            m_electrodes[m_elec_num].nx = nx / sqrt(nx*nx + ny*ny);
+            m_electrodes[m_elec_num].ny = ny / sqrt(nx*nx + ny*ny);
+
+            if (j==0) //corner points
+            {
+                m_electrodes[m_elec_num].nx = n_inner[i].x;
+                m_electrodes[m_elec_num].ny =  n_inner[i].y;
+            }
+
+            m_electrodes[m_elec_num].eToEmit=0.0;
+
+            m_elec_num++;
+
+            c_m.x+=x;
+            c_m.y+=y;
+            c_m.charge+=1.0;
+
+            l = dl[i] * pow(q,j);
+            s+=l;
+
+          /*  //now fopr charges
+
+            x = p_inner[i].x*(1.0-alpha)+p_inner[i+1].x*(alpha);
+            y = p_inner[i].y*(1.0-alpha)+p_inner[i+1].y*(alpha);
+
+            m_charges[m_chargeNum].x = x;
+            m_charges[m_chargeNum].y = y;
+
+            m_chargeNum++;*/
+        }
+
+        printf("i=%d ni=%d li=%e cuur_num=%d \n",i,n_[i],l_[i],m_elec_num);
+    }
+    static double xCoord[1000];
+    static double yCoord[1000];
+
+    for (int i=n0;i<m_elec_num;i++)
+    {
+        xCoord[i] = m_electrodes[i].r.x;
+        yCoord[i] = m_electrodes[i].r.y;
+    }
+
+
+    /*int el_num0=m_elec_num;
+    for (int i=n0;i<el_num0;i++)
+    {
+        xCoord[i] = m_electrodes[i].r.x - m_electrodes[i].nx * m_electrodes[i].dl*0.5;
+        yCoord[i] = m_electrodes[i].r.y - m_electrodes[i].ny * m_electrodes[i].dl*0.5;
+        m_charges[m_chargeNum].x = xCoord[i];
+        m_charges[m_chargeNum].y = yCoord[i];
+        m_chargeNum++;
+    }*/
+
+
+    int el_num0=m_elec_num;
+    for (int i=n0;i<el_num0/*m_elec_num*/;i++)
+    {
+        xCoord[i] = m_electrodes[i].r.x - m_electrodes[i].nx * m_electrodes[i].dl*0.5;
+        yCoord[i] = m_electrodes[i].r.y - m_electrodes[i].ny * m_electrodes[i].dl*0.5;
+        m_charges[m_chargeNum].x = xCoord[i];
+        m_charges[m_chargeNum].y = yCoord[i];
+        m_chargeNum++;
+           //additional monitoring points with 0 potentioal for stability.
+        // this leads to dimminishing of the practical surface potential by 2 times but the field direction is now stable
+
+        m_electrodes[m_elec_num].INDX=I;
+        m_electrodes[m_elec_num].r.x=xCoord[i];
+        m_electrodes[m_elec_num].r.y=yCoord[i];
+        m_electrodes[m_elec_num].phi_fix=phi*0.0;
+        m_electrodes[m_elec_num].phi_ext=0.0;
+        m_electrodes[m_elec_num].canEmit=false;
+        m_electrodes[m_elec_num].nx = m_electrodes[i].nx ;
+        m_electrodes[m_elec_num].ny = m_electrodes[i].ny;
+        m_electrodes[m_elec_num].eToEmit=0.0;
+        m_elec_num++;
+    }
+
+
+    c_m.x/=c_m.charge;
+    c_m.y/=c_m.charge;
 }
 
 void eFieldLagrangian::addLine(vec2 p[2], double dl,double phi, double h, int I) //last point should coincide with the first one emit is the side number that can emit
