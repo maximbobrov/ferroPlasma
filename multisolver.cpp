@@ -232,7 +232,7 @@ void multiSolver::updateTrajTable()
     }
 
 
-    dt_elec=fmin(electrons_in_pack/full_flux,1e-9);
+    dt_elec=fmin(electrons_in_pack/full_flux,1e-8);
     //dt_elec=fmin(electrons_in_pack/max_flux,1e-9);
 
 

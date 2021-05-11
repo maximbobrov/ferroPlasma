@@ -406,13 +406,13 @@ void draw_electrode()
             double a=nx*E_x+ny*E_y;
 
             glVertex3f(x + E_x,y + E_y,0.0);
-            glColor3f(1,0,1);
+            /*glColor3f(1,0,1);
             glVertex3f(x,y,0.0);
 
             E_x =ck*nx* scale;//*(lagr_solver->m_electrodes[i].eCurrent)*35e-13;
             E_y = ck*ny * scale;//*(lagr_solver->m_electrodes[i].eCurrent)*35e-13;
 
-            glVertex3f(x + E_x,y + E_y,-30e-7);
+            glVertex3f(x + E_x,y + E_y,-30e-7);*/
         }
     }
     glEnd();
@@ -483,12 +483,6 @@ void display(void)
     {
         if(progress>1.0)
         {
-            if (fileNum>0)
-            {
-                   char nme[1000];
-                  sprintf(nme, "output_%dV_%d.state",int(g_phi_max), fileNum);
-                  saveStatePZ(nme);
-            }
 
             if(file_data)
                 fclose(file_data);
@@ -561,7 +555,17 @@ void display(void)
             wall_coord = pz_solver->m_p[i].r_top.x - pz_solver->m_p[0].r_top.x;
 
         }
+        double prev=progress*10;
         progress +=fabs(g_phi_max/175.0)/2000.0 ;//(g_t / multi_solver->dt_elec)/((g_phi / 10 + 1) * 5000.0);
+        int i_=(int) (progress*10.0);
+        if ((progress*10.0-i_>0)&&(prev-i_<0))
+        {
+               char nme[1000];
+              sprintf(nme, "output_%dV_%d(%e)%d.state",int(g_phi_max), fileNum,g_t,int(progress*100));
+              saveStatePZ(nme);
+        }
+
+
     }
 
     if (clearc)
