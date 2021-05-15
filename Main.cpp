@@ -1038,8 +1038,8 @@ void spec(int key, int x, int y)
 
     if (key==GLUT_KEY_HOME)
     {
-        multi_solver->dt_elec = 3e-11 / 1e3;
-        double phi = 25;
+        multi_solver->dt_elec = 3e-11 / 1e6;
+        double phi = 200;
         g_emitElectrons = false;
         g_t = 0;
         g_phi = -phi;

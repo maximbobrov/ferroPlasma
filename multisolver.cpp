@@ -14,7 +14,7 @@ int traj_table_calculated=0;
 
 void multiSolver::solvePzAdaptive(double dtElec)
 {
-    double gamma = 1e3;
+    double gamma = 1e6;
     m_pzSolver->m_dt = 1e-11;
     for (int aa=0;aa<int(dtElec *  gamma/1e-11);aa++)
     {
