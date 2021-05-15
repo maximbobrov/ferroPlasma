@@ -37,13 +37,12 @@ void eFieldLagrangian::init()
     p[4].x=p[0].x;            p[4].y=p[0].y;
 
     int emit_1[4] = {1,0,0,0};
-   double dl[5] = {0.5 * 0.125e-6, 2e-6, 4e-6, 2e-6, 0.5 * 0.25e-6};
+    //double dl[5] = {0.5 * 0.125e-6, 2e-6, 4e-6, 2e-6, 0.5 * 0.25e-6};
+    double dl[5] = {1. * 0.5e-6, 2e-6, 4e-6, 2e-6, 1.0 * 0.5e-6};
 
-    //  double dl[5] = {1.5 * 0.5e-6, 2e-6, 4e-6, 2e-6, 1.5 * 0.5e-6};
+    //   addQuad_stabilized(p,dl, -g_phi ,emit_1, w_y0+25e-6 + 0.5 * dl_pz, 30,0);
 
- //   addQuad_stabilized(p,dl, -g_phi ,emit_1, w_y0+25e-6 + 0.5 * dl_pz, 30,0);
-
-       addQuad_noSmooth(p,dl, -g_phi ,emit_1, 0);
+    addQuad_noSmooth(p,dl, -g_phi ,emit_1, 0);
 
     printf("elecnum1 = %d\n", m_elec_num);
 
@@ -391,7 +390,7 @@ void eFieldLagrangian::addQuad_stabilized(vec2 p[5], double dl[5],double phi, in
         m_charges[m_chargeNum].x = xCoord[i];
         m_charges[m_chargeNum].y = yCoord[i];
         m_chargeNum++;
-           //additional monitoring points with 0 potentioal for stability.
+        //additional monitoring points with 0 potentioal for stability.
         // this leads to dimminishing of the practical surface potential by 2 times but the field direction is now stable
 
         m_electrodes[m_elec_num].INDX=I;
@@ -670,7 +669,7 @@ void eFieldLagrangian::addQuad_noSmooth(vec2 p[5], double dl[5],double phi, int 
             l = dl[i] * pow(q,j);
             s+=l;
 
-          /*  //now fopr charges
+            /*  //now fopr charges
 
             x = p_inner[i].x*(1.0-alpha)+p_inner[i+1].x*(alpha);
             y = p_inner[i].y*(1.0-alpha)+p_inner[i+1].y*(alpha);
@@ -712,7 +711,7 @@ void eFieldLagrangian::addQuad_noSmooth(vec2 p[5], double dl[5],double phi, int 
         m_charges[m_chargeNum].x = xCoord[i];
         m_charges[m_chargeNum].y = yCoord[i];
         m_chargeNum++;
-           //additional monitoring points with 0 potentioal for stability.
+        //additional monitoring points with 0 potentioal for stability.
         // this leads to dimminishing of the practical surface potential by 2 times but the field direction is now stable
 
         m_electrodes[m_elec_num].INDX=I;
@@ -734,7 +733,7 @@ void eFieldLagrangian::addQuad_noSmooth(vec2 p[5], double dl[5],double phi, int 
 
 void eFieldLagrangian::addLine(vec2 p[2], double dl,double phi, double h, int I) //last point should coincide with the first one emit is the side number that can emit
 {
-   int n0=m_elec_num;
+    int n0=m_elec_num;
     double n = (p[1].x - p[0].x) / dl;
     for (int i=0;i< n;i++)
     {
@@ -770,7 +769,7 @@ void eFieldLagrangian::addLine(vec2 p[2], double dl,double phi, double h, int I)
 
 void eFieldLagrangian::addLinePZ(vec2 p[2], double dl,double phi, double h, int I) //last point should coincide with the first one emit is the side number that can emit
 {
-   int n0=m_elec_num;
+    int n0=m_elec_num;
     /////////////////line similar to pz
     double _dx;
     int m_p_num=100;
@@ -780,8 +779,8 @@ void eFieldLagrangian::addLinePZ(vec2 p[2], double dl,double phi, double h, int 
 
     for (int i=0;i< m_p_num;i++)
     {
-       double x = w_x0 + _dx * i -18e-6;;
-       double y = p[0].y*(1.0-alpha)+p[1].y*(alpha);
+        double x = w_x0 + _dx * i -18e-6;;
+        double y = p[0].y*(1.0-alpha)+p[1].y*(alpha);
 
         m_electrodes[m_elec_num].INDX=I;
         m_electrodes[m_elec_num].r.x=x;

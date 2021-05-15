@@ -11,6 +11,27 @@ double to_pzDown_from_pz[1100][1100];
 
 
 int traj_table_calculated=0;
+
+void multiSolver::solvePzAdaptive(double dtElec)
+{
+    double gamma = 1e3;
+    m_pzSolver->m_dt = 1e-11;
+    for (int aa=0;aa<int(dtElec *  gamma/1e-11);aa++)
+    {
+        m_pzSolver->get_q();
+        updateEforPz();
+
+        m_pzSolver->solvePz(4);
+        m_pzSolver->step();
+        // m_pzSolver->solvePz_steady(10);
+    }
+    m_pzSolver->m_dt = dtElec * gamma - 1e-11 * int(dtElec * gamma/1e-11);
+    m_pzSolver->get_q();
+    updateEforPz();
+
+    m_pzSolver->solvePz(4);
+    m_pzSolver->step();
+}
 void multiSolver::solve(int itn)
 {
     for (int i=0;i<m_Esolver->m_elec_num;i++)
@@ -40,7 +61,9 @@ void multiSolver::solve(int itn)
 
         }
         m_Esolver->solve_ls_fast();
-        for (int aa=0;aa<3;aa++)
+        solvePzAdaptive(dt_elec);
+
+        /*for (int aa=0;aa<3;aa++)
         {
             m_pzSolver->get_q();
             updateEforPz();
@@ -48,23 +71,24 @@ void multiSolver::solve(int itn)
             m_pzSolver->solvePz(4);
             m_pzSolver->step();
             // m_pzSolver->solvePz_steady(10);
-        }
+        }*/
     }
+    printf("dt_elec = %e\n", dt_elec);
     g_t+=dt_elec;
     g_save_time+=dt_elec;
     g_save_time2+=dt_elec;
     if (g_emitElectrons)
     {
-       electronEmissionEndMoveToElectrode(dt_elec);
-         pzEmission_self(dt_elec);
-       //pzEmission_monte_carlo(15e-15,100,0.0003);//0.0003);
-      //   pzEmission_monte_carlo(15e-15,200,0.12);//0.0003);
+        electronEmissionEndMoveToElectrode(dt_elec);
+        pzEmission_self(dt_elec);
+        //pzEmission_monte_carlo(15e-15,100,0.0003);//0.0003);
+        //   pzEmission_monte_carlo(15e-15,200,0.12);//0.0003);
     }else
     {
- //pzEmission_monte_carlo(15e-15,100,0.0003);
-      //   pzEmission(dt_elec);
+        //pzEmission_monte_carlo(15e-15,100,0.0003);
+        //   pzEmission(dt_elec);
         //pzEmission_monte_carlo(15e-15,200,0.12);//0.0003);
-     //  printf("AAAA\n");
+        //  printf("AAAA\n");
     }
 
 
@@ -116,7 +140,7 @@ void multiSolver::updateEforPz()
 
     double zl=1.0/m_pzSolver->m_p[0].dl;
     for (int i=0;i<m_pzSolver->m_p_num;i++)
-    { 
+    {
         double phi_up=getPhi_at_pz_up(i);
         double phi_down=getPhi_at_pz_down(i);
 
@@ -237,7 +261,7 @@ void multiSolver::updateTrajTable()
 
 
 
-   // printf("full_flux= %e maxL = %e el/s dt=%e t=%e phi=%f \n",full_flux,l_max,dt_elec,g_t,m_Esolver->m_electrodes[0].phi_fix);
+    printf("full_flux= %e maxL = %e el/s dt=%e t=%e phi=%f \n",full_flux,l_max,dt_elec,g_t,m_Esolver->m_electrodes[0].phi_fix);
 
 
     for (int i=0;i<m_Esolver->m_elec_num;i++) {
@@ -456,7 +480,7 @@ void multiSolver::pzEmission(double dt)
     double yy=0;//m_pzSolver->m_p[0].r_top.y;
 
 
-   for (int itn=0;itn<180;itn++)
+    for (int itn=0;itn<180;itn++)
     {
         double b = 1e-12;//1e-12;
         static vec2 Ef[1000];
@@ -466,7 +490,7 @@ void multiSolver::pzEmission(double dt)
             vec2 r;
             r.x=m_pzSolver->m_p[i].r_top.x;
             r.y=yy;
-           //Ef[i] = get_slow_E(r.x,r.y);
+            //Ef[i] = get_slow_E(r.x,r.y);
         }
 
         for (int i=1;i<m_pzSolver->m_p_num-1;i++)
@@ -477,21 +501,21 @@ void multiSolver::pzEmission(double dt)
                 r.y=yy;
 
                 vec2 E_l,E_r,E_;
-                 E_l.x = -(getPhi_at_pz_up(i) - getPhi_at_pz_up(i-1))/(m_pzSolver->m_p[i-1].r_top.x - m_pzSolver->m_p[i].r_top.x);//get_slow_E(r.x,r.y);//Ef[i];
-                 E_r.x = -(getPhi_at_pz_up(i+1) - getPhi_at_pz_up(i))/(m_pzSolver->m_p[i+1].r_top.x - m_pzSolver->m_p[i].r_top.x);//get_slow_E(r.x,r.y);//Ef[i];
+                E_l.x = -(getPhi_at_pz_up(i) - getPhi_at_pz_up(i-1))/(m_pzSolver->m_p[i-1].r_top.x - m_pzSolver->m_p[i].r_top.x);//get_slow_E(r.x,r.y);//Ef[i];
+                E_r.x = -(getPhi_at_pz_up(i+1) - getPhi_at_pz_up(i))/(m_pzSolver->m_p[i+1].r_top.x - m_pzSolver->m_p[i].r_top.x);//get_slow_E(r.x,r.y);//Ef[i];
 
-                 if (fabs(E_l.x)>fabs(E_r.x))  E_.x=E_l.x;
-                 else E_.x=E_r.x;
+                if (fabs(E_l.x)>fabs(E_r.x))  E_.x=E_l.x;
+                else E_.x=E_r.x;
                 //double qq = fabs(E_.x * b + (rand()*2.0/RAND_MAX-1.0)*0.01) * (m_pzSolver->m_p[i].q_ext - m_pzSolver->m_p[i].q_0) ;
 
-                    int if_sum=(m_pzSolver->m_p[i].q_ext + m_pzSolver->m_p[i].q) > 0;
-                    int if_qext=m_pzSolver->m_p[i].q_ext > 0;
-                 double qq = fabs(E_.x * b ) * (m_pzSolver->m_p[i].q_ext + m_pzSolver->m_p[i].q) * if_sum * if_qext ;
+                int if_sum=(m_pzSolver->m_p[i].q_ext + m_pzSolver->m_p[i].q) > 0;
+                int if_qext=m_pzSolver->m_p[i].q_ext > 0;
+                double qq = fabs(E_.x * b ) * (m_pzSolver->m_p[i].q_ext + m_pzSolver->m_p[i].q) * if_sum * if_qext ;
 
                 if(qq > (m_pzSolver->m_p[i].q_ext + m_pzSolver->m_p[i].q)*if_sum * if_qext)
                     qq  = (m_pzSolver->m_p[i].q_ext + m_pzSolver->m_p[i].q)* if_sum * if_qext;
 
-                  //  double qq = fabs(E_.x * b ) * (m_pzSolver->m_p[i].q_ext ) * if_qext ;
+                //  double qq = fabs(E_.x * b ) * (m_pzSolver->m_p[i].q_ext ) * if_qext ;
                 m_pzSolver->m_p[i].q_ext-=qq;
                 if(E_.x>0 && i != 0)
                     m_pzSolver->m_p[i-1].q_ext+=qq;
@@ -506,10 +530,10 @@ void multiSolver::pzEmission(double dt)
 
 void multiSolver::pzEmission_self(double dt)
 {
-  //  printf("AAAAAAAAAAA!!!\n");
+    //  printf("AAAAAAAAAAA!!!\n");
     double yy=0;//m_pzSolver->m_p[0].r_top.y;
 
-   for (int itn=0;itn<180;itn++)
+    for (int itn=0;itn<180;itn++)
     {
         double b = 1e-5;//1e-12;
         static vec2 Ef[1000];
@@ -519,7 +543,7 @@ void multiSolver::pzEmission_self(double dt)
             vec2 r;
             r.x=m_pzSolver->m_p[i].r_top.x;
             r.y=yy;
-           //Ef[i] = get_slow_E(r.x,r.y);
+            //Ef[i] = get_slow_E(r.x,r.y);
         }
 
         for (int i=1;i<m_pzSolver->m_p_num-1;i++)
@@ -536,18 +560,18 @@ void multiSolver::pzEmission_self(double dt)
                 E_l.x=(m_pzSolver->m_p[i].E-m_pzSolver->m_p[i-1].E)*m_pzSolver->m_p[i].dl/(m_pzSolver->m_p[1].r_top.x - m_pzSolver->m_p[0].r_top.x);
                 E_r.x=(m_pzSolver->m_p[i+1].E-m_pzSolver->m_p[i].E)*m_pzSolver->m_p[i].dl/(m_pzSolver->m_p[1].r_top.x - m_pzSolver->m_p[0].r_top.x);
 
-                 if (fabs(E_l.x)>fabs(E_r.x))  E_.x=E_l.x;
-                 else E_.x=E_r.x;
+                if (fabs(E_l.x)>fabs(E_r.x))  E_.x=E_l.x;
+                else E_.x=E_r.x;
                 //double qq = fabs(E_.x * b + (rand()*2.0/RAND_MAX-1.0)*0.01) * (m_pzSolver->m_p[i].q_ext - m_pzSolver->m_p[i].q_0) ;
 
-                    int if_sum=(m_pzSolver->m_p[i].q_ext + m_pzSolver->m_p[i].q) > 0;
-                    int if_qext=m_pzSolver->m_p[i].q_ext > 0;
-                 double qq = fabs(E_.x * b ) * (m_pzSolver->m_p[i].q_ext + m_pzSolver->m_p[i].q) * if_sum * if_qext ;
+                int if_sum=(m_pzSolver->m_p[i].q_ext + m_pzSolver->m_p[i].q) > 0;
+                int if_qext=m_pzSolver->m_p[i].q_ext > 0;
+                double qq = fabs(E_.x * b ) * (m_pzSolver->m_p[i].q_ext + m_pzSolver->m_p[i].q) * if_sum * if_qext ;
 
                 if(qq > (m_pzSolver->m_p[i].q_ext + m_pzSolver->m_p[i].q)*if_sum * if_qext)
                     qq  = (m_pzSolver->m_p[i].q_ext + m_pzSolver->m_p[i].q)* if_sum * if_qext;
 
-                  //  double qq = fabs(E_.x * b ) * (m_pzSolver->m_p[i].q_ext ) * if_qext ;
+                //  double qq = fabs(E_.x * b ) * (m_pzSolver->m_p[i].q_ext ) * if_qext ;
                 m_pzSolver->m_p[i].q_ext-=qq;
                 if(E_.x>0 && i != 0)
                     m_pzSolver->m_p[i-1].q_ext+=qq;
@@ -579,7 +603,7 @@ void multiSolver::pzEmissionHoriz(double dt)
                 int p_n=E_.x > 0 ? i-1 : i+1;
 
                 double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
-               // double delta=1e-6;
+                // double delta=1e-6;
                 double d2=delta_phi*delta_phi;
                 double r2;
                 double dy,dx;
@@ -627,15 +651,15 @@ void multiSolver::pzEmission_monte_carlo(double dt,int itn,double rat)
                 if (r.y<yy) break;
             }
 
-                int p_n= (int) ((r.x - m_pzSolver->m_p[0].r_top.x + 0.5 * m_pzSolver->m_dx) / m_pzSolver->m_dx);
-                if (p_n<0) p_n=0;
-                if (p_n>m_pzSolver->m_p_num-1) p_n=m_pzSolver->m_p_num-1;
+            int p_n= (int) ((r.x - m_pzSolver->m_p[0].r_top.x + 0.5 * m_pzSolver->m_dx) / m_pzSolver->m_dx);
+            if (p_n<0) p_n=0;
+            if (p_n>m_pzSolver->m_p_num-1) p_n=m_pzSolver->m_p_num-1;
 
-                if (p_n!=i)
-                {
-                    m_pzSolver->m_p[i].q_ext -= q_delta*rat;
-                    m_pzSolver->m_p[p_n].q_ext += q_delta*rat;
-                }
+            if (p_n!=i)
+            {
+                m_pzSolver->m_p[i].q_ext -= q_delta*rat;
+                m_pzSolver->m_p[p_n].q_ext += q_delta*rat;
+            }
         }
     }
 }
@@ -647,7 +671,7 @@ void multiSolver::prepare_caches()
     static double qepspi = qe/(eps0*pi2);
     double r;
     double dx,dy;
-   // double delta=1e-6;
+    // double delta=1e-6;
 
     for (int n=0;n<m_Esolver->m_elec_num;n++)
     {

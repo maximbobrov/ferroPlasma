@@ -88,7 +88,7 @@ static double timePrev = 0;
 
 void draw_traj()
 {
-    static double y_max = w_y0 + 3 *(w_y1-w_y0)/5;
+    static double y_max = w_y0 + 5 *(w_y1-w_y0)/5;
     double min_curr=1e10;
     double max_curr=1e-20;
 
@@ -1038,9 +1038,11 @@ void spec(int key, int x, int y)
 
     if (key==GLUT_KEY_HOME)
     {
+        multi_solver->dt_elec = 3e-11 / 1e3;
+        double phi = 25;
         g_emitElectrons = false;
         g_t = 0;
-        g_phi = -175;
+        g_phi = -phi;
         g_phi_max = g_phi;
         g_i_wall=0;
         multi_solver->init();
@@ -1054,7 +1056,7 @@ void spec(int key, int x, int y)
             multi_solver->solve(10);
 
         g_i_wall=g_i_wall_edge;
-                g_phi_max =175;//*= -1;
+                g_phi_max =phi;//*= -1;
         for (int i=1; i<pz_solver->m_p_num;i++)
         {
             if (i<g_i_wall){
@@ -1072,7 +1074,7 @@ void spec(int key, int x, int y)
         g_save_time=0;
         g_save_time2=0;
 
-        g_phi_max =175;//*= -1;
+        g_phi_max =phi;//*= -1;
     }
     glutPostRedisplay();
 }

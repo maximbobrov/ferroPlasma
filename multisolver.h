@@ -28,6 +28,7 @@ public:
     void updateTrajTable();
     int  getEndPos(int i);
     void solve(int itn);
+    void solvePzAdaptive(double dtElec);
         void solve__(int itn); //debug purposes
     void init();
     void step();
