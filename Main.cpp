@@ -270,7 +270,7 @@ void draw_charges_pz_1d()
         else
             glColor3f(0.0,0.4,0.9);
 
-        glVertex2f(pz_solver->m_p[i].r_top.x, 100e-1 * scale * (pz_solver->m_p[i].q_ext + pz_solver->m_p[i].q) * (w_y1 - w_y0)-5e-6);
+        //glVertex2f(pz_solver->m_p[i].r_top.x, 100e-1 * scale * (pz_solver->m_p[i].q_ext + pz_solver->m_p[i].q) * (w_y1 - w_y0)-5e-6);
 
     }
     glEnd();
@@ -464,19 +464,19 @@ void display(void)
 
     if (redr==1)
     {
-        double t0 = get_time();
+       // double t0 = get_time();
         multi_solver->fast_Fields_recalculate();
         multi_solver->slower_Fields_recalculate();
         multi_solver->updateTrajTable();
-        double t1 = get_time();
+      //  double t1 = get_time();
         for (int i=0;i<5;i++)
             multi_solver->solve(10);
-        double t2 = get_time();
+    //    double t2 = get_time();
 
         updateEulFields();
-        double t3 =get_time();
+      //  double t3 =get_time();
 
-        printf("traj_upd_time=%e solve_time=%e eul_fields_time=%e \n", t1-t0, t2-t1,t3-t2);
+       // printf("traj_upd_time=%e solve_time=%e eul_fields_time=%e \n", t1-t0, t2-t1,t3-t2);
     }
     double wall_coord;
     if(serialRegime)
@@ -1039,7 +1039,7 @@ void spec(int key, int x, int y)
     if (key==GLUT_KEY_HOME)
     {
         multi_solver->dt_elec = 3e-11 / 1e6;
-        double phi = 200;
+        double phi = 3000;
         g_emitElectrons = false;
         g_t = 0;
         g_phi = -phi;

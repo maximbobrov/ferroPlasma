@@ -30,6 +30,8 @@
 
 #define dl_pz (1.0 * 50e-6)
 #define eps_pz 100
+
+#define MP_DIV 1
 /*#define w_x0 0.0
 #define w_x1 1.0e-5
 

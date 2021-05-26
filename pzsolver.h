@@ -29,6 +29,7 @@ public:
     void init();
     void solvePz(int itn);
     void solvePz_steady(int itn);
+    void solvePzDOPRI(int itn);
     void getRHS();
     void get_q();
     void step();

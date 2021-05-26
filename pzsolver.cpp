@@ -1,13 +1,14 @@
 #include "pzsolver.h"
 #include "globals.h"
+#include "pzsolver.h"
 
 
 pzSolver::pzSolver()
 {
-    this->m_p_num=300;
+    this->m_p_num=100;
     m_p=new pElem[m_p_num];
     m_rCentre=new vec2[2 * m_p_num];
-    m_dt=1e-11;//15.0*45e-14;//1e-11;
+    m_dt=1e-7;//15.0*45e-14;//1e-11;
 
     init();
 }
@@ -23,7 +24,7 @@ void pzSolver::init()
     {
         m_p[i].dl=dl_pz;// - 1e-6; //100 nm width;
         //double alpha=i*1.0/(m_p_num-1);
-        m_p[i].r_top.x = w_x0 + m_dx * (i-g_i_wall_edge+5);// -18e-6;//(w_x0/*-25e-6*/)*(1.0-alpha)+w_x1*alpha;
+        m_p[i].r_top.x = w_x0 + m_dx * (i-g_i_wall_edge);// -18e-6;//(w_x0/*-25e-6*/)*(1.0-alpha)+w_x1*alpha;
         m_p[i].r_top.y = 0.0;//(w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
 
         //m_p[i].r_top.x = ;m_p[i].r.x;
@@ -56,7 +57,7 @@ void pzSolver::init()
         m_p[i].q_0=m_p[i].q_ext;
     }
     //m_dx = 1e-9;
-    kappa=200000.0*1.38e-10*0.15;//1000000.1 * 1.38e-10*0.15;//1.38e-10*0.15;
+    kappa=1.1 * 1.38e-11;//1000000.1 * 1.38e-10*0.15;//1.38e-10*0.15;
     m_par.a=(1.0/(m_dt))+(kappa*2.0/(m_dx*m_dx));
     m_par.bp=-kappa/(m_dx*m_dx);
     m_par.bm=-kappa/(m_dx*m_dx);
@@ -217,7 +218,7 @@ void pzSolver::solvePz(int itn)
             // if (i==N_X-2) f_xp=field[1][j];
 
             rhs_=m_p[i].RHS-(b_p*f_xp+b_m*f_xm);
-            m_p[i].p=m_p[i].p*0.7+0.3*solve_poly(poly_new,m_p[i].p,rhs_,3);
+            m_p[i].p=m_p[i].p*0.5+0.5*solve_poly(poly_new,m_p[i].p,rhs_,3);
         }
     }
 
@@ -225,6 +226,53 @@ void pzSolver::solvePz(int itn)
 
 }
 
+static const double a21 = 1.0 / 5.0,        a31 = 3.0 / 40.0,        a32 = 9.0 / 40.0
+        ,                   a41 = 44.0 / 45.0,      a42 = -56.0 / 15.0,      a43 = 32.0 / 9.0
+        ,                   a51 = 19372.0 / 6561.0, a52 = -25360.0 / 2187.0, a53 = 64448.0 / 6561.0
+        ,                   a54 = -212.0 / 729.0,   a61 = 9017.0 / 3168.0,   a62 = -355.0 / 33.0
+        ,                   a63 = 46732.0 / 5247.0, a64 = 49.0 / 176.0,      a65 = -5103.0 / 18656.0
+        ,                   a71 = 35.0 / 384.0,     a72 = 0.0,               a73 = 500.0 / 1113.0
+        ,                   a74 = 125.0 / 192.0,    a75 = -2187.0 / 6784.0,  a76 = 11.0 / 84.0;
+
+void pzSolver::solvePzDOPRI(int itn)
+{
+    double  K1, K2, K3, K4, K5, K6, K7;
+    double alp,bet,gam,T,T0,rh;
+    alp=3.324e5;
+    bet=6.381e8;
+    gam=7.89e9;
+    T=300;
+    T0=381;
+    rh=0.0;
+    poly poly_new;
+    poly_new.order=5;
+    poly_new.C[0]=-2*alp*(T-T0);//(T-T0); //x
+    poly_new.C[1]=0.0;              //xx
+    poly_new.C[2]=4.0*bet;    //xxx
+    poly_new.C[3]=0.0;              //x^4
+    poly_new.C[4]=-6.0*gam;     //
+    for (int i=0; i<m_p_num; i++)
+    {
+        double currStep = m_dt;
+        double val = m_p[i].p;
+
+        double rhs_;
+        rhs_=-m_p[i].E+((m_p[i-1].p - 2 * m_p[i].p +m_p[i+1].p) * kappa/(m_dx*m_dx));
+        K1 = calc_poly(poly_new,rhs_,val);
+        K2 = val + currStep * (a21 * K1);
+        K2 = calc_poly(poly_new,rhs_,K2);
+        K3 = val + currStep * (a31 * K1 + a32 * K2);
+        K3 = calc_poly(poly_new,rhs_,K3);
+        K4 = val + currStep * (a41 * K1 + a42 * K2 + a43 * K3);
+        K4 = calc_poly(poly_new,rhs_,K4);
+        K5 = val + currStep * (a51 * K1 + a52 * K2 + a53 * K3 + a54 * K4);
+        K5 = calc_poly(poly_new,rhs_,K5);
+        K6 = val + currStep * (a61 * K1 + a62 * K2 + a63 * K3 + a64 * K4 + a65 * K5);
+        K6 = calc_poly(poly_new,rhs_,K6);
+        K7 = val + currStep * (a71 * K1 + a73 * K3 + a74 * K4 + a75 * K5 + a76 * K6);
+        m_p[i].p = K7;
+    }
+}
 
 void pzSolver::solvePz_steady(int itn) //1d steady state version
 {
@@ -344,15 +392,17 @@ void pzSolver::get_q() //all charges are in elementary
                 m_p[i].q_ext=-m_p[i].q;
             }
         }
+    }
 
-        m_p[i].r_top.charge=m_p[i].q+m_p[i].q_ext;
-        /*if (m_p[i].r.x<w_x0+50e-6 && m_p[i].r.x>w_x0+25e-6)
-        {
-            m_p[i].q=0.0;
-            m_p[i].q_ext=0.0;
-        }*/
+    for (int i=0;i<m_p_num;i+=MP_DIV)
+    {
+        m_p[i].r_top.charge=0.0;
+        for (int j=0;j<MP_DIV;j++)
+            m_p[i].r_top.charge += m_p[i + j].q + m_p[i + j].q_ext;
 
     }
+
+
 
 
 
@@ -365,7 +415,7 @@ void pzSolver::get_q() //all charges are in elementary
 
 void pzSolver::step()
 {
-    for (int i=0; i<m_p_num-1; i++)
+    for (int i=0; i<m_p_num; i++)
     {
         m_p[i].p_prev=m_p[i].p;
         m_p[i].E_prev=m_p[i].E;
@@ -383,7 +433,7 @@ vec2 pzSolver::getEdepol(double x, double y)
     double d2=delta_phi*delta_phi;
     double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
 
-    for (int i=0;i<m_p_num;i++)
+    for (int i=0;i<m_p_num;i+=MP_DIV)
     {
         double r2;
         double q;
@@ -421,7 +471,7 @@ double pzSolver::getPhidepol(double x, double y)
     //double delta=1e-6;
 
     double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
-    for (int i=0;i<m_p_num;i++)
+    for (int i=0;i<m_p_num;i+=MP_DIV)
     {
         //    int i=1;
         dx = m_p[i].r_top.x - x;
@@ -453,7 +503,7 @@ double pzSolver::getE_self(int j)
     double x=m_p[j].r_top.x;
     double y=m_p[j].r_top.y;
 
-    for (int i=0;i<m_p_num;i++)
+    for (int i=0;i<m_p_num;i+=MP_DIV)
     {
         //    int i=1;
         dx = m_p[i].r_top.x - x;
@@ -474,7 +524,7 @@ double pzSolver::getE_self(int j)
     y=m_p[j].r_top.y - m_p[j].dl;
 
     double sum_b=0.0;
-    for (int i=0;i<m_p_num;i++)
+    for (int i=0;i<m_p_num;i+=MP_DIV)
     {
         //    int i=1;
         dx = m_p[i].r_top.x - x;

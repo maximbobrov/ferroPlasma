@@ -21,7 +21,7 @@ public:
     multiSolver();
 
     void updateEforPz();
-    void updateEforPz_self();
+   // void updateEforPz_self();
     void updateEforElec();
     void electronEmission(double dt);
     void electronEmissionEndMoveToElectrode(double dt);
