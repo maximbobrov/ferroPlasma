@@ -285,7 +285,7 @@ void draw_charges_pz_1d()
         glVertex2f(pz_solver->m_p[i].r_top.x, 1e-1 * scale * (pz_solver->m_p[i].q_ext) * (w_y1 - w_y0)-5e-6);
         q_extr+=pz_solver->m_p[i].q_ext;
     }
-    printf(" \n qext=%e \n",q_extr);
+    printf(" \n qext=%e \n",pz_solver->m_p[0].q);
     glEnd();
 }
 
@@ -1039,7 +1039,7 @@ void spec(int key, int x, int y)
     if (key==GLUT_KEY_HOME)
     {
         multi_solver->dt_elec = 3e-11 / 1e6;
-        double phi = 3000;
+        double phi =500;
         g_emitElectrons = false;
         g_t = 0;
         g_phi = -phi;

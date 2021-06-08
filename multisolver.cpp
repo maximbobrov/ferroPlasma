@@ -25,19 +25,19 @@ void multiSolver::solvePzAdaptive(double dtElec)
        /* m_pzSolver->solvePz(4);
         m_pzSolver->step();*/
 
-        for (int i=0;i<100;i++)
-        { m_pzSolver->solvePz(4);
-             m_pzSolver->step();}
+        //for (int i=0;i<100;i++)
+        //{ m_pzSolver->solvePz(4);
+        //     m_pzSolver->step();}
 
-       // m_pzSolver->solvePzDOPRI(0);
+        m_pzSolver->solvePzDOPRI(0);
          //m_pzSolver->solvePz_steady(10);
     }
     m_pzSolver->m_dt = dtElec * gamma -  dt_loc * int(dtElec * gamma/ dt_loc);
     m_pzSolver->get_q();
     updateEforPz();
-    //m_pzSolver->solvePzDOPRI(0);
-    m_pzSolver->solvePz(4);
-    m_pzSolver->step();
+    m_pzSolver->solvePzDOPRI(0);
+    //m_pzSolver->solvePz(4);
+    //m_pzSolver->step();
 }
 void multiSolver::solve(int itn)
 {
@@ -355,8 +355,8 @@ void multiSolver::electronEmissionEndMoveToElectrode(double d_t)
         i_right=i;
     }
 
-    int pzNumLeft = 30;//getEndPos(i_left);
-    int pzNumRight = 30;//getEndPos(i_right);
+    int pzNumLeft = getEndPos(i_left);
+    int pzNumRight = getEndPos(i_right);
 
     if(pzNumLeft >=0 && pzNumRight>=0 ){
         double q_all=0.0;

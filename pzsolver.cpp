@@ -246,18 +246,25 @@ void pzSolver::solvePzDOPRI(int itn)
     rh=0.0;
     poly poly_new;
     poly_new.order=5;
-    poly_new.C[0]=-2*alp*(T-T0);//(T-T0); //x
+
     poly_new.C[1]=0.0;              //xx
     poly_new.C[2]=4.0*bet;    //xxx
     poly_new.C[3]=0.0;              //x^4
     poly_new.C[4]=-6.0*gam;     //
+    double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
+    //    int i=1;
+
     for (int i=0; i<m_p_num; i++)
     {
+        double q= qepspi * m_p[i].ds/qe;
+
+        double E_self=-q*(-log(m_p[i].dl+delta_phi)+log(delta_phi))/m_p[i].dl;
         double currStep = m_dt;
         double val = m_p[i].p;
 
+        poly_new.C[0]=-2*alp*(T-T0) + E_self;//(T-T0); //x
         double rhs_;
-        rhs_=-m_p[i].E+((m_p[i-1].p - 2 * m_p[i].p +m_p[i+1].p) * kappa/(m_dx*m_dx));
+        rhs_=-m_p[i].E+(m_p[i].p)*E_self+((m_p[i-1].p - 2 * m_p[i].p +m_p[i+1].p) * kappa/(m_dx*m_dx));
         K1 = calc_poly(poly_new,rhs_,val);
         K2 = val + currStep * (a21 * K1);
         K2 = calc_poly(poly_new,rhs_,K2);
@@ -513,7 +520,7 @@ double pzSolver::getE_self(int j)
 
         sum-=q*log(r+delta_phi);
 
-      //  dx = m_p[i].r.x - x;
+        //  dx = m_p[i].r.x - x;
         dy = m_p[i].r_top.y - m_p[i].dl - y;
         r=sqrt(dx*dx+dy*dy);
         q= -qepspi * m_p[i].r_top.charge;
@@ -534,7 +541,7 @@ double pzSolver::getE_self(int j)
 
         sum_b-=q*log(r+delta_phi);
 
-      //  dx = m_p[i].r.x - x;
+        //  dx = m_p[i].r.x - x;
         dy = m_p[i].r_top.y - m_p[i].dl - y;
         r=sqrt(dx*dx+dy*dy);
         q= -qepspi * m_p[i].r_top.charge;
