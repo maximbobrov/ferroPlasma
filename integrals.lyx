@@ -1,0 +1,244 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\phi=-q*ln(r)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+xt=x at target; y0 is y at destination
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\phi=-\frac{q}{x1-x0}\int_{x0}^{x1}ln(r)dx=\phi=-\frac{0.5q}{x1-x0}\int_{x0}^{x1}ln((x-x_{t})^{2}+(y0-y_{t})^{2})dx
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\phi=-\frac{0.5q}{x1-x0}\int_{x0}^{x1}ln((x-x{}_{t})^{2}+(y_{0}-y_{t})^{2})dx
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\phi=-\frac{0.5q}{x1-x0}\left.\left[-2x+2\left(y_{0}-y_{t}\right)*atan\left(\frac{x-x_{t}}{y_{0}-y_{t}}\right)+\left(x-x_{t}\right)ln\left((x-x_{t})^{2}+(y_{0}-y_{t})^{2}\right)\right]\right|_{x0}^{x1}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\phi=-\frac{0.5q}{x1-x0}\left\{ -2(x1-x0)+2\left(y_{0}-y_{t}\right)*\left(atan\left(\frac{x1-x_{t}}{y_{0}-y_{t}}\right)-atan\left(\frac{x0-x_{t}}{y_{0}-y_{t}}\right)\right)+\left(x1-x_{t}\right)ln\left((x1-x_{t})^{2}+(y_{0}-y_{t})^{2}\right)-\left(x0-x_{t}\right)ln\left((x0-x_{t})^{2}+(y_{0}-y_{t})^{2}\right)\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\phi=q-\frac{0.5q}{x1-x0}\left\{ 2\left(y_{0}-y_{t}\right)*\left(atan\left(\frac{x1-x_{t}}{y_{0}-y_{t}}\right)-atan\left(\frac{x0-x_{t}}{y_{0}-y_{t}}\right)\right)+\left(x1-x_{t}\right)ln\left((x1-x_{t})^{2}+(y_{0}-y_{t})^{2}\right)-\left(x0-x_{t}\right)ln\left((x0-x_{t})^{2}+(y_{0}-y_{t})^{2}\right)\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\phi=q-\frac{q}{l_{x}}\left\{ dy\left(atan\left(\frac{dx1}{dy}\right)-atan\left(\frac{dx0}{dy}\right)\right)+0.5*dx1*ln\left(dx_{1}^{2}+dy^{2}\right)-0.5*dx_{0}*ln\left(dx_{0}^{2}+dy^{2}\right)\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+good now for the field
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+E_{x}=-q*\left(x-x_{t}\right)/\left(\left(x-x_{t}\right)^{2}+\left(y-y_{t}\right)^{2}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+E_{x}=-\frac{q}{x1-x0}\int_{x0}^{x1}\left(x-x_{t}\right)/\left(\left(x-x_{t}\right)^{2}+\left(y-y_{t}\right)^{2}\right)dx
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+E_{x}=-\frac{0.5*q}{x1-x0}\left.\left[ln\left((x-x_{t})^{2}+(y_{0}-y_{t})^{2}\right)\right]\right|_{x0}^{x1}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+E_{x}=-\frac{0.5*q}{x1-x0}\left[ln\left((x1-x_{t})^{2}+(y_{0}-y_{t})^{2}\right)-ln\left((x0-x_{t})^{2}+(y_{0}-y_{t})^{2}\right)\right]=-\frac{0.5*q}{x1-x0}ln\left(\frac{(x1-x_{t})^{2}+(y_{0}-y_{t})^{2}}{(x0-x_{t})^{2}+(y_{0}-y_{t})^{2}}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+removing singulairties:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+E_{x}=-\frac{q}{\left(x1-x0\right)^{2}}\int_{x0}^{x1}\left(x-x_{0}\right)\left(x-x_{t}\right)/\left(\left(x-x_{t}\right)^{2}+\left(y-y_{t}\right)^{2}\right)dx
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+EY:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+E_{y}=-\frac{q}{x1-x0}\int_{x0}^{x1}\left(y_{0}-y_{t}\right)/\left(\left(x-x_{t}\right)^{2}+\left(y_{0}-y_{t}\right)^{2}\right)dx
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+E_{y}=-\frac{0.5*q}{x1-x0}\left[atan\left(\frac{x1-x_{t}}{y_{0}-y_{t}}\right)-atan\left(\frac{x0-x_{t}}{y_{0}-y_{t}}\right)\right]
+\]
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

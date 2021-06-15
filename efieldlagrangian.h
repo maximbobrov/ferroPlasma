@@ -1,9 +1,9 @@
 #ifndef EFIELDLAGRANGIAN_H
 #define EFIELDLAGRANGIAN_H
 #include "globals.h"
-#include "lagrangiansolver.h"
 
-class eFieldLagrangian : lagrangianSolver
+
+class eFieldLagrangian
 {
 
 public:
@@ -35,7 +35,7 @@ public:
     void solvePhi(int itn); //update potential
     vec2 getE(double x,double y);
     double getPhi(double x,double y);
-    void updateGridProp();
+
     void addLine(vec2 p[2], double dl,double phi, double h, int I);
     void addLinePZ(vec2 p[2], double dl,double phi, double h, int I);
     void addQuad(vec2 p[4], double dl[4], double phi, int emit[4], double coordYDIel, int smoothingCount, int I);

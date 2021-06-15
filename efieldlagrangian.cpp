@@ -236,42 +236,6 @@ void eFieldLagrangian::solvePhi(int itn)
     //  updateGridProp();
 }
 
-void eFieldLagrangian::updateGridProp()
-{
-    m_gridProp.NX = 30;
-    m_gridProp.NY = 20;
-    m_gridProp.startx = w_x0 - (w_y1-w_y0)*0.5;
-    m_gridProp.starty = w_y0 ;
-    m_gridProp.endx = w_x1 ;
-    m_gridProp.endy = w_y1 ;
-    m_gridProp.dx = (m_gridProp.endx - m_gridProp.startx) / (m_gridProp.NX);
-    m_gridProp.dy = (m_gridProp.endy - m_gridProp.starty) / (m_gridProp.NY);
-
-    for (int i = 0; i < m_gridProp.NX; i++)
-        for (int j = 0; j < m_gridProp.NY; j++) {
-            m_gridProp.gridCenters[i][j].x = 0.0;
-            m_gridProp.gridCenters[i][j].y = 0.0;
-            m_gridProp.gridCenters[i][j].charge = 0.0;
-            m_gridProp.gridNeighbors[i][j].clear();
-        }
-    for( int i=0; i<m_elec_num; i++ ){
-        vec2 pos(m_electrodes[i].r.x , m_electrodes[i].r.y , 0.0/*(m_electrodes[i].rho1 + m_electrodes[i].rho2)*0.5*/);
-        m_rCentre[i] = pos;
-        int xIdx = fmin(int((pos.x - m_gridProp.startx) / m_gridProp.dx), m_gridProp.NX - 1);
-        int yIdx = fmin(int((pos.y - m_gridProp.starty) / m_gridProp.dy), m_gridProp.NY - 1);
-        m_gridProp.gridCenters[xIdx][yIdx].charge += pos.charge;
-        m_gridProp.gridCenters[xIdx][yIdx].x += pos.charge * pos.x;
-        m_gridProp.gridCenters[xIdx][yIdx].y += pos.charge * pos.y;
-        m_gridProp.gridNeighbors[xIdx][yIdx].push_back(i);
-    }
-    for (int i = 0; i < m_gridProp.NX; i++)
-        for (int j = 0; j < m_gridProp.NY; j++) {
-            if(m_gridProp.gridNeighbors[i][j].size() == 0)
-                continue;
-            m_gridProp.gridCenters[i][j].x /= m_gridProp.gridCenters[i][j].charge;
-            m_gridProp.gridCenters[i][j].y /= m_gridProp.gridCenters[i][j].charge;
-        }
-}
 
 void  getProgrCoef(double b1, double bn, double l, int& n, double &q)
 {

@@ -2,9 +2,9 @@
 #define PZSOLVER_H
 
 #include "globals.h"
-#include "lagrangiansolver.h"
 
-class pzSolver : lagrangianSolver
+
+class pzSolver
 {
 public:
     struct pElem   //linear electrode elem
@@ -42,6 +42,11 @@ public:
     void conduct(double sigma, double dt, int itn);
 
     double getE_self(int j);
+
+    double getPhi2D(double x, double y, double x0,double x1,double y0,double charge); //assuming a horizontal patch of charge with constant density
+
+    double getPhi1D(double x, double y, double x0,double y0,double charge); //assuming a horizontal patch of charge with constant density
+
    // static vec2 getEField(const vec2& iCenterPos, const vec2& iFarPos);
    // static vec2 getPhiField(const vec2& iCenterPos, const vec2& iFarPos);
 };

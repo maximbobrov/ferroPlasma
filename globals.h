@@ -11,8 +11,12 @@
 
 #define M_PI 3.1415926535
 
-#define N_X 125
-#define N_Y 30
+#define N_X 300
+#define N_Y 100
+
+//#define N_X 125
+//#define N_Y 30
+
 #define N_Y_DIEL 64
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))

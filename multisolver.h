@@ -4,7 +4,7 @@
 
 #include "efieldlagrangian.h"
 #include "pzsolver.h"
-#include "electronlagrangian.h"
+
 
 class multiSolver
 {   
@@ -12,7 +12,7 @@ public:
     double dt_elec;
     eFieldLagrangian* m_Esolver;
     pzSolver* m_pzSolver;
-    electronLagrangian* m_elecSolver;
+
 
     int endPosTable[1000];
 
@@ -23,7 +23,8 @@ public:
     void updateEforPz();
    // void updateEforPz_self();
     void updateEforElec();
-    void electronEmission(double dt);
+
+    double calcJ(double Ein);
     void electronEmissionEndMoveToElectrode(double dt);
     void updateTrajTable();
     int  getEndPos(int i);
@@ -31,10 +32,7 @@ public:
     void solvePzAdaptive(double dtElec);
         void solve__(int itn); //debug purposes
     void init();
-    void step();
-    void preparePz();
-    void getExtChargeField();
-    void electronExchange(double dt);
+
     void pzEmission(double dt);
     void pzEmission_self(double dt);
     void pzEmissionHoriz(double dt);
@@ -52,6 +50,7 @@ public:
     void slower_Fields_recalculate();
     vec2 get_slower_E(double x, double y);
       vec2 get_slow_E(double x, double y);
+      double get_slow_phi(double x, double y);
 
 };
 

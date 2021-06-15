@@ -33,7 +33,13 @@ void pzSolver::init()
         /*if (m_p[i].r.x<w_x0+50e-6 && m_p[i].r.x>w_x0+25e-6)
           m_p[i].p = 0.26;//-0.1*(rand()*1.0/RAND_MAX-0.5);//0.0;//-0.005;//-0.26;//+rand()*0.043/RAND_MAX;
           else*/
-        m_p[i].p = -0.26;//0.0;//-0.26;
+        m_p[i].p  =-0.26;
+        if (i<g_i_wall_edge)
+        m_p[i].p = 0.26;//0.0;//-0.26;
+
+        if (i==g_i_wall_edge)
+        m_p[i].p = 0.0;//0.0;//-0.26;
+
 
         m_p[i].p_prev = m_p[i].p;
 
@@ -497,6 +503,50 @@ double pzSolver::getPhidepol(double x, double y)
     }
     return sum;
 }
+
+
+double pzSolver::getPhi2D(double x, double y, double x0,double x1,double y0,double charge) //assuming a horizontal patch of charge with constant density
+{
+    double sum=0.0;
+    double r;
+    double q;
+    double dx0,dx1,dy,lx;
+
+    lx=x1-x0;
+    dx0 = x0 - x;
+    dx1 = x1 - x;
+    dy = y0 - y;
+    double dydy= dy*dy;
+
+    double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
+        q= qepspi * charge;
+        double part1=0.0;
+        if (fabs(dy)>1e-10)
+        part1 = dy*(atan(dx1/dy) - atan(dx0/dy));
+
+        double part2 = 0.5*(dx1*log(dx1*dx1+dydy+1e-20) - dx0*log(dx0*dx0+dydy+1e-20));
+        sum=q - (q/lx)*(part1 + part2);
+    return sum;
+}
+
+double pzSolver::getPhi1D(double x, double y, double x0,double y0,double charge) //assuming a horizontal patch of charge with constant density
+{
+    double sum=0.0;
+    double r;
+    double q;
+    double dx,dy,lx;
+
+    double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
+        q= qepspi * charge;
+
+
+    dx = x0 - x;
+    dy = y0 - y;
+    sum-=q*log(sqrt(dx*dx+dy*dy));
+
+    return sum;
+}
+
 
 double pzSolver::getE_self(int j)
 {

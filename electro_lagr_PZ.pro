@@ -4,19 +4,15 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
-    electronlagrangian.cpp \
     globals.cpp \
     Main.cpp \
     efieldlagrangian.cpp \
-    lagrangiansolver.cpp \
     pzsolver.cpp \
     multisolver.cpp
 
 HEADERS += \
-    electronlagrangian.h \
     globals.h \
     efieldlagrangian.h \
-    lagrangiansolver.h \
     pzsolver.h \
     multisolver.h
 #QMAKE_CXXFLAGS += -O2
