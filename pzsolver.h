@@ -10,7 +10,7 @@ public:
     struct pElem   //linear electrode elem
     {
         double p,p_prev, ds, dl,E,E_prev,Ex_s,Ey_s,RHS;//C/m2, m, V
-      //  vec2 r;
+        //  vec2 r;
         vec2 r_top;
         double q, q_ext,q_tmp,q_0; //q is dipolar charge; q_ext is the attached charge
     };
@@ -35,6 +35,8 @@ public:
     void step();
     vec2 getEdepol(double x, double y);
     double getPhidepol(double x, double y);
+    double getPhiDiff(double x, double y, int i);
+    vec2 getEDiff(double x, double y, int i, double delta);
     void updateCharge();
 
     void setWallPos(double a);
@@ -47,8 +49,8 @@ public:
 
     double getPhi1D(double x, double y, double x0,double y0,double charge); //assuming a horizontal patch of charge with constant density
 
-   // static vec2 getEField(const vec2& iCenterPos, const vec2& iFarPos);
-   // static vec2 getPhiField(const vec2& iCenterPos, const vec2& iFarPos);
+    // static vec2 getEField(const vec2& iCenterPos, const vec2& iFarPos);
+    // static vec2 getPhiField(const vec2& iCenterPos, const vec2& iFarPos);
 };
 
 #endif // PZSOLVER_H

@@ -93,8 +93,8 @@ void updateEulFields()
                 //phi_[i][j]=multi_solver->get_slow_phi(x,y);
 
                 phi_[i][j]=pz_solver->getPhi1D(x,y,pz_solver->m_p[g_i_wall_edge+2].r_top.x,pz_solver->m_p[g_i_wall_edge+2].r_top.y,100);
-                 phi_[i][j]-=pz_solver->getPhi1D(w_x0,w_y0,pz_solver->m_p[g_i_wall_edge+2].r_top.x,pz_solver->m_p[g_i_wall_edge+2].r_top.y,100);
-                 phi_[i][j]*=phi_[i][j];
+                phi_[i][j]-=pz_solver->getPhi1D(w_x0,w_y0,pz_solver->m_p[g_i_wall_edge+2].r_top.x,pz_solver->m_p[g_i_wall_edge+2].r_top.y,100);
+                phi_[i][j]*=phi_[i][j];
             }
 
             if (view==VIEW_P)
@@ -103,12 +103,12 @@ void updateEulFields()
                 //phi_[i][j]=multi_solver->get_slow_phi(x,y);
                 double dl=pz_solver->m_dx;
 
-                phi_[i][j]=pz_solver->getPhi2D(x,y,pz_solver->m_p[g_i_wall_edge+2].r_top.x-dl*0.5,pz_solver->m_p[g_i_wall_edge+2].r_top.x+dl*0.5, pz_solver->m_p[g_i_wall_edge+2].r_top.y,100);
+                phi_[i][j]=pz_solver->getPhiDiff(x,y, g_i_wall_edge);//pz_solver->getPhi2D(x,y,pz_solver->m_p[g_i_wall_edge+2].r_top.x-dl*0.5,pz_solver->m_p[g_i_wall_edge+2].r_top.x+dl*0.5, pz_solver->m_p[g_i_wall_edge+2].r_top.y,100);
 
-                phi_[i][j]-=pz_solver->getPhi2D(w_x0,w_y0,pz_solver->m_p[g_i_wall_edge+2].r_top.x-dl*0.5,pz_solver->m_p[g_i_wall_edge+2].r_top.x+dl*0.5, pz_solver->m_p[g_i_wall_edge+2].r_top.y,100);
+                //phi_[i][j]-=pz_solver->getPhi2D(w_x0,w_y0,pz_solver->m_p[g_i_wall_edge+2].r_top.x-dl*0.5,pz_solver->m_p[g_i_wall_edge+2].r_top.x+dl*0.5, pz_solver->m_p[g_i_wall_edge+2].r_top.y,100);
 
 
-                phi_[i][j]*=phi_[i][j];
+                //phi_[i][j]*=phi_[i][j];
 
             }
         }
@@ -139,15 +139,15 @@ void draw_fields_2d()
     }
 
 
-//glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
     for (int i=0;i<N_X-1;i++)
     {
         glBegin(GL_TRIANGLE_STRIP);
         for (int j=0;j<N_Y;j++)
         {
 
-           double x=g_x0+ i*(g_x1-g_x0)/(N_X-1);
-           double y=g_y0+ j*(g_y1-g_y0)/(N_Y-1);
+            double x=g_x0+ i*(g_x1-g_x0)/(N_X-1);
+            double y=g_y0+ j*(g_y1-g_y0)/(N_Y-1);
 
             if (view==VIEW_PHI)
                 l_2 = ck*phi_[i][j];
@@ -365,7 +365,7 @@ void draw_charges_pz_1d()
     {
 
         if (pz_solver->m_p[i].q_ext + pz_solver->m_p[i].q>0)
-        glColor3f(0.9,0.4,0);
+            glColor3f(0.9,0.4,0);
         else
             glColor3f(0.0,0.4,0.9);
 
@@ -390,7 +390,7 @@ void draw_charges_pz_1d()
 
 void draw_pz()
 {
-    //glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+    glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
     glBegin(GL_QUADS);
     for (int i=0;i<g_i_wall_edge;i++)
     {
@@ -400,8 +400,9 @@ void draw_pz()
         glVertex2f(pz_solver->m_p[i].r_top.x-pz_solver->m_dx*0.5,pz_solver->m_p[i].r_top.y);
 
         glColor3f(ck * pz_solver->m_p[i].p/0.26,-ck * pz_solver->m_p[i].p/0.26,0);
-        glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.5,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl);
         glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.5,pz_solver->m_p[i].r_top.y);
+        glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.5,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl);
+
 
     }
     glEnd();
@@ -410,19 +411,21 @@ void draw_pz()
 
     glBegin(GL_QUADS);
     int i=g_i_wall_edge;
-        glColor3f(1,0.5,0.5);
-        double rig=(pz_solver->m_p[i].p+0.26)/0.52;
-        glVertex2f(pz_solver->m_p[i].r_top.x-pz_solver->m_dx*0.5,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl);
-        glVertex2f(pz_solver->m_p[i].r_top.x-pz_solver->m_dx*0.5,pz_solver->m_p[i].r_top.y);
+    glColor3f(1,0.5,0.5);
+    double rig=(pz_solver->m_p[i].p+0.26)/0.52;
+    glVertex2f(pz_solver->m_p[i].r_top.x-pz_solver->m_dx*0.5,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl);
+    glVertex2f(pz_solver->m_p[i].r_top.x-pz_solver->m_dx*0.5,pz_solver->m_p[i].r_top.y);
 
-        glVertex2f(pz_solver->m_p[i].r_top.x-pz_solver->m_dx*0.5+  pz_solver->m_dx*rig  , pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl);
-        glVertex2f(pz_solver->m_p[i].r_top.x-pz_solver->m_dx*0.5 + pz_solver->m_dx*rig , pz_solver->m_p[i].r_top.y);
 
-        glColor3f(0.5,1,0.5);
-        glVertex2f(pz_solver->m_p[i].r_top.x-pz_solver->m_dx*0.5+  pz_solver->m_dx*rig  , pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl);
-        glVertex2f(pz_solver->m_p[i].r_top.x-pz_solver->m_dx*0.5 + pz_solver->m_dx*rig , pz_solver->m_p[i].r_top.y);
-        glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.5,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl);
-        glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.5,pz_solver->m_p[i].r_top.y);
+    glVertex2f(pz_solver->m_p[i].r_top.x-pz_solver->m_dx*0.5 + pz_solver->m_dx*rig , pz_solver->m_p[i].r_top.y);
+    glVertex2f(pz_solver->m_p[i].r_top.x-pz_solver->m_dx*0.5+  pz_solver->m_dx*rig  , pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl);
+
+    glColor3f(0.5,1,0.5);
+    glVertex2f(pz_solver->m_p[i].r_top.x-pz_solver->m_dx*0.5+  pz_solver->m_dx*rig  , pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl);
+    glVertex2f(pz_solver->m_p[i].r_top.x-pz_solver->m_dx*0.5 + pz_solver->m_dx*rig , pz_solver->m_p[i].r_top.y);
+    glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.5,pz_solver->m_p[i].r_top.y);
+    glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.5,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl);
+
     glEnd();
 
     glBegin(GL_QUADS);
@@ -434,8 +437,9 @@ void draw_pz()
         glVertex2f(pz_solver->m_p[i].r_top.x-pz_solver->m_dx*0.5,pz_solver->m_p[i].r_top.y);
 
         glColor3f(ck * pz_solver->m_p[i].p/0.26,-ck * pz_solver->m_p[i].p/0.26,0);
-        glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.5,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl);
         glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.5,pz_solver->m_p[i].r_top.y);
+        glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.5,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl);
+
 
     }
     glEnd();
@@ -548,19 +552,19 @@ void display(void)
 
     if (redr==1)
     {
-       // double t0 = get_time();
+        // double t0 = get_time();
         multi_solver->fast_Fields_recalculate();
         multi_solver->slower_Fields_recalculate();
         multi_solver->updateTrajTable();
-      //  double t1 = get_time();
+        //  double t1 = get_time();
         for (int i=0;i<5;i++)
             multi_solver->solve(10);
-    //    double t2 = get_time();
+        //    double t2 = get_time();
 
         updateEulFields();
-      //  double t3 =get_time();
+        //  double t3 =get_time();
 
-       // printf("traj_upd_time=%e solve_time=%e eul_fields_time=%e \n", t1-t0, t2-t1,t3-t2);
+        // printf("traj_upd_time=%e solve_time=%e eul_fields_time=%e \n", t1-t0, t2-t1,t3-t2);
     }
     double wall_coord;
     if(serialRegime)
@@ -644,9 +648,9 @@ void display(void)
         int i_=(int) (progress*10.0);
         if ((progress*10.0-i_>0)&&(prev-i_<0))
         {
-               char nme[1000];
-              sprintf(nme, "output_%dV_%d(%e)%d.state",int(g_phi_max), fileNum,g_t,int(progress*100));
-              saveStatePZ(nme);
+            char nme[1000];
+            sprintf(nme, "output_%dV_%d(%e)%d.state",int(g_phi_max), fileNum,g_t,int(progress*100));
+            saveStatePZ(nme);
         }
 
 
@@ -1028,7 +1032,7 @@ void spec(int key, int x, int y)
         for (int i=1; i<pz_solver->m_p_num;i++)
         {
 
-                     if (i<g_i_wall){
+            if (i<g_i_wall){
                 pz_solver->m_p[i].q_ext=0;
                 pz_solver->m_p[i].p = 0.26;
                 pz_solver->m_p[i].p_prev = 0.26;
@@ -1046,7 +1050,7 @@ void spec(int key, int x, int y)
             if (i<g_i_wall)
                 pz_solver->m_p[i].q_ext+=180000.0*pow((rand()*1.0/RAND_MAX),4);
             //else
-              //  pz_solver->m_p[i].q_ext=-q_spec*0.9;
+            //  pz_solver->m_p[i].q_ext=-q_spec*0.9;
         }
         printf("q_spec= %e \n",q_spec);
     }
@@ -1054,12 +1058,12 @@ void spec(int key, int x, int y)
     if (key==GLUT_KEY_LEFT)
     {
 
-      proc-=0.01;
-      if  (proc<0.0) proc=0.0;
+        proc-=0.01;
+        if  (proc<0.0) proc=0.0;
 
-      pz_solver->m_p[g_i_wall_edge].p=0.26*(proc)+ (-0.26)*(1.0-proc);
+        pz_solver->m_p[g_i_wall_edge].p=0.26*(proc)+ (-0.26)*(1.0-proc);
 
-      /*  g_i_wall--;
+        /*  g_i_wall--;
         if (g_i_wall<0) g_i_wall=0;
 
          for (int i=1; i<pz_solver->m_p_num;i++)
@@ -1142,7 +1146,7 @@ void spec(int key, int x, int y)
             multi_solver->solve(10);
 
         g_i_wall=g_i_wall_edge;
-                g_phi_max =phi;//*= -1;
+        g_phi_max =phi;//*= -1;
         for (int i=1; i<pz_solver->m_p_num;i++)
         {
             if (i<g_i_wall){
@@ -1154,7 +1158,7 @@ void spec(int key, int x, int y)
         }
         for (int kk=0;kk<100;kk++)
             multi_solver->solve(10);
-       // g_q_enable = false;
+        // g_q_enable = false;
         g_emitElectrons = true;
         g_t=0;
         g_save_time=0;
@@ -1296,7 +1300,7 @@ void kb(unsigned char key, int x, int y)
 
 
 
-     /*   g_phi=200;
+        /*   g_phi=200;
         for (int i=0;i<lagr_solver->m_elec_num;i++)
         {
 
@@ -1372,9 +1376,9 @@ void resize(int w, int h)
 
 
     glOrtho(g_x0,
-                g_x1,
-                g_y0,g_y1,
-                -10.0, 10.0);
+            g_x1,
+            g_y0,g_y1,
+            -10.0, 10.0);
     glMatrixMode (GL_MODELVIEW);
 }
 

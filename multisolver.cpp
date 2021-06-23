@@ -57,14 +57,16 @@ void multiSolver::solve(int itn)
     {
         double phi_depol0=m_pzSolver->getPhidepol(w_x0,w_y0);
 
+
         for (int i=0;i<m_Esolver->m_elec_num;i++)
         {
-            /*            double x,y;
+
+                        double x,y;
             x=m_Esolver->m_electrodes[i].r.x;
             y=m_Esolver->m_electrodes[i].r.y;
-            m_Esolver->m_electrodes[i].phi_fix_charges = (m_pzSolver->getPhidepol(x,y)-phi_depol0);*/
+           /* m_Esolver->m_electrodes[i].phi_fix_charges = (m_pzSolver->getPhidepol(x,y)-phi_depol0);*/
 
-            m_Esolver->m_electrodes[i].phi_fix_charges = getPhi_at_electrode(i)-phi_depol0;
+            m_Esolver->m_electrodes[i].phi_fix_charges = getPhi_at_electrode(i)-phi_depol0/* + m_pzSolver->getPhiDiff(x,y, g_i_wall_edge)*/;
 
         }
         m_Esolver->solve_ls_fast();
@@ -214,8 +216,9 @@ void multiSolver::updateTrajTable()
         {
             vec2 E=m_Esolver->getE(m_Esolver->m_electrodes[i].r.x,m_Esolver->m_electrodes[i].r.y);
             vec2 Ep=m_pzSolver->getEdepol(m_Esolver->m_electrodes[i].r.x,m_Esolver->m_electrodes[i].r.y);
-            double ex=E.x+Ep.x;
-            double ey=E.y+Ep.y;
+            vec2 Ediff(0,0,0);//= m_pzSolver->getEDiff(m_Esolver->m_electrodes[i].r.x,m_Esolver->m_electrodes[i].r.y, g_i_wall_edge, 1e-7);
+            double ex=E.x+Ep.x+Ediff.x;
+            double ey=E.y+Ep.y+Ediff.y;
 
             /*vec2 E=get_fast_E();
 
@@ -261,7 +264,9 @@ void multiSolver::updateTrajTable()
 
                 E_=get_slower_E(r.x,r.y);
 
-
+                vec2 Ediff(0,0,0);// = m_pzSolver->getEDiff(r.x,r.y, g_i_wall_edge, 1e-7);
+                E_.x +=Ediff.x;
+                E_.y +=Ediff.y;
                 double magn=qe/Me;//1e-1;
                 double a_=fmax(fabs(magn*(E_.x)),fabs(magn*(E_.y)));
                 double v_=fmax(fabs(v.x),fabs(v.y));
@@ -304,8 +309,9 @@ void multiSolver::electronEmissionEndMoveToElectrode(double d_t)
         {
             vec2 E=m_Esolver->getE(m_Esolver->m_electrodes[i].r.x,m_Esolver->m_electrodes[i].r.y);
             vec2 Ep=m_pzSolver->getEdepol(m_Esolver->m_electrodes[i].r.x,m_Esolver->m_electrodes[i].r.y);
-            double ex=E.x+Ep.x;
-            double ey=E.y+Ep.y;
+            vec2 Ediff(0,0,0);// = m_pzSolver->getEDiff(m_Esolver->m_electrodes[i].r.x,m_Esolver->m_electrodes[i].r.y, g_i_wall_edge, 1e-7);
+            double ex=E.x+Ep.x + Ediff.x;
+            double ey=E.y+Ep.y + Ediff.y;
             double l = ex * (-m_Esolver->m_electrodes[i].nx) + ey * (-m_Esolver->m_electrodes[i].ny);
             if (l>0)
             {

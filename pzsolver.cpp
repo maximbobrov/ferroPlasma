@@ -35,10 +35,10 @@ void pzSolver::init()
           else*/
         m_p[i].p  =-0.26;
         if (i<g_i_wall_edge)
-        m_p[i].p = 0.26;//0.0;//-0.26;
+            m_p[i].p = 0.26;//0.0;//-0.26;
 
         if (i==g_i_wall_edge)
-        m_p[i].p = 0.0;//0.0;//-0.26;
+            m_p[i].p = 0.0;//0.0;//-0.26;
 
 
         m_p[i].p_prev = m_p[i].p;
@@ -504,6 +504,58 @@ double pzSolver::getPhidepol(double x, double y)
     return sum;
 }
 
+double pzSolver::getPhiDiff(double x, double y, int i)
+{
+    double phi1d0 = getPhi1D(0,0,
+                            m_p[i].r_top.x, m_p[i].r_top.y,
+                            m_p[i].q);
+    double phi1d = getPhi1D(x, y,
+                            m_p[i].r_top.x, m_p[i].r_top.y,
+                            m_p[i].q);
+    double rig=(m_p[i].p+0.26)/0.52;
+
+    double phi2d = getPhi2D(x, y,
+                            m_p[i].r_top.x - m_dx/2,
+                            m_p[i].r_top.x - m_dx/2 +  m_dx * rig,
+                            m_p[i].r_top.y,
+                            m_p[i].q/*m_p[i].r_top.charge*/);
+
+    return phi2d - phi1d0;
+}
+
+vec2 pzSolver::getEDiff(double x, double y, int i, double delta)
+{
+    double phi1d = getPhi1D(x, y,
+                            m_p[i].r_top.x, m_p[i].r_top.y,
+                            m_p[i].r_top.charge);
+    double phi1dx = getPhi1D(x + delta, y,
+                             m_p[i].r_top.x, m_p[i].r_top.y,
+                             m_p[i].r_top.charge);
+    double phi1dy = getPhi1D(x, y + delta,
+                             m_p[i].r_top.x, m_p[i].r_top.y,
+                             m_p[i].r_top.charge);
+    double rig=(m_p[i].p+0.26)/0.52;
+    double phi2d = getPhi2D(x, y,
+                            m_p[i].r_top.x - m_dx/2,
+                            m_p[i].r_top.x - m_dx/2 +  m_dx * rig,
+                            m_p[i].r_top.y,
+                            m_p[i].r_top.charge);
+    double phi2dx = getPhi2D(x + delta, y,
+                             m_p[i].r_top.x - m_dx/2,
+                             m_p[i].r_top.x - m_dx/2 +  m_dx * rig,
+                             m_p[i].r_top.y,
+                             m_p[i].r_top.charge);
+    double phi2dy = getPhi2D(x, y + delta,
+                             m_p[i].r_top.x - m_dx/2,
+                             m_p[i].r_top.x - m_dx/2 +  m_dx * rig,
+                             m_p[i].r_top.y,
+                             m_p[i].r_top.charge);
+    vec2 E(0,0,0);
+    E.x = -(phi2dx - phi2d - phi1dx + phi1d)/delta;
+    E.y = -(phi2dy - phi2d - phi1dy + phi1d)/delta;
+    return E;
+}
+
 
 double pzSolver::getPhi2D(double x, double y, double x0,double x1,double y0,double charge) //assuming a horizontal patch of charge with constant density
 {
@@ -519,13 +571,13 @@ double pzSolver::getPhi2D(double x, double y, double x0,double x1,double y0,doub
     double dydy= dy*dy;
 
     double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
-        q= qepspi * charge;
-        double part1=0.0;
-        if (fabs(dy)>1e-10)
+    q= qepspi * charge;
+    double part1=0.0;
+    if (fabs(dy)>1e-10)
         part1 = dy*(atan(dx1/dy) - atan(dx0/dy));
 
-        double part2 = 0.5*(dx1*log(dx1*dx1+dydy+1e-20) - dx0*log(dx0*dx0+dydy+1e-20));
-        sum=q - (q/lx)*(part1 + part2);
+    double part2 = 0.5*(dx1*log(dx1*dx1+dydy+1e-20) - dx0*log(dx0*dx0+dydy+1e-20));
+    sum=q - (q/lx)*(part1 + part2);
     return sum;
 }
 
@@ -537,7 +589,7 @@ double pzSolver::getPhi1D(double x, double y, double x0,double y0,double charge)
     double dx,dy,lx;
 
     double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
-        q= qepspi * charge;
+    q= qepspi * charge;
 
 
     dx = x0 - x;
