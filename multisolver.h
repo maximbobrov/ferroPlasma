@@ -5,6 +5,7 @@
 #include "efieldlagrangian.h"
 #include "pzsolver.h"
 
+#define traj_num_max 100
 
 class multiSolver
 {   
@@ -15,6 +16,9 @@ public:
 
 
     int endPosTable[1000];
+    static vec2 trajectories[traj_num_max][1000];
+    static int trajectories_num[traj_num_max];
+    static int traj_num;
 
     int points_distributed; //points are distributed over the grid
 

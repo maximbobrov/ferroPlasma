@@ -187,98 +187,27 @@ static double timePrev = 0;
 
 void draw_traj()
 {
-    static double y_max = w_y0 + 5 *(w_y1-w_y0)/5;
-    double min_curr=1e10;
-    double max_curr=1e-20;
-
-    for (int i=0;i<lagr_solver->m_elec_num;i++)
+   // printf("traj_num=%d \n",multiSolver::traj_num);
+    for (int i=0;i<multiSolver::traj_num;i++)
     {
-        if (lagr_solver->m_electrodes[i].canEmit && lagr_solver->m_electrodes[i].r.y < y_max && lagr_solver->m_electrodes[i].EdotN >0)
+     //   printf("i=%d j=%d \n", multiSolver::traj_num,multiSolver::trajectories_num[i]);
+        vec2 r(0,0,0);
+        glLineWidth(1.5);
+        double cur=10.0*multiSolver::trajectories[i][0].charge;
+        glColor3f(cur,0,1.0-cur);
+        glBegin(GL_LINE_STRIP);
+        for (int j=0;j<multiSolver::trajectories_num[i];j++)
         {
-            double cur=lagr_solver->m_electrodes[i].eCurrent;
-            if (cur>max_curr) max_curr=cur;
-            if (cur<min_curr) min_curr=cur;
+            r=multiSolver::trajectories[i][j];
+
+            glVertex2f(r.x,r.y);
         }
-    }
-
-    for (int i=0;i<lagr_solver->m_elec_num;i+=2)
-    {
-
-        if (lagr_solver->m_electrodes[i].canEmit && lagr_solver->m_electrodes[i].r.y < y_max && lagr_solver->m_electrodes[i].EdotN >0)
-        {
-            glLineWidth(1.0);
-            glColor3f(0,1,0);
-            vec2 r=lagr_solver->m_electrodes[i].r;
-            glLineWidth(1.5);
-            double cur=lagr_solver->m_electrodes[i].eCurrent;
-            glColor3f(cur/max_curr,0,1.0-cur/max_curr);
-            glBegin(GL_LINE_STRIP);
-            r=lagr_solver->m_electrodes[i].r;
-            vec2 v(0.0,0.0,0.0);
-            double Dl=0.5e-6;//
-            double Dt=1e-6;
-            for (int j=0;j<500;j++)
-            {
-
-                vec2 E_=multi_solver->get_slower_E(r.x,r.y);
-                double magn=qe/Me;//1e-1;
-                double a_=fmax(fabs(magn*(E_.x)),fabs(magn*(E_.y)));
-                double v_=fmax(fabs(v.x),fabs(v.y));
-                Dt=(sqrt(v_*v_+2*a_*Dl)-v_)/(a_+1e-20);
-
-                v.x += magn*(E_.x)*Dt;
-                v.y += magn*(E_.y)*Dt;
-                glVertex2f(r.x,r.y);
-                r.x+=Dt*v.x;
-                r.y+=Dt*v.y;
-                if (r.y<0) break;
-            }
-            glEnd();
-            glColor3f(1,0,0);
-            glBegin(GL_POINTS);
-            glPointSize(10);
-            r=lagr_solver->m_electrodes[i].r;
-            int n = multi_solver->getEndPos(i);
-            glVertex2f(pz_solver->m_p[n].r_top.x, pz_solver->m_p[n].r_top.y);
-            glEnd();
-        }
-    }
-
-    /*if(g_phi<0)*/{
-        for (int i=0;i<pz_solver->m_p_num;i+=3)
-        {
-            vec2 E_=multi_solver->get_slower_E(pz_solver->m_p[i].r_top.x,0.0);
-            // if (E_.y<0)
-            {
-                vec2 r;
-                r.x=pz_solver->m_p[i].r_top.x;
-                r.y=0.0;
-                glLineWidth(1.5);
-                glColor3f(0,0.5,0.5);
-                glBegin(GL_LINE_STRIP);
-
-                vec2 v(0.0,0.0,0.0);
-                double Dl=0.5e-7;//
-                double Dt=1e-6;
-                for (int j=0;j<100;j++)
-                {
-                    vec2 E_=multi_solver->get_slower_E(r.x,r.y);
-                    double magn=qe/Me;//1e-1;
-                    double a_=fmax(fabs(magn*(E_.x)),fabs(magn*(E_.y)));
-                    double v_=fmax(fabs(v.x),fabs(v.y));
-                    Dt=(sqrt(v_*v_+2*a_*Dl)-v_)/(a_+1e-20);
-
-                    v.x += magn*(E_.x)*Dt;
-                    v.y += magn*(E_.y)*Dt;
-                    glVertex2f(r.x,r.y);
-                    r.x+=Dt*v.x;
-                    r.y+=Dt*v.y;
-
-                    if (r.y<pz_solver->m_p[i].r_top.y) break;
-                }
-                glEnd();
-            }
-        }
+        glEnd();
+        glColor3f(1,0,0);
+        glBegin(GL_POINTS);
+        glPointSize(10);
+            glVertex2f(r.x,r.y);
+        glEnd();
     }
 }
 
@@ -458,6 +387,41 @@ void draw_pz()
     }
     glEnd();
 
+
+
+    glDisable(GL_LINE_SMOOTH);
+     glLineWidth(7);
+    glBegin(GL_LINES);
+
+    for (int i=0;i<pz_solver->m_p_num;i++)
+    {
+        double q0=(0.3)*pz_solver->m_p[i].ds/qe;
+        double qp=pz_solver->m_p[i].q/q0;
+        double q_ext=pz_solver->m_p[i].q_ext/q0;
+
+        if (qp>0)
+        glColor3f(0.5,0,0);
+        else
+        glColor3f(0.0,0,0.5);
+        glVertex2f(pz_solver->m_p[i].r_top.x-pz_solver->m_dx*0.05,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl*0.1);
+        glVertex2f(pz_solver->m_p[i].r_top.x-pz_solver->m_dx*0.05,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl*0.1+
+                                                                    pz_solver->m_p[i].dl*0.1*fabs(qp));
+
+        if (q_ext>0)
+        glColor3f(1.0,0.5,0);
+        else
+        glColor3f(0.0,0.5,1.0);
+        glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.05,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl*0.1);
+        glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.05,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl*0.1+
+                                                                    pz_solver->m_p[i].dl*0.1*fabs(q_ext));
+
+    }
+    glEnd();
+
+
+
+
+    glLineWidth(1.0);
 }
 
 
@@ -494,18 +458,29 @@ void draw_electrode()
             double a=nx*E_x+ny*E_y;
 
             glVertex3f(x + E_x,y + E_y,0.0);
-            /*glColor3f(1,0,1);
-            glVertex3f(x,y,0.0);
-
-            E_x =ck*nx* scale;//*(lagr_solver->m_electrodes[i].eCurrent)*35e-13;
-            E_y = ck*ny * scale;//*(lagr_solver->m_electrodes[i].eCurrent)*35e-13;
-
-            glVertex3f(x + E_x,y + E_y,-30e-7);*/
         }
     }
+    /*for (int i=0;i<lagr_solver->m_elec_num;i++)
+    {
+        if (lagr_solver->m_electrodes[i].canEmit)
+        {
+            int ind=multi_solver->endPosTable[i];
+
+            glColor3f(1,1,1);
+            double x=(lagr_solver->m_electrodes[i].r.x);
+            double y=(lagr_solver->m_electrodes[i].r.y);
+            glVertex3f(x,y,0.0);
+
+            x=pz_solver->m_p[ind].r_top.x;
+            y=pz_solver->m_p[ind].r_top.y-pz_solver->m_p[ind].dl*0.05;
+            glVertex3f(x,y,0.0);
+        }
+    }*/
+
+
     glEnd();
 
-    glPointSize(1.5);
+    glPointSize(2.5);
     glBegin(GL_POINTS);
 
     double rhomax=0.0;
@@ -515,24 +490,22 @@ void draw_electrode()
             rhomax=lagr_solver->m_electrodes[i].phi_ext;
     }
 
-
-    //printf("phimax=%e \n",rhomax);
+    double full_flux=0.0;
     for (int i=0;i<lagr_solver->m_elec_num;i++)
     {
-        double c=ck*lagr_solver->m_electrodes[i].phi_ext/rhomax;
-        //printf("i=%d phi=%e  phi_fix=%e\n",i,lagr_solver->m_electrodes[i].phi_ext,lagr_solver->m_electrodes[i].phi_fix);
-        //glColor3f(c,c,-c);
         if (lagr_solver->m_electrodes[i].canEmit)
-            glColor3f(0.25,0.25,1);
+            full_flux+=lagr_solver->m_electrodes[i].eCurrent;
+    }
+    for (int i=0;i<lagr_solver->m_elec_num;i++)
+    {
+        if (lagr_solver->m_electrodes[i].canEmit)
+            glColor3f(0.1*lagr_solver->m_electrodes[i].eCurrent/full_flux,0.0,1-0.1*lagr_solver->m_electrodes[i].eCurrent/full_flux);
         else
             glColor3f(1,1,1);
-        if(i==0)
-            glColor3f(1,0,0);
         double x=(lagr_solver->m_electrodes[i].r.x);
         double y=(lagr_solver->m_electrodes[i].r.y);
         glVertex3f(x,y,0.0);
     }
-
 
     for (int i=0;i<lagr_solver->m_chargeNum;i++)
     {
@@ -542,7 +515,6 @@ void draw_electrode()
         glVertex3f(x,y,0.0);
     }
     glEnd();
-
 }
 
 void display(void)
@@ -553,14 +525,14 @@ void display(void)
     if (redr==1)
     {
         // double t0 = get_time();
-        multi_solver->fast_Fields_recalculate();
-        multi_solver->slower_Fields_recalculate();
+        for (int j=0;j<10;j++)
+        {
         multi_solver->updateTrajTable();
         //  double t1 = get_time();
         for (int i=0;i<5;i++)
             multi_solver->solve(10);
         //    double t2 = get_time();
-
+        }
         updateEulFields();
         //  double t3 =get_time();
 
@@ -616,8 +588,7 @@ void display(void)
         }
         else{
             for (int kk=0;kk<10;kk++){
-                multi_solver->fast_Fields_recalculate();
-                multi_solver->slower_Fields_recalculate();
+
                 multi_solver->updateTrajTable();
                 for (int i=0;i<10;i++)
                     multi_solver->solve(10);
@@ -667,7 +638,7 @@ void display(void)
 
     glColor3f(1,1,1);
 
-    draw_fields_2d();
+    //draw_fields_2d();
     if (view_px)
     {
         draw_pz();
@@ -675,14 +646,14 @@ void display(void)
 
     draw_electrode();
 
-    draw_charges_pz_1d();
+//    draw_charges_pz_1d();
 
-    draw_fields_pz_1d();
+//    draw_fields_pz_1d();
 
     draw_traj();
 
 
-    glLineWidth(2.5);
+   /* glLineWidth(2.5);
     glColor3f(0,0,1);
     glBegin(GL_LINE_STRIP);
     glVertex3f(pz_solver->m_p[0].r_top.x + wall_coord,1,0.0);
@@ -693,7 +664,7 @@ void display(void)
     glBegin(GL_LINE_STRIP);
     glVertex3f(pz_solver->m_p[g_i_wall].r_top.x ,1,0.0);
     glVertex3f(pz_solver->m_p[g_i_wall].r_top.x ,-1,0.0);
-    glEnd();
+    glEnd();*/
 
     glutSwapBuffers();
     if (redr==1 || serialRegime) glutPostRedisplay();
@@ -967,8 +938,7 @@ void loadStatePZ()
                    );
         }
 
-        multi_solver->fast_Fields_recalculate();
-        multi_solver->slower_Fields_recalculate();
+
         multi_solver->updateTrajTable();
         multi_solver->solve(10);
         updateEulFields();

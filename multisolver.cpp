@@ -12,6 +12,10 @@ double to_pzDown_from_pz[1100][1100];
 
 int traj_table_calculated=0;
 
+vec2 multiSolver::trajectories[traj_num_max][1000];
+int multiSolver::trajectories_num[traj_num_max];
+int multiSolver::traj_num=0;
+
 void multiSolver::solvePzAdaptive(double dtElec)
 {
     double gamma = 1e4;
@@ -89,8 +93,8 @@ void multiSolver::solve(int itn)
     if (g_emitElectrons)
     {
         electronEmissionEndMoveToElectrode(dt_elec);
-      //  pzEmission_self(dt_elec);
-        //pzEmission_monte_carlo(15e-15,100,0.0003);//0.0003);
+        pzEmission(dt_elec);
+       // pzEmission_monte_carlo(15e-15,100,0.0003);//0.0003);
         //   pzEmission_monte_carlo(15e-15,200,0.12);//0.0003);
     }else
     {
@@ -149,7 +153,7 @@ void multiSolver::updateEforPz()
 
     double zl=1.0/m_pzSolver->m_p[0].dl;
 
-    double phi_up=getPhi_at_pz_up(0);
+   /* double phi_up=getPhi_at_pz_up(0);
     double phi_down=getPhi_at_pz_down(0);
     double E_prev=  -(phi_up - phi_down)*zl;
 
@@ -164,6 +168,16 @@ void multiSolver::updateEforPz()
             m_pzSolver->m_p[i+j].E = E_prev*(1.0-alpha) + E_next*alpha;// - E_self;
         }
         E_prev=E_next;
+    }*/
+
+
+    for (int i=0;i<m_pzSolver->m_p_num;i++)
+    {
+        double phi_up=getPhi_at_pz_up(i);
+        double phi_down=getPhi_at_pz_down(i);
+        double E_next=-(phi_up - phi_down)*zl;
+            m_pzSolver->m_p[i].E = E_next;// - E_self;
+
     }
 }
 
@@ -206,12 +220,16 @@ double  multiSolver::calcJ(double Ein)
 void multiSolver::updateTrajTable()
 {
 
+    fast_Fields_recalculate();
+    slower_Fields_recalculate();
+
     double l_max = -1e10;
     double full_flux=1; //in electrons/s
     double max_flux=1;
 
     for (int i=0;i<m_Esolver->m_elec_num-1;i++)
     {
+        m_Esolver->m_electrodes[i].EdotN=-1;
         if (m_Esolver->m_electrodes[i].canEmit)
         {
             vec2 E=m_Esolver->getE(m_Esolver->m_electrodes[i].r.x,m_Esolver->m_electrodes[i].r.y);
@@ -226,14 +244,16 @@ void multiSolver::updateTrajTable()
             double ey=E.y;*/
 
             double l = ex * (-m_Esolver->m_electrodes[i].nx) + ey * (-m_Esolver->m_electrodes[i].ny);
-            m_Esolver->m_electrodes[i].EdotN=l;
+
             if (l>0)
             {
+                m_Esolver->m_electrodes[i].EdotN=l;
                 if(l>l_max)
                     l_max = l;
                 double ds = m_Esolver->m_electrodes[i].dl*(w_z1-w_z0);
                 double flux = calcJ(l)*ds/(fabs(qe));
 
+                m_Esolver->m_electrodes[i].eCurrent=flux;
 
                 full_flux+=flux;
                 if (max_flux<flux) max_flux=flux;
@@ -242,14 +262,15 @@ void multiSolver::updateTrajTable()
     }
 
 
-    //dt_elec=fmin(electrons_in_pack/full_flux,1e-8);
-    dt_elec=fmin(electrons_in_pack/max_flux,1e-8);
+    dt_elec=fmin(electrons_in_pack/full_flux,1e-8);
+   // dt_elec=fmin(electrons_in_pack/max_flux,1e-8);
 
 
 
    // printf("full_flux= %e maxL = %e el/s dt=%e t=%e phi=%f \n",full_flux,l_max,dt_elec,g_t,m_Esolver->m_electrodes[0].phi_fix);
 
 
+    traj_num=0;
     for (int i=0;i<m_Esolver->m_elec_num;i++) {
         vec2 r = m_Esolver->m_electrodes[i].r;
         vec2 v(0.0,0.0,0.0);
@@ -258,7 +279,18 @@ void multiSolver::updateTrajTable()
         double Dt=1e-6;
 
         vec2 E_=get_slower_E(r.x,r.y);
+
+         endPosTable[i] = -1;
+
         if (m_Esolver->m_electrodes[i].EdotN>0)
+        {
+            r.charge=m_Esolver->m_electrodes[i].eCurrent/full_flux;
+            trajectories_num[traj_num]=1;
+            trajectories[traj_num][0]=r;
+            traj_num++;
+            if (traj_num>traj_num_max) traj_num++;
+
+
             for (int j=0;j<1000;j++)
             {
 
@@ -274,23 +306,34 @@ void multiSolver::updateTrajTable()
 
                 v.x += magn*(E_.x)*Dt;
                 v.y += magn*(E_.y)*Dt;
-                if (r.y+Dt*v.y<0) break;
+                if (r.y+Dt*v.y<m_pzSolver->m_p[0].r_top.y) break;
                 r.x+=Dt*v.x;
                 r.y+=Dt*v.y;
+
+
+                trajectories[traj_num-1][trajectories_num[traj_num-1]]=r;
+                trajectories_num[traj_num-1]++;
+
                 if(r.y > w_y1){
                     inArea = false;
                     break;
                 }
             }
 
+
         int p_n=0;
-        double xx = (m_pzSolver->m_p[0].r_top.y - (r.y - r.x * v.y / v.x)) * v.x / v.y;
+        double xx = r.x;//(m_pzSolver->m_p[0].r_top.y - (r.y - r.x * v.y / v.x)) * v.x / v.y;
+        r.x=xx;
+        r.y=m_pzSolver->m_p[0].r_top.y;//last point
+        trajectories[traj_num-1][trajectories_num[traj_num-1]]=r;
+        trajectories_num[traj_num-1]++;
 
         p_n=(int) ((xx - m_pzSolver->m_p[0].r_top.x + 0.5 * m_pzSolver->m_dx) / m_pzSolver->m_dx);
         if(inArea && p_n >=0 && p_n<m_pzSolver->m_p_num)
             endPosTable[i] = p_n;
         else
             endPosTable[i] = -1;
+        }
     }
 }
 
@@ -318,7 +361,7 @@ void multiSolver::electronEmissionEndMoveToElectrode(double d_t)
                 double ds = m_Esolver->m_electrodes[i].dl*(w_z1-w_z0);
                 double el_to_add = calcJ(l)*d_t*ds/(fabs(qe));
                 m_Esolver->m_electrodes[i].eToEmit=el_to_add;
-                m_Esolver->m_electrodes[i].eCurrent=calcJ(l);
+                m_Esolver->m_electrodes[i].eCurrent=el_to_add/d_t;
             }else
             {
                 m_Esolver->m_electrodes[i].eToEmit=0.0;
@@ -411,7 +454,7 @@ void multiSolver::pzEmission(double dt)
     double yy=0;//m_pzSolver->m_p[0].r_top.y;
 
 
-    for (int itn=0;itn<180;itn++)
+    for (int itn=0;itn<20;itn++)
     {
         double b = 1e-12;//1e-12;
         static vec2 Ef[1000];
@@ -426,7 +469,7 @@ void multiSolver::pzEmission(double dt)
 
         for (int i=1;i<m_pzSolver->m_p_num-1;i++)
         {
-            if(m_pzSolver->m_p[i].q_ext - m_pzSolver->m_p[i].q_0 > 0){
+            if(m_pzSolver->m_p[i].q_ext /*- m_pzSolver->m_p[i].q_0*/ > 0){
                 vec2 r;
                 r.x=m_pzSolver->m_p[i].r_top.x;
                 r.y=yy;

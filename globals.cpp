@@ -22,7 +22,7 @@ double delta_phi=1e-8;
 //double delta_E=1e-8;
 double g_save_time = 0;
 double g_save_time2 = 0;
- double electrons_in_pack=200;//200;
+ double electrons_in_pack=100;//200;
 int g_i_wall=0;
 int g_i_wall_edge=21;//*2;
 double g_dphidt;

@@ -38,7 +38,7 @@ void eFieldLagrangian::init()
 
     int emit_1[4] = {1,0,0,0};
     //double dl[5] = {0.5 * 0.125e-6, 2e-6, 4e-6, 2e-6, 0.5 * 0.25e-6};
-    double dl[5] = {1. * 0.5e-6, 2e-6, 4e-6, 2e-6, 1.0 * 0.5e-6};
+    double dl[5] = {1. * 0.15e-6, 2e-6, 4e-6, 2e-6, 1.0 * 0.5e-6};
 
     //   addQuad_stabilized(p,dl, -g_phi ,emit_1, w_y0+25e-6 + 0.5 * dl_pz, 30,0);
 

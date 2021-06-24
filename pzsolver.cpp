@@ -5,7 +5,7 @@
 
 pzSolver::pzSolver()
 {
-    this->m_p_num=100;
+    this->m_p_num=300;
     m_p=new pElem[m_p_num];
     m_rCentre=new vec2[2 * m_p_num];
     m_dt=1e-7;//15.0*45e-14;//1e-11;
