@@ -30,7 +30,7 @@ public:
 
     double calcJ(double Ein);
     void electronEmissionEndMoveToElectrode(double dt);
-    void updateTrajTable();
+    void updateTrajTable(bool leapfrog, double dt0, double dl0);
     int  getEndPos(int i);
     void solve(int itn);
     void solvePzAdaptive(double dtElec);

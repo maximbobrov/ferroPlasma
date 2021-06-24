@@ -527,10 +527,13 @@ void display(void)
         // double t0 = get_time();
         for (int j=0;j<10;j++)
         {
-        multi_solver->updateTrajTable();
+        multi_solver->updateTrajTable(false,1e-15,0.5e-7);
         //  double t1 = get_time();
         for (int i=0;i<5;i++)
+        {
+       //      multi_solver->updateTrajTable();
             multi_solver->solve(10);
+        }
         //    double t2 = get_time();
         }
         updateEulFields();
@@ -589,7 +592,7 @@ void display(void)
         else{
             for (int kk=0;kk<10;kk++){
 
-                multi_solver->updateTrajTable();
+                multi_solver->updateTrajTable(false,1e-15,0.5e-7);
                 for (int i=0;i<10;i++)
                     multi_solver->solve(10);
             }
@@ -939,7 +942,7 @@ void loadStatePZ()
         }
 
 
-        multi_solver->updateTrajTable();
+        multi_solver->updateTrajTable(false,1e-15,0.5e-7);
         multi_solver->solve(10);
         updateEulFields();
         printf("\n LOADED! \n");
@@ -1232,7 +1235,8 @@ void kb(unsigned char key, int x, int y)
     if (key=='=')
     {
 
-        updateEulFields();
+        multi_solver->updateTrajTable(true,1e-14,0.5e-7);
+        //updateEulFields();
         // savePotential();
     }
 
