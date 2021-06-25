@@ -293,7 +293,7 @@ void multiSolver::updateTrajTable(bool leapfrog,double dt0,double dl0)
 
 
 
-                for (int j=0;j<2000;j++)
+                for (int j=0;j<200;j++)
                 {
 
                     r.x+=Dt*v.x + acc.x*(Dt*Dt*0.5);

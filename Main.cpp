@@ -40,6 +40,7 @@ double cv=0.001;
 double conv[100];
 double conv1[100];
 
+double scale_f=1.0;
 bool clearc=true;
 
 
@@ -636,8 +637,11 @@ void display(void)
 
     glLoadIdentity();
 
-    glRotatef(ry,1.0,0,0);
-    glRotatef(rx,0.0,1.0,0);
+    glTranslatef(w_x0,0,0);
+    glScalef(scale_f,scale_f,scale_f);
+    glTranslatef(-w_x0,0,0);
+    //glRotatef(ry,1.0,0,0);
+    //glRotatef(rx,0.0,1.0,0);
 
     glColor3f(1,1,1);
 
@@ -1149,7 +1153,7 @@ void kb(unsigned char key, int x, int y)
     double max_err=0.0;
     if (key=='.')
     {
-        scale*=1.1;
+        scale+=1.1;
 
         printf("scale=%e \n", scale);
     }
@@ -1300,6 +1304,18 @@ void kb(unsigned char key, int x, int y)
 
     }
 
+
+
+    if (key=='w')
+    {
+        scale_f+=0.01;
+    }
+
+
+    if (key=='s')
+    {
+        scale_f-=0.01;
+    }
     glutPostRedisplay();
 }
 
