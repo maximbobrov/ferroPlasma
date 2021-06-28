@@ -8,6 +8,7 @@
 //#define N_X 1025
 //#define N_Y 513
 //#define N_Y_DIEL 255
+#define is2D true
 
 #define M_PI 3.1415926535
 

@@ -442,13 +442,17 @@ void draw_electrode()
             double y=(lagr_solver->m_electrodes[i].r.y);
             glVertex3f(x,y,0.0);
 
+            vec2 E=multi_solver->get_slow_E(x,y);
+
+            /*double ex=E.x;
+            double ey=E.y;
 
             vec2 Ed = lagr_solver->getE(x,y);
-            vec2 Ep = pz_solver->getEdepol(x,y);
+            vec2 Ep = pz_solver->getEdepol(x,y);*/
 
             double E_x,E_y;
-            E_x=Ed.x+Ep.x;
-            E_y=Ed.y+Ep.y;
+            E_x=E.x;//Ed.x+Ep.x;
+            E_y=E.y;//Ed.y+Ep.y;
 
             double magn=qe/Me;//1e-1;
             E_x = magn*(E_x)*5e-25 * ck;
@@ -526,7 +530,7 @@ void display(void)
     if (redr==1)
     {
         // double t0 = get_time();
-        for (int j=0;j<10;j++)
+        for (int j=0;j<1;j++)
         {
         multi_solver->updateTrajTable(false,1e-15,0.5e-7);
         //  double t1 = get_time();
@@ -537,9 +541,9 @@ void display(void)
         }
         //    double t2 = get_time();
         }
-        updateEulFields();
+        //updateEulFields();
         //  double t3 =get_time();
-
+redr=0;
         // printf("traj_upd_time=%e solve_time=%e eul_fields_time=%e \n", t1-t0, t2-t1,t3-t2);
     }
     double wall_coord;
@@ -1340,7 +1344,7 @@ void init()
     multi_solver->m_pzSolver = pz_solver;
 
 
-    multi_solver->prepare_caches();
+    multi_solver->prepare_caches(is2D);
     multi_solver->fast_Fields_prepare();
 }
 

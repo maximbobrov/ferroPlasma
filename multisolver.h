@@ -34,6 +34,7 @@ public:
     int  getEndPos(int i);
     void solve(int itn);
     void solvePzAdaptive(double dtElec);
+    void solvePzDOPRI();
         void solve__(int itn); //debug purposes
     void init();
 
@@ -44,7 +45,7 @@ public:
     double getPhi_at_electrode(int n);
     double getPhi_at_pz_down(int n);
     double getPhi_at_pz_up(int n);
-    void prepare_caches();
+    void prepare_caches(bool _2D_elems);
 
     void fast_Fields_prepare(); //get fields on eul grid
     void fast_Fields_recalculate();

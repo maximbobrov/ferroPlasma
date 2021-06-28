@@ -59,7 +59,7 @@ void pzSolver::init()
     for (int i=0;i<m_p_num;i++) //first electrode
     {
         m_p[i].q_ext=-m_p[i].q;
-        printf("i=%d q=%e q_ext=%e \n",i,m_p[i].q,m_p[i].q_ext);
+        // printf("i=%d q=%e q_ext=%e \n",i,m_p[i].q,m_p[i].q_ext);
         m_p[i].q_0=m_p[i].q_ext;
     }
     //m_dx = 1e-9;
@@ -260,6 +260,8 @@ void pzSolver::solvePzDOPRI(int itn)
     double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
     //    int i=1;
 
+
+
     for (int i=0; i<m_p_num; i++)
     {
         double q= qepspi * m_p[i].ds/qe;
@@ -438,32 +440,35 @@ void pzSolver::step()
 
 
 
-vec2 pzSolver::getEdepol(double x, double y)
+vec2 pzSolver::getEdepol(double x, double y, bool _is2d)
 {
-    vec2 sum;
-    sum.x=0.0; sum.y=0.0;
-    //  double delta=1e-6;
+    vec2 sum(0.0,0.0,0.0);
     double d2=delta_phi*delta_phi;
     double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
+    double lx=m_dx; //this should be changed
+    double for_q_E=-0.5*qepspi/lx;
 
     for (int i=0;i<m_p_num;i+=MP_DIV)
     {
-        double r2;
-        double q;
-        double dx,dy;
+        if (!_is2d)
+        {
+
+            double r2;
+            double q;
+            double dx,dy;
 
 
-        dx = m_p[i].r_top.x - x;
-        dy = m_p[i].r_top.y - y;
-        r2=(dx*dx+dy*dy);
-        q=- qepspi *m_p[i].r_top.charge; // (m_p[i].q+m_p[i].q_ext);
+            dx = m_p[i].r_top.x - x;
+            dy = m_p[i].r_top.y - y;
+            r2=(dx*dx+dy*dy);
+            q=- qepspi *m_p[i].r_top.charge; // (m_p[i].q+m_p[i].q_ext);
 
-        double c=q/((r2+d2));
+            double c=q/((r2+d2));
 
-        sum.x+=c*dx;
-        sum.y+=c*dy;
+            sum.x+=c*dx;
+            sum.y+=c*dy;
 
-        /*  dx = m_p[i].r.x - x;
+            /*  dx = m_p[i].r.x - x;
         dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
         r2=(dx*dx+dy*dy);
         q=-qe/(eps0*pi2) * (-m_p[i].q);
@@ -471,6 +476,16 @@ vec2 pzSolver::getEdepol(double x, double y)
         c=q/((r2+delta*delta)*(w_z1 - w_z0));
         sum.x+=dx*c;
         sum.y+=dy*c; //zero charge at the bottom*/
+        }else
+        {
+            double dx0 = m_p[i].r_top.x - lx*0.5 - x;
+            double dx1 = m_p[i].r_top.x + lx*0.5 - x;
+            dy = m_p[i].r_top.y - y;
+            double dydy= dy*dy+1e-20;
+            double ln_arg=(dx1*dx1+dydy)/(dx0*dx0+dydy);
+            sum.x+=for_q_E*m_p[i].r_top.charge*log(ln_arg);
+            sum.y+=2.0*for_q_E*m_p[i].r_top.charge*(atan(dx1/dy) - atan(dx0/dy));//dy*(atan(dx1/dy) - atan(dx0/dy))/(fabs(dy)+1e-10);
+        }
     }
     return sum;
 }
@@ -507,8 +522,8 @@ double pzSolver::getPhidepol(double x, double y)
 double pzSolver::getPhiDiff(double x, double y, int i)
 {
     double phi1d0 = getPhi1D(0,0,
-                            m_p[i].r_top.x, m_p[i].r_top.y,
-                            m_p[i].q);
+                             m_p[i].r_top.x, m_p[i].r_top.y,
+                             m_p[i].q);
     double phi1d = getPhi1D(x, y,
                             m_p[i].r_top.x, m_p[i].r_top.y,
                             m_p[i].q);

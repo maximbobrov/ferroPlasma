@@ -33,7 +33,7 @@ public:
     void getRHS();
     void get_q();
     void step();
-    vec2 getEdepol(double x, double y);
+    vec2 getEdepol(double x, double y, bool _is2d);
     double getPhidepol(double x, double y);
     double getPhiDiff(double x, double y, int i);
     vec2 getEDiff(double x, double y, int i, double delta);
