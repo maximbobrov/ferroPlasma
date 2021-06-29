@@ -51,6 +51,7 @@ public:
 
     // static vec2 getEField(const vec2& iCenterPos, const vec2& iFarPos);
     // static vec2 getPhiField(const vec2& iCenterPos, const vec2& iFarPos);
+    vec2 get_E_multiplier(double x, double y, int i, bool _is2d);
 };
 
 #endif // PZSOLVER_H

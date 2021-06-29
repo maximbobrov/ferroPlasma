@@ -53,6 +53,8 @@ public:
     void getInv_PhiE();
     void solve_ls_fast();
     void solve_ls_fast_PhiE();
+       vec2 get_E_multiplier(double x, double y, int i);
+
 
 };
 #endif // EFIELDLAGRANGIAN_H

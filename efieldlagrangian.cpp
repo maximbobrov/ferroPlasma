@@ -1350,6 +1350,32 @@ void eFieldLagrangian::solve_ls_fast_PhiE()
     }
 }
 
+vec2 eFieldLagrangian::get_E_multiplier(double x, double y, int i)
+{
+
+    vec2 sum;
+    sum.x=0.0; sum.y=0.0;
+    //double delta=1e-6;
+    double d2=delta_phi*delta_phi;
+   const double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
+
+          double r2;
+        double q;
+        double dx,dy;
+
+        dx = m_charges[i].x - x;
+        dy = m_charges[i].y - y;
+        r2=(dx*dx+dy*dy);
+        q=-qepspi;//* (m_charges[i].charge);
+
+        double c=q/(r2+d2);
+
+        sum.x+=c*dx;
+        sum.y+=c*dy;
+
+    return sum;
+}
+
 
 
 

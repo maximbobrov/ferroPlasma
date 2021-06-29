@@ -57,6 +57,7 @@ public:
       vec2 get_slow_E(double x, double y);
       double get_slow_phi(double x, double y);
 
+      vec2 getE_grid_ij(int i, int j);
 };
 
 #endif // MULTISOLVER_H

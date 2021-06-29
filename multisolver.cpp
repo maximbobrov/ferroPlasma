@@ -297,13 +297,9 @@ void multiSolver::updateTrajTable(bool leapfrog,double dt0,double dl0)
         m_Esolver->m_electrodes[i].EdotN=-1;
         if (m_Esolver->m_electrodes[i].canEmit)
         {
-            /*vec2 E=m_Esolver->getE(m_Esolver->m_electrodes[i].r.x,m_Esolver->m_electrodes[i].r.y);
-            vec2 Ep=m_pzSolver->getEdepol(m_Esolver->m_electrodes[i].r.x,m_Esolver->m_electrodes[i].r.y);
-            vec2 Ediff(0,0,0);//= m_pzSolver->getEDiff(m_Esolver->m_electrodes[i].r.x,m_Esolver->m_electrodes[i].r.y, g_i_wall_edge, 1e-7);
-            double ex=E.x+Ep.x+Ediff.x;
-            double ey=E.y+Ep.y+Ediff.y;*/
 
-            vec2 E=get_slow_E(m_Esolver->m_electrodes[i].r.x,m_Esolver->m_electrodes[i].r.y);
+
+            vec2 E=get_slower_E(m_Esolver->m_electrodes[i].r.x,m_Esolver->m_electrodes[i].r.y);
 
             double ex=E.x;
             double ey=E.y;
@@ -345,7 +341,7 @@ void multiSolver::updateTrajTable(bool leapfrog,double dt0,double dl0)
 
             double Dt=dt0;
 
-            vec2 E_=get_slow_E(r.x,r.y);
+            vec2 E_=get_slower_E(r.x,r.y);
 
             endPosTable[i] = -1;
 
@@ -364,7 +360,7 @@ void multiSolver::updateTrajTable(bool leapfrog,double dt0,double dl0)
                     r.x+=Dt*v.x + acc.x*(Dt*Dt*0.5);
                     r.y+=Dt*v.y + acc.y*(Dt*Dt*0.5);
 
-                    E_=get_slow_E(r.x,r.y);
+                    E_=get_slower_E(r.x,r.y);
 
                     vec2 Ediff(0,0,0);// = m_pzSolver->getEDiff(r.x,r.y, g_i_wall_edge, 1e-7);
                     E_.x +=Ediff.x;
@@ -416,7 +412,7 @@ void multiSolver::updateTrajTable(bool leapfrog,double dt0,double dl0)
             double Dl=dl0;//0.5e-7;
             double Dt=1e-6;
 
-            vec2 E_=get_slow_E(r.x,r.y);
+            vec2 E_=get_slower_E(r.x,r.y);
 
             endPosTable[i] = -1;
 
@@ -433,7 +429,7 @@ void multiSolver::updateTrajTable(bool leapfrog,double dt0,double dl0)
                 {
 
 
-                    E_=get_slow_E(r.x,r.y);
+                    E_=get_slower_E(r.x,r.y);
 
                     vec2 Ediff(0,0,0);// = m_pzSolver->getEDiff(r.x,r.y, g_i_wall_edge, 1e-7);
                     E_.x +=Ediff.x;
@@ -498,7 +494,7 @@ void multiSolver::electronEmissionEndMoveToElectrode(double d_t)
             double ex=E.x+Ep.x + Ediff.x;
             double ey=E.y+Ep.y + Ediff.y;*/
 
-            vec2 E=get_slow_E(m_Esolver->m_electrodes[i].r.x,m_Esolver->m_electrodes[i].r.y);
+            vec2 E=get_slower_E(m_Esolver->m_electrodes[i].r.x,m_Esolver->m_electrodes[i].r.y);
 
             double ex=E.x;
             double ey=E.y;
@@ -882,15 +878,21 @@ double multiSolver::getPhi_at_pz_down(int n)
     return sum;
 }
 
-
+#define ELEC_MAX 300
+#define PZ_MAX 350
 //for fast fields
 double g_x_min=1e10;
 double g_x_max=-1e10;
 double g_y_min=1e10;
 double g_y_max=-1e10;
 double g_dx,g_dy;
-vec2 * g_grid[50][50][200];
-int g_grid_num[50][50];
+int  g_grid_elec[50][50][200];
+vec2 g_grid_mult_elec[50][50][ELEC_MAX];
+vec2 g_grid_mult_pz[50][50][PZ_MAX];
+int g_grid_elec_num[50][50];
+int  g_grid_pz[50][50][200];
+int g_grid_pz_num[50][50];
+
 vec2 g_grid_Ephi[51][51];
 vec2 g_grid_Ephi_near[51][51][2][2]; //last two indices are the in-cell coordinates
 
@@ -954,7 +956,9 @@ void multiSolver::fast_Fields_prepare()
     {
         for (int j=0;j<g_Ny;j++)
         {
-            g_grid_num[i][j]=0;
+            g_grid_elec_num[i][j]=0;
+            g_grid_pz_num[i][j]=0;
+
         }
     }
     for (int i=0;i<m_Esolver->m_chargeNum;i++)
@@ -963,8 +967,8 @@ void multiSolver::fast_Fields_prepare()
         ni=(int)((m_Esolver->m_charges[i].x-g_x_min)/g_dx);
         nj=(int)((m_Esolver->m_charges[i].y-g_y_min)/g_dy);
 
-        g_grid[ni][nj][g_grid_num[ni][nj]] = &(m_Esolver->m_charges[i]);
-        g_grid_num[ni][nj]++;
+        g_grid_elec[ni][nj][g_grid_elec_num[ni][nj]] = i;//&(m_Esolver->m_charges[i]);
+        g_grid_elec_num[ni][nj]++;
     }
     for (int i=0;i<m_pzSolver->m_p_num;i+=MP_DIV)
     {
@@ -972,10 +976,44 @@ void multiSolver::fast_Fields_prepare()
         ni=(int)((m_pzSolver->m_p[i].r_top.x-g_x_min)/g_dx);
         nj=(int)((m_pzSolver->m_p[i].r_top.y-g_y_min)/g_dy);
 
-        g_grid[ni][nj][g_grid_num[ni][nj]] = &(m_pzSolver->m_p[i].r_top);
-        g_grid_num[ni][nj]++;
+        g_grid_pz[ni][nj][g_grid_pz_num[ni][nj]] = i;//&(m_pzSolver->m_p[i].r_top);
+        g_grid_pz_num[ni][nj]++;
     }
 
+
+    printf("elec num=%d ELEC_MAX=%d \n",m_Esolver->m_chargeNum,ELEC_MAX);
+
+    printf("pz num=%d pz_MAX=%d \n",m_pzSolver->m_p_num,PZ_MAX);
+
+    if ((m_Esolver->m_chargeNum>ELEC_MAX)||(m_pzSolver->m_p_num>PZ_MAX))
+    {
+        printf ("\n\n\n\n EEEEEEEERRRRRRRRRRRRRRRRRRRRRRRRRORRRRRRRRRRRRRRRRRRRRRRR!!!!!!!!!!!!! ELEC_MAX or PZ_MAX \n\n\n\n");
+    }
+
+    for (int i=0;i<=g_Nx;i++)
+    {
+        for (int j=0;j<=g_Ny;j++)
+        {
+
+            double x,y;
+            x=g_x_min+i*g_dx;
+            y=g_y_min+j*g_dy;
+
+            for (int k=0;k<m_Esolver->m_chargeNum;k++)
+            {
+                vec2 mult=m_Esolver->get_E_multiplier(x,y,k);
+                g_grid_mult_elec[i][j][k]=mult;
+            }
+
+            for (int k=0;k<m_pzSolver->m_p_num;k++)
+            {
+                vec2 mult=m_pzSolver->get_E_multiplier(x,y,k,is2D);
+                g_grid_mult_pz[i][j][k]=mult;
+            }
+        }
+    }
+
+/*
     int sum1=0;
     for (int i=0;i<g_Nx;i++)
         for (int j=0;j<g_Ny;j++)
@@ -985,23 +1023,39 @@ void multiSolver::fast_Fields_prepare()
             sum1+=g_grid_num[i][j];
         }
 
-    printf("sum1=%d sum2=%d \n",sum1,m_pzSolver->m_p_num+m_Esolver->m_chargeNum);
+    printf("sum1=%d sum2=%d \n",sum1,m_pzSolver->m_p_num+m_Esolver->m_chargeNum);*/
 
 }
+vec2 multiSolver::getE_grid_ij(int i,int j)
+{
+    vec2 sum(0.0,0.0,0.0);
+for (int k=0;k<m_Esolver->m_chargeNum;k++)
+{
 
+    sum.x+=g_grid_mult_elec[i][j][k].x*m_Esolver->m_charges[k].charge;
+    sum.y+=g_grid_mult_elec[i][j][k].y*m_Esolver->m_charges[k].charge;
+}
+
+for (int k=0;k<m_pzSolver->m_p_num;k++)
+{
+    sum.x+=g_grid_mult_pz[i][j][k].x*m_pzSolver->m_p[k].r_top.charge;
+    sum.y+=g_grid_mult_pz[i][j][k].y*m_pzSolver->m_p[k].r_top.charge;
+}
+return sum;
+}
 void multiSolver::fast_Fields_recalculate()
 {
     for (int i=0;i<=g_Nx;i++)
     {
         for (int j=0;j<=g_Ny;j++)
         {
-            double x,y;
-            x=g_x_min+i*g_dx;
-            y=g_y_min+j*g_dy;
-            vec2 Ee = m_Esolver->getE(x,y);
-            vec2 Epz = m_pzSolver->getEdepol(x,y,is2D); //можно ускорить через кэш!
-            g_grid_Ephi[i][j].x = Ee.x +  Epz.x;
-            g_grid_Ephi[i][j].y = Ee.y +  Epz.y;
+            //double x,y;
+            //x=g_x_min+i*g_dx;
+            //y=g_y_min+j*g_dy;
+            vec2 E =getE_grid_ij(i,j);// m_Esolver->getE(x,y);
+            //m_pzSolver->getEdepol(x,y,is2D); //можно ускорить через кэш!
+            g_grid_Ephi[i][j].x = E.x;
+            g_grid_Ephi[i][j].y = E.y;
         }
     }
 }
@@ -1063,37 +1117,38 @@ void multiSolver::near_Fields_recalculate_cell(int i_, int j_)
     {
         for (int j=jm;j<=jp;j++)
         {
-            for (int n=0; n<g_grid_num[i][j]; n++)
+            for (int n=0; n<g_grid_elec_num[i][j]; n++)
             {
-                double r2;
-                double q;
-                double dx,dy;
-                q=- qepspi *g_grid[i][j][n]->charge;
+                int ind=g_grid_elec[i][j][n];
 
-                dx = g_grid[i][j][n]->x - x00;
-                dy = g_grid[i][j][n]->y - y00;
-                r2=(dx*dx + dy*dy);
-                E00.x+=dx*q/(r2+d2);
-                E00.y+=dy*q/(r2+d2);
+                    E00.x+=g_grid_mult_elec[i_][j_][ind].x*m_Esolver->m_charges[ind].charge;
+                    E00.y+=g_grid_mult_elec[i_][j_][ind].y*m_Esolver->m_charges[ind].charge;
 
-                dx = g_grid[i][j][n]->x - x10;
-                dy = g_grid[i][j][n]->y - y00;
-                r2=(dx*dx + dy*dy);
-                E10.x+=dx*q/(r2+d2);
-                E10.y+=dy*q/(r2+d2);
+                    E10.x+=g_grid_mult_elec[i_+1][j_][ind].x*m_Esolver->m_charges[ind].charge;
+                    E10.y+=g_grid_mult_elec[i_+1][j_][ind].y*m_Esolver->m_charges[ind].charge;
 
-                dx = g_grid[i][j][n]->x - x00;
-                dy = g_grid[i][j][n]->y - y01;
-                r2=(dx*dx + dy*dy);
-                E01.x+=dx*q/(r2+d2);
-                E01.y+=dy*q/(r2+d2);
+                    E11.x+=g_grid_mult_elec[i_+1][j_+1][ind].x*m_Esolver->m_charges[ind].charge;
+                    E11.y+=g_grid_mult_elec[i_+1][j_+1][ind].y*m_Esolver->m_charges[ind].charge;
 
-                dx = g_grid[i][j][n]->x - x10;
-                dy = g_grid[i][j][n]->y - y01;
-                r2=(dx*dx + dy*dy);
-                E11.x+=dx*q/(r2+d2);
-                E11.y+=dy*q/(r2+d2);
+                    E01.x+=g_grid_mult_elec[i_][j_+1][ind].x*m_Esolver->m_charges[ind].charge;
+                    E01.y+=g_grid_mult_elec[i_][j_+1][ind].y*m_Esolver->m_charges[ind].charge;
+            }
 
+            for (int n=0; n<g_grid_pz_num[i][j]; n++)
+            {
+                int ind=g_grid_pz[i][j][n];
+
+                      E00.x+=g_grid_mult_pz[i_][j_][ind].x*m_pzSolver->m_p[ind].r_top.charge;
+                      E00.y+=g_grid_mult_pz[i_][j_][ind].y*m_pzSolver->m_p[ind].r_top.charge;
+
+                    E10.x+=g_grid_mult_pz[i_+1][j_][ind].x*m_pzSolver->m_p[ind].r_top.charge;
+                    E10.y+=g_grid_mult_pz[i_+1][j_][ind].y*m_pzSolver->m_p[ind].r_top.charge;
+
+                  E11.x+=g_grid_mult_pz[i_+1][j_+1][ind].x*m_pzSolver->m_p[ind].r_top.charge;
+                  E11.y+=g_grid_mult_pz[i_+1][j_+1][ind].y*m_pzSolver->m_p[ind].r_top.charge;
+
+                    E01.x+=g_grid_mult_pz[i_][j_+1][ind].x*m_pzSolver->m_p[ind].r_top.charge;
+                    E01.y+=g_grid_mult_pz[i_][j_+1][ind].y*m_pzSolver->m_p[ind].r_top.charge;
             }
         }
     }
@@ -1143,30 +1198,33 @@ vec2 multiSolver::get_slower_E(double x, double y)
     ip= (ni+1<g_Nx) ? ni+1 : g_Nx-1;
     jp= (nj+1<g_Ny) ? nj+1 : g_Ny-1;
 
-    double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
-    //double delta=1e-6;
-    double d2=delta_phi*delta_phi;
+    for (int i=im;i<=ip;i++)
+    {
+        for (int j=jm;j<=jp;j++)
+        {
+            for (int n=0; n<g_grid_elec_num[i][j]; n++)
+            {
+                  int ind=g_grid_elec[i][j][n];
+                    vec2 mult=m_Esolver->get_E_multiplier(x,y,ind);
+                res.x+=mult.x*m_Esolver->m_charges[ind].charge;
+                res.y+=mult.y*m_Esolver->m_charges[ind].charge;
+            }
+        }
+    }
 
     for (int i=im;i<=ip;i++)
     {
         for (int j=jm;j<=jp;j++)
         {
-            for (int n=0; n<g_grid_num[i][j]; n++)
+            for (int n=0; n<g_grid_pz_num[i][j]; n++)
             {
-                double r2;
-                double q;
-                double dx,dy;
-                q=- qepspi *g_grid[i][j][n]->charge;
-
-                dx = g_grid[i][j][n]->x - x;
-                dy = g_grid[i][j][n]->y - y;
-                r2=(dx*dx + dy*dy);
-                res.x+=dx*q/(r2+d2);
-                res.y+=dy*q/(r2+d2);
+                  int ind=g_grid_pz[i][j][n];
+                    vec2 mult=m_pzSolver->get_E_multiplier(x,y,ind,is2D);
+                res.x+=mult.x*m_pzSolver->m_p[ind].r_top.charge;
+                res.y+=mult.y*m_pzSolver->m_p[ind].r_top.charge;
             }
         }
     }
-
     return res;
 }
 

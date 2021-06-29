@@ -490,6 +490,50 @@ vec2 pzSolver::getEdepol(double x, double y, bool _is2d)
     return sum;
 }
 
+
+vec2 pzSolver::get_E_multiplier(double x,double y, int i, bool _is2d)
+{
+    vec2 sum(0.0,0.0,0.0);
+    double d2=delta_phi*delta_phi;
+    double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
+    double lx=m_dx; //this should be changed
+    double for_q_E=-0.5*qepspi/lx;
+
+
+        if (!_is2d)
+        {
+
+            double r2;
+            double q;
+            double dx,dy;
+
+
+            dx = m_p[i].r_top.x - x;
+            dy = m_p[i].r_top.y - y;
+            r2=(dx*dx+dy*dy);
+            q=- qepspi /*m_p[i].r_top.charge*/; // (m_p[i].q+m_p[i].q_ext);
+
+            double c=q/((r2+d2));
+
+            sum.x+=c*dx;
+            sum.y+=c*dy;
+
+
+        }else
+        {
+            double dx0 = m_p[i].r_top.x - lx*0.5 - x;
+            double dx1 = m_p[i].r_top.x + lx*0.5 - x;
+            dy = m_p[i].r_top.y - y;
+            double dydy= dy*dy+1e-20;
+            double ln_arg=(dx1*dx1+dydy)/(dx0*dx0+dydy);
+            sum.x+=for_q_E*log(ln_arg);
+            sum.y+=2.0*for_q_E*(atan(dx1/dy) - atan(dx0/dy));//dy*(atan(dx1/dy) - atan(dx0/dy))/(fabs(dy)+1e-10);
+        }
+
+    return sum;
+
+}
+
 double pzSolver::getPhidepol(double x, double y)
 {
     double sum=0.0;

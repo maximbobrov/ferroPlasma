@@ -543,7 +543,7 @@ void display(void)
         }
         //updateEulFields();
         //  double t3 =get_time();
-redr=0;
+//redr=0;
         // printf("traj_upd_time=%e solve_time=%e eul_fields_time=%e \n", t1-t0, t2-t1,t3-t2);
     }
     double wall_coord;
