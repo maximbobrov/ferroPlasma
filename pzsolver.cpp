@@ -1,6 +1,7 @@
 #include "pzsolver.h"
 #include "globals.h"
 #include "pzsolver.h"
+#include <assert.h>
 
 
 pzSolver::pzSolver()
@@ -11,6 +12,7 @@ pzSolver::pzSolver()
     m_dt=1e-7;//15.0*45e-14;//1e-11;
 
     init();
+     assert(m_p_num<=PZ_MAX);
 }
 
 void pzSolver::init()
@@ -534,16 +536,19 @@ vec2 pzSolver::get_E_multiplier(double x,double y, int i, bool _is2d)
 
 }
 
-double pzSolver::getPhidepol(double x, double y)
+double pzSolver::getPhidepol(double x, double y, bool _is2d)
 {
     double sum=0.0;
+    if (!_is2d)
+    {
+
     double r;
     double q;
     double dx,dy;
     //double delta=1e-6;
 
     double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
-    for (int i=0;i<m_p_num;i+=MP_DIV)
+    for (int i=0;i<m_p_num;i++)
     {
         //    int i=1;
         dx = m_p[i].r_top.x - x;
@@ -560,8 +565,82 @@ double pzSolver::getPhidepol(double x, double y)
 
         sum+=q*log(r+delta)/(w_z1 - w_z0);*/
     }
+    }else
+    {
+        static double qepspi = qe/(eps0*pi2)/(w_z1 - w_z0);
+          double lx=m_dx;
+        for (int i=0;i<m_p_num;i++)
+        {
+            double dy;
+            double dx0 = m_p[i].r_top.x - lx*0.5 - x;
+            double dx1 = m_p[i].r_top.x + lx*0.5 - x;
+            dy = m_p[i].r_top.y - y;
+            double dydy= dy*dy;
+
+            double part1=0.0;
+            if (fabs(dy)>1e-10)
+                part1 = dy*(atan(dx1/dy) - atan(dx0/dy));
+
+            double part2 = 0.5*(dx1*log(dx1*dx1+dydy+1e-20) - dx0*log(dx0*dx0+dydy+1e-20));
+            sum+=(m_p[i].r_top.charge)*qepspi*(1.0 - (1.0/lx)*(part1 + part2));
+        }
+    }
+
     return sum;
 }
+
+
+double pzSolver::getPhi_multiplier(double x, double y, int i,bool _is2d)
+{
+    double sum=0.0;
+    if (!_is2d)
+    {
+
+    double r;
+    double q;
+    double dx,dy;
+    //double delta=1e-6;
+
+    double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
+
+        //    int i=1;
+        dx = m_p[i].r_top.x - x;
+        dy = m_p[i].r_top.y - y;
+        r=sqrt(dx*dx+dy*dy);
+        q= qepspi /* m_p[i].r_top.charge*/;//(m_p[i].q+m_p[i].q_ext);
+
+        sum-=q*log(r+delta_phi);
+
+        /*  dx = m_p[i].r.x - x;
+        dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
+        r=sqrt(dx*dx+dy*dy);
+        q=qe/(eps0*pi2) * (-m_p[i].q);
+
+        sum+=q*log(r+delta)/(w_z1 - w_z0);*/
+
+    }else
+    {
+        static double qepspi = qe/(eps0*pi2)/(w_z1 - w_z0);
+          double lx=m_dx;
+
+            double dy;
+            double dx0 = m_p[i].r_top.x - lx*0.5 - x;
+            double dx1 = m_p[i].r_top.x + lx*0.5 - x;
+            dy = m_p[i].r_top.y - y;
+            double dydy= dy*dy;
+
+            double part1=0.0;
+            if (fabs(dy)>1e-10)
+                part1 = dy*(atan(dx1/dy) - atan(dx0/dy));
+
+            double part2 = 0.5*(dx1*log(dx1*dx1+dydy+1e-20) - dx0*log(dx0*dx0+dydy+1e-20));
+            sum+=/*(m_p[i].r_top.charge)*/qepspi*(1.0 - (1.0/lx)*(part1 + part2));
+
+    }
+
+    return sum;
+}
+
 
 double pzSolver::getPhiDiff(double x, double y, int i)
 {

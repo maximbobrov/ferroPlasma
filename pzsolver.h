@@ -34,7 +34,7 @@ public:
     void get_q();
     void step();
     vec2 getEdepol(double x, double y, bool _is2d);
-    double getPhidepol(double x, double y);
+    double getPhidepol(double x, double y, bool _is2d);
     double getPhiDiff(double x, double y, int i);
     vec2 getEDiff(double x, double y, int i, double delta);
     void updateCharge();
@@ -52,6 +52,7 @@ public:
     // static vec2 getEField(const vec2& iCenterPos, const vec2& iFarPos);
     // static vec2 getPhiField(const vec2& iCenterPos, const vec2& iFarPos);
     vec2 get_E_multiplier(double x, double y, int i, bool _is2d);
+    double getPhi_multiplier(double x, double y, int i,bool _is2d);
 };
 
 #endif // PZSOLVER_H

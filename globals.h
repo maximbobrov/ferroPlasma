@@ -4,10 +4,11 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-//for multigrid
-//#define N_X 1025
-//#define N_Y 513
-//#define N_Y_DIEL 255
+
+#define ELEC_MAX 400
+#define PZ_MAX 300
+
+
 #define is2D true
 
 #define M_PI 3.1415926535
@@ -15,10 +16,6 @@
 #define N_X 300
 #define N_Y 100
 
-//#define N_X 125
-//#define N_Y 30
-
-#define N_Y_DIEL 64
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -37,21 +34,7 @@
 #define eps_pz 100
 
 #define MP_DIV 1
-/*#define w_x0 0.0
-#define w_x1 1.0e-5
 
-#define w_y0 -0.50e-6
-#define w_y1 0.50e-6
-
-#define w_z0 -0.250e-5
-#define w_z1 0.250e-5*/
-
-//near_wall_layer width
-
-#define DY_WALL ((w_y1-w_y0)/50)
-#define Y_WALL (w_y0+DY_WALL)
-
-#define U_TAU 1.0
 
 #define qe -1.6e-19
 #define Me 9.11e-31
@@ -63,7 +46,6 @@
 #define W_WIDTH 600
 #define W_HEIGHT 300
 
-#define RES2_MIN 0.000001
 
 #define VIEW_PHI  0
 #define VIEW_EX  1

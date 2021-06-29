@@ -39,9 +39,7 @@ public:
     void init();
 
     void pzEmission(double dt);
-    void pzEmission_self(double dt);
-    void pzEmissionHoriz(double dt);
-    void pzEmission_monte_carlo(double dt,int itn,double rat);
+
     double getPhi_at_electrode(int n);
     double getPhi_at_pz_down(int n);
     double getPhi_at_pz_up(int n);
@@ -49,13 +47,13 @@ public:
 
     void fast_Fields_prepare(); //get fields on eul grid
     void fast_Fields_recalculate();
-    vec2 get_fast_E(double x,double y);
+    vec2 get_fast_E(double x,double y);//simple interpolation between self
 
     void near_Fields_recalculate_cell(int i_, int j_);
     void slower_Fields_recalculate();
-    vec2 get_slower_E(double x, double y);
-      vec2 get_slow_E(double x, double y);
-      double get_slow_phi(double x, double y);
+    vec2 get_slower_E(double x, double y);//smart interpolation
+      vec2 get_slow_E(double x, double y);//full summation
+      double get_slow_phi(double x, double y, bool _2d);
 
       vec2 getE_grid_ij(int i, int j);
 };

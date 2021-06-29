@@ -56,5 +56,6 @@ public:
        vec2 get_E_multiplier(double x, double y, int i);
 
 
+       double getPhi_multiplier(double x, double y, int i);
 };
 #endif // EFIELDLAGRANGIAN_H

@@ -71,6 +71,166 @@ multiSolver* multi_solver;
 double wall_pos=0.0;
 
 
+static double progress = 2.0;
+static int fileNum = 0;
+static double timePrev = 0;
+
+
+void draw_fields_2d();
+void updateEulFields();
+void draw_traj();
+void draw_fields_pz_1d();
+void draw_charges_pz_1d();
+void draw_pz();
+
+void draw_electrode();
+
+void display(void)
+{
+
+    glDisable(GL_DEPTH_TEST);
+
+    if (redr==1)
+    {
+        // double t0 = get_time();
+        for (int j=0;j<10;j++)
+        {
+        multi_solver->updateTrajTable(false,1e-15,0.5e-7);
+        //  double t1 = get_time();
+        for (int i=0;i<5;i++)
+        {
+       //      multi_solver->updateTrajTable();
+            multi_solver->solve(10);
+        }
+        //    double t2 = get_time();
+        }
+        //updateEulFields();
+        //  double t3 =get_time();
+//redr=0;
+        // printf("traj_upd_time=%e solve_time=%e eul_fields_time=%e \n", t1-t0, t2-t1,t3-t2);
+    }
+    double wall_coord;
+    if(serialRegime)
+    {
+        if(progress>1.0)
+        {
+
+            if(file_data)
+                fclose(file_data);
+            g_emitElectrons = false;
+            g_t = 0;
+            g_phi = -(100 + fileNum*50);
+            g_phi_max = g_phi;
+            fileNum++;
+            char filename[64];
+            sprintf(filename, "output%d.txt", fileNum);
+            file_data=fopen(filename,"w");
+            g_i_wall=0;
+            multi_solver->init();
+            progress=0;
+            g_q_enable = true;
+            for (int kk=0;kk<300;kk++)
+                multi_solver->solve(10);
+
+            g_phi_max =0.0;//*= -1;
+
+            for (int kk=0;kk<300;kk++)
+                multi_solver->solve(10);
+
+
+            g_phi_max = (100 + fileNum*50);
+            g_i_wall=g_i_wall_edge;
+            for (int i=1; i<pz_solver->m_p_num;i++)
+            {
+                if (i<g_i_wall){
+                    pz_solver->m_p[i].q_ext=0;
+                    pz_solver->m_p[i].p = 0.3;
+                    pz_solver->m_p[i].p_prev = 0.3;
+                    pz_solver->m_p[i].q = 0;
+                }
+            }
+            for (int kk=0;kk<100;kk++)
+                multi_solver->solve(10);
+            g_q_enable = false;
+            g_emitElectrons = true;
+            g_t=0;
+            g_save_time=0;
+            g_save_time2=0;
+        }
+        else{
+            for (int kk=0;kk<10;kk++){
+
+                multi_solver->updateTrajTable(false,1e-15,0.5e-7);
+                for (int i=0;i<10;i++)
+                    multi_solver->solve(10);
+            }
+            //for (int kk=0;kk<100;kk++)
+            //    multi_solver->solve(1);
+            //double pzmax=0.0;
+            //double E_in=0.0;
+            /*for (int i=0;i<pz_solver->m_p_num;i++)
+            {
+                if (fabs(pz_solver->m_p[i].p)>fabs(pzmax)) pzmax=(pz_solver->m_p[i].p);
+                //E_in+=pz_solver->m_p[i].E;
+            }*/
+            printf("progress(%d) = %d \n", fileNum, int(progress * 100));
+            //E_in/=pz_solver->m_p_num;
+            updateEulFields();
+            saveInFile();
+            wall_coord = pz_solver->m_p[1].r_top.x - pz_solver->m_p[0].r_top.x;
+            int i;
+            for( i = g_i_wall_edge; i < pz_solver->m_p_num && pz_solver->m_p[i].p > 0; i++ )
+            {
+            }
+            wall_coord = pz_solver->m_p[i].r_top.x - pz_solver->m_p[0].r_top.x;
+
+        }
+        double prev=progress*10;
+        progress +=fabs(g_phi_max/175.0)/2000.0 ;//(g_t / multi_solver->dt_elec)/((g_phi / 10 + 1) * 5000.0);
+        int i_=(int) (progress*10.0);
+        if ((progress*10.0-i_>0)&&(prev-i_<0))
+        {
+            char nme[1000];
+            sprintf(nme, "output_%dV_%d(%e)%d.state",int(g_phi_max), fileNum,g_t,int(progress*100));
+            saveStatePZ(nme);
+        }
+
+
+    }
+
+    if (clearc)
+        glClear(GL_COLOR_BUFFER_BIT);
+
+
+    glLoadIdentity();
+
+    glTranslatef(w_x0,0,0);
+    glScalef(scale_f,scale_f,scale_f);
+    glTranslatef(-w_x0,0,0);
+    //glRotatef(ry,1.0,0,0);
+    //glRotatef(rx,0.0,1.0,0);
+
+    glColor3f(1,1,1);
+
+    draw_fields_2d();
+    if (view_px)
+    {
+        draw_pz();
+    }
+
+    draw_electrode();
+
+//    draw_charges_pz_1d();
+
+//    draw_fields_pz_1d();
+
+    draw_traj();
+
+    glutSwapBuffers();
+    if (redr==1 || serialRegime) glutPostRedisplay();
+}
+
+
 
 void updateEulFields()
 {  
@@ -91,20 +251,21 @@ void updateEulFields()
             }
             if (view==VIEW_PHI)
             {
-                //phi_[i][j]=multi_solver->get_slow_phi(x,y);
+                phi_[i][j]=multi_solver->get_slow_phi(x,y,false);
 
-                phi_[i][j]=pz_solver->getPhi1D(x,y,pz_solver->m_p[g_i_wall_edge+2].r_top.x,pz_solver->m_p[g_i_wall_edge+2].r_top.y,100);
+                /*phi_[i][j]=pz_solver->getPhi1D(x,y,pz_solver->m_p[g_i_wall_edge+2].r_top.x,pz_solver->m_p[g_i_wall_edge+2].r_top.y,100);
                 phi_[i][j]-=pz_solver->getPhi1D(w_x0,w_y0,pz_solver->m_p[g_i_wall_edge+2].r_top.x,pz_solver->m_p[g_i_wall_edge+2].r_top.y,100);
-                phi_[i][j]*=phi_[i][j];
+                phi_[i][j]*=phi_[i][j];*/
             }
 
             if (view==VIEW_P)
             {
 
+                phi_[i][j]=multi_solver->get_slow_phi(x,y,true);
                 //phi_[i][j]=multi_solver->get_slow_phi(x,y);
-                double dl=pz_solver->m_dx;
+               // double dl=pz_solver->m_dx;
 
-                phi_[i][j]=pz_solver->getPhiDiff(x,y, g_i_wall_edge);//pz_solver->getPhi2D(x,y,pz_solver->m_p[g_i_wall_edge+2].r_top.x-dl*0.5,pz_solver->m_p[g_i_wall_edge+2].r_top.x+dl*0.5, pz_solver->m_p[g_i_wall_edge+2].r_top.y,100);
+               // phi_[i][j]=pz_solver->getPhiDiff(x,y, g_i_wall_edge);//pz_solver->getPhi2D(x,y,pz_solver->m_p[g_i_wall_edge+2].r_top.x-dl*0.5,pz_solver->m_p[g_i_wall_edge+2].r_top.x+dl*0.5, pz_solver->m_p[g_i_wall_edge+2].r_top.y,100);
 
                 //phi_[i][j]-=pz_solver->getPhi2D(w_x0,w_y0,pz_solver->m_p[g_i_wall_edge+2].r_top.x-dl*0.5,pz_solver->m_p[g_i_wall_edge+2].r_top.x+dl*0.5, pz_solver->m_p[g_i_wall_edge+2].r_top.y,100);
 
@@ -119,26 +280,10 @@ void updateEulFields()
 void draw_fields_2d()
 {
     updateEulFields();
-    double phi_max=1e-20;
-    double e_max=1e-20;
-    double p_max=1e-20;
-    double px_max=1e-20;
-    double div_max=1e-20;
-    double l_2;
 
-    double Ec,Epc,phic,phipc,dphic,dphicp;
-    for (int i=1;i<N_X-1;i++)
-    {
-        for (int j=1;j<N_Y-1;j++)
-        {
-            phi_max=fmax(phi_max,fabs(phi_[i][j]));
-            p_max=fmax(p_max,fabs(Py_[i][j]));
-            px_max=fmax(px_max,fabs(Px_[i][j]));
-            e_max=fmax(e_max,fabs(Ey[i][j]));
-            div_max=fmax(div_max,fabs(Ex[i][j]));
-        }
-    }
 
+double phi0=fabs(g_phi);
+double E0=10.0*phi0/(dl_pz);
 
     //glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
     for (int i=0;i<N_X-1;i++)
@@ -146,30 +291,30 @@ void draw_fields_2d()
         glBegin(GL_TRIANGLE_STRIP);
         for (int j=0;j<N_Y;j++)
         {
-
+            double l_2;
             double x=g_x0+ i*(g_x1-g_x0)/(N_X-1);
             double y=g_y0+ j*(g_y1-g_y0)/(N_Y-1);
 
             if (view==VIEW_PHI)
-                l_2 = ck*phi_[i][j];
+                l_2 = ck*phi_[i][j]/phi0;
             if (view==VIEW_P)
-                l_2 = ck*phi_[i][j];
+                l_2 = ck*phi_[i][j]/phi0;
             if (view==VIEW_EX)
-                l_2=ck*(Ey[i][j])/e_max;
+                l_2=ck*(Ey[i][j])/E0;
             if (view==VIEW_EY)
-                l_2=ck*(Ex[i][j])/div_max;
+                l_2=ck*(Ex[i][j])/E0;
 
             glColor3f(l_2,l_2,-l_2);
             glVertex2f(x,y);
 
             if (view==VIEW_PHI)
-                l_2=ck*phi_[i+1][j];
+                l_2=ck*phi_[i+1][j]/phi0;
             if (view==VIEW_P)
-                l_2 = ck*phi_[i+1][j];
+                l_2 = ck*phi_[i+1][j]/phi0;
             if (view==VIEW_EX)
-                l_2=ck*(Ey[i+1][j])/e_max;
+                l_2=ck*(Ey[i+1][j])/E0;
             if (view==VIEW_EY)
-                l_2=ck*(Ex[i+1][j])/div_max;
+                l_2=ck*(Ex[i+1][j])/E0;
 
             glColor3f(l_2,l_2,-l_2);
             x=g_x0+ (i+1)*(g_x1-g_x0)/(N_X-1);
@@ -182,9 +327,6 @@ void draw_fields_2d()
 }
 
 
-static double progress = 2.0;
-static int fileNum = 0;
-static double timePrev = 0;
 
 void draw_traj()
 {
@@ -216,7 +358,7 @@ void draw_fields_pz_1d()
 {
     static vec2 Ef[1000];
     static double  phi_f[1000],phi_f2[1000];
-    double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0);
+    double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0,is2D);
 
     for (int i=0;i< pz_solver->m_p_num;i++)
     {
@@ -522,164 +664,6 @@ void draw_electrode()
     glEnd();
 }
 
-void display(void)
-{
-
-    glDisable(GL_DEPTH_TEST);
-
-    if (redr==1)
-    {
-        // double t0 = get_time();
-        for (int j=0;j<1;j++)
-        {
-        multi_solver->updateTrajTable(false,1e-15,0.5e-7);
-        //  double t1 = get_time();
-        for (int i=0;i<5;i++)
-        {
-       //      multi_solver->updateTrajTable();
-            multi_solver->solve(10);
-        }
-        //    double t2 = get_time();
-        }
-        //updateEulFields();
-        //  double t3 =get_time();
-//redr=0;
-        // printf("traj_upd_time=%e solve_time=%e eul_fields_time=%e \n", t1-t0, t2-t1,t3-t2);
-    }
-    double wall_coord;
-    if(serialRegime)
-    {
-        if(progress>1.0)
-        {
-
-            if(file_data)
-                fclose(file_data);
-            g_emitElectrons = false;
-            g_t = 0;
-            g_phi = -(100 + fileNum*50);
-            g_phi_max = g_phi;
-            fileNum++;
-            char filename[64];
-            sprintf(filename, "output%d.txt", fileNum);
-            file_data=fopen(filename,"w");
-            g_i_wall=0;
-            multi_solver->init();
-            progress=0;
-            g_q_enable = true;
-            for (int kk=0;kk<300;kk++)
-                multi_solver->solve(10);
-
-            g_phi_max =0.0;//*= -1;
-
-            for (int kk=0;kk<300;kk++)
-                multi_solver->solve(10);
-
-
-            g_phi_max = (100 + fileNum*50);
-            g_i_wall=g_i_wall_edge;
-            for (int i=1; i<pz_solver->m_p_num;i++)
-            {
-                if (i<g_i_wall){
-                    pz_solver->m_p[i].q_ext=0;
-                    pz_solver->m_p[i].p = 0.3;
-                    pz_solver->m_p[i].p_prev = 0.3;
-                    pz_solver->m_p[i].q = 0;
-                }
-            }
-            for (int kk=0;kk<100;kk++)
-                multi_solver->solve(10);
-            g_q_enable = false;
-            g_emitElectrons = true;
-            g_t=0;
-            g_save_time=0;
-            g_save_time2=0;
-        }
-        else{
-            for (int kk=0;kk<10;kk++){
-
-                multi_solver->updateTrajTable(false,1e-15,0.5e-7);
-                for (int i=0;i<10;i++)
-                    multi_solver->solve(10);
-            }
-            //for (int kk=0;kk<100;kk++)
-            //    multi_solver->solve(1);
-            //double pzmax=0.0;
-            //double E_in=0.0;
-            /*for (int i=0;i<pz_solver->m_p_num;i++)
-            {
-                if (fabs(pz_solver->m_p[i].p)>fabs(pzmax)) pzmax=(pz_solver->m_p[i].p);
-                //E_in+=pz_solver->m_p[i].E;
-            }*/
-            printf("progress(%d) = %d \n", fileNum, int(progress * 100));
-            //E_in/=pz_solver->m_p_num;
-            updateEulFields();
-            saveInFile();
-            wall_coord = pz_solver->m_p[1].r_top.x - pz_solver->m_p[0].r_top.x;
-            int i;
-            for( i = g_i_wall_edge; i < pz_solver->m_p_num && pz_solver->m_p[i].p > 0; i++ )
-            {
-            }
-            wall_coord = pz_solver->m_p[i].r_top.x - pz_solver->m_p[0].r_top.x;
-
-        }
-        double prev=progress*10;
-        progress +=fabs(g_phi_max/175.0)/2000.0 ;//(g_t / multi_solver->dt_elec)/((g_phi / 10 + 1) * 5000.0);
-        int i_=(int) (progress*10.0);
-        if ((progress*10.0-i_>0)&&(prev-i_<0))
-        {
-            char nme[1000];
-            sprintf(nme, "output_%dV_%d(%e)%d.state",int(g_phi_max), fileNum,g_t,int(progress*100));
-            saveStatePZ(nme);
-        }
-
-
-    }
-
-    if (clearc)
-        glClear(GL_COLOR_BUFFER_BIT);
-
-
-    glLoadIdentity();
-
-    glTranslatef(w_x0,0,0);
-    glScalef(scale_f,scale_f,scale_f);
-    glTranslatef(-w_x0,0,0);
-    //glRotatef(ry,1.0,0,0);
-    //glRotatef(rx,0.0,1.0,0);
-
-    glColor3f(1,1,1);
-
-    //draw_fields_2d();
-    if (view_px)
-    {
-        draw_pz();
-    }
-
-    draw_electrode();
-
-//    draw_charges_pz_1d();
-
-//    draw_fields_pz_1d();
-
-    draw_traj();
-
-
-   /* glLineWidth(2.5);
-    glColor3f(0,0,1);
-    glBegin(GL_LINE_STRIP);
-    glVertex3f(pz_solver->m_p[0].r_top.x + wall_coord,1,0.0);
-    glVertex3f(pz_solver->m_p[0].r_top.x + wall_coord,-1,0.0);
-    glEnd();
-
-    glColor3f(0,1,1);
-    glBegin(GL_LINE_STRIP);
-    glVertex3f(pz_solver->m_p[g_i_wall].r_top.x ,1,0.0);
-    glVertex3f(pz_solver->m_p[g_i_wall].r_top.x ,-1,0.0);
-    glEnd();*/
-
-    glutSwapBuffers();
-    if (redr==1 || serialRegime) glutPostRedisplay();
-}
 
 
 /////////1d emission below
@@ -1005,6 +989,47 @@ double q_spec=2*9.5e4;
 
 double proc=0.0;
 
+void sim_prepare()
+{
+    multi_solver->dt_elec = 3e-11 / 1e6;
+    double phi =550;
+    g_emitElectrons = false;
+    g_t = 0;
+    g_phi = -phi;
+    g_phi_max = g_phi;
+    g_i_wall=0;
+    multi_solver->init();
+    progress=0;
+    g_q_enable = true;
+    for (int kk=0;kk<300;kk++)
+        multi_solver->solve(10);
+    g_phi_max =0.0;//*= -1;
+
+    for (int kk=0;kk<300;kk++)
+        multi_solver->solve(10);
+
+    g_i_wall=g_i_wall_edge;
+    g_phi_max =phi;//*= -1;
+    for (int i=1; i<pz_solver->m_p_num;i++)
+    {
+        if (i<g_i_wall){
+            pz_solver->m_p[i].q_ext=0;
+            pz_solver->m_p[i].p = 0.3;
+            pz_solver->m_p[i].p_prev = 0.3;
+            pz_solver->m_p[i].q = 0;
+        }
+    }
+    for (int kk=0;kk<100;kk++)
+        multi_solver->solve(10);
+    // g_q_enable = false;
+    g_emitElectrons = true;
+    g_t=0;
+    g_save_time=0;
+    g_save_time2=0;
+
+    g_phi_max =phi;//*= -1;
+}
+
 void spec(int key, int x, int y)
 {
     if (key==GLUT_KEY_UP)
@@ -1109,43 +1134,7 @@ void spec(int key, int x, int y)
 
     if (key==GLUT_KEY_HOME)
     {
-        multi_solver->dt_elec = 3e-11 / 1e6;
-        double phi =550;
-        g_emitElectrons = false;
-        g_t = 0;
-        g_phi = -phi;
-        g_phi_max = g_phi;
-        g_i_wall=0;
-        multi_solver->init();
-        progress=0;
-        g_q_enable = true;
-        for (int kk=0;kk<300;kk++)
-            multi_solver->solve(10);
-        g_phi_max =0.0;//*= -1;
-
-        for (int kk=0;kk<300;kk++)
-            multi_solver->solve(10);
-
-        g_i_wall=g_i_wall_edge;
-        g_phi_max =phi;//*= -1;
-        for (int i=1; i<pz_solver->m_p_num;i++)
-        {
-            if (i<g_i_wall){
-                pz_solver->m_p[i].q_ext=0;
-                pz_solver->m_p[i].p = 0.3;
-                pz_solver->m_p[i].p_prev = 0.3;
-                pz_solver->m_p[i].q = 0;
-            }
-        }
-        for (int kk=0;kk<100;kk++)
-            multi_solver->solve(10);
-        // g_q_enable = false;
-        g_emitElectrons = true;
-        g_t=0;
-        g_save_time=0;
-        g_save_time2=0;
-
-        g_phi_max =phi;//*= -1;
+sim_prepare();
     }
     glutPostRedisplay();
 }
@@ -1346,6 +1335,8 @@ void init()
 
     multi_solver->prepare_caches(is2D);
     multi_solver->fast_Fields_prepare();
+
+    sim_prepare();
 }
 
 void resize(int w, int h)

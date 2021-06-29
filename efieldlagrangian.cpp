@@ -1,5 +1,6 @@
 #include "efieldlagrangian.h"
 #include "globals.h"
+#include <assert.h>
 
 void eFieldLagrangian::init()
 {
@@ -207,6 +208,11 @@ eFieldLagrangian::eFieldLagrangian()
     m_rCentre=new vec2[2000];
 
     init();
+printf("elec_num   ==  %d \n",m_elec_num);
+
+    assert(m_elec_num<=ELEC_MAX);
+
+
 }
 
 
@@ -1126,30 +1132,28 @@ double eFieldLagrangian::getPhi(double x, double y)
 
         sum+=-q*log(r+delta_phi)/(w_z1 - w_z0);
     }
-    //getPhiFromCharges(x,y);
+
+    return sum;
+}
+
+double eFieldLagrangian::getPhi_multiplier(double x, double y, int i)
+{
+    double sum=0.0;
+
+        //    int i=1;
+        double r;
+        double q;
+        double dx,dy;
+        //double delta=1e-6;
+
+        dx = m_charges[i].x - x;
+        dy = m_charges[i].y - y;
+        r=sqrt(dx*dx+dy*dy);
+        q=qe/(eps0*pi2) /* (m_charges[i].charge)*/;
+
+        sum+=-q*log(r+delta_phi)/(w_z1 - w_z0);
 
 
-#ifdef USE_MIRROR
-    if ((y<w_y0+25e-6+dl_pz*0.5)&&(y>w_y0+25e-6-dl_pz*0.5))
-    {
-        sum=0.0;
-        for (int i=0;i<m_chargeNum;i++)
-        {
-            //    int i=1;
-            double r;
-            double q;
-            double dx,dy;
-
-
-            dx = m_charges[i].x - x;
-            dy = m_charges[i].y - y;
-            r=sqrt(dx*dx+dy*dy);
-            q=((2.0)/(eps_pz+1.0))*qe/(eps0*pi2) * (m_charges[i].charge);
-
-            sum+=-q*log(r+delta_phi)/(w_z1 - w_z0);
-        }
-    }
-#endif
     return sum;
 }
 
