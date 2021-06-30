@@ -36,7 +36,7 @@ public:
     vec2 getEdepol(double x, double y, bool _is2d);
     double getPhidepol(double x, double y, bool _is2d);
     double getPhiDiff(double x, double y, int i);
-    vec2 getEDiff(double x, double y, int i, double delta);
+    vec2 getEDiff(double x, double y, int i);
     void updateCharge();
 
     void setWallPos(double a);
@@ -53,6 +53,7 @@ public:
     // static vec2 getPhiField(const vec2& iCenterPos, const vec2& iFarPos);
     vec2 get_E_multiplier(double x, double y, int i, bool _is2d);
     double getPhi_multiplier(double x, double y, int i,bool _is2d);
+    vec2 getE2D(double x, double y, double x0, double x1, double y0, double charge);
 };
 
 #endif // PZSOLVER_H

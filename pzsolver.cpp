@@ -12,7 +12,7 @@ pzSolver::pzSolver()
     m_dt=1e-7;//15.0*45e-14;//1e-11;
 
     init();
-     assert(m_p_num<=PZ_MAX);
+    assert(m_p_num<=PZ_MAX);
 }
 
 void pzSolver::init()
@@ -52,11 +52,7 @@ void pzSolver::init()
 
         m_p[i].q_ext=0.0;
     }
-#ifndef USE_MIRROR
-    //m_p[0].p = 0.26;//0.005;//0.26;
-    //m_p[1].p = 0.26;//0.005;//0.26;
-    //m_p[2].p = 0.26;//0.005;//0.26;
-#endif
+
     get_q();
     for (int i=0;i<m_p_num;i++) //first electrode
     {
@@ -289,6 +285,8 @@ void pzSolver::solvePzDOPRI(int itn)
         K7 = val + currStep * (a71 * K1 + a73 * K3 + a74 * K4 + a75 * K5 + a76 * K6);
         m_p[i].p = K7;
     }
+
+
 }
 
 void pzSolver::solvePz_steady(int itn) //1d steady state version
@@ -399,9 +397,9 @@ void pzSolver::get_q() //all charges are in elementary
         m_p[i].q=(m_p[i].p)*m_p[i].ds/qe;
 
         if(g_q_enable){
-            if (g_i_wall>0)
+            if (g_i_wall_edge>0)
             {
-                if (i<g_i_wall)
+                if (i<g_i_wall_edge)
                     m_p[i].q_ext=-m_p[i].q;
 
             }else
@@ -502,35 +500,35 @@ vec2 pzSolver::get_E_multiplier(double x,double y, int i, bool _is2d)
     double for_q_E=-0.5*qepspi/lx;
 
 
-        if (!_is2d)
-        {
+    if (!_is2d)
+    {
 
-            double r2;
-            double q;
-            double dx,dy;
-
-
-            dx = m_p[i].r_top.x - x;
-            dy = m_p[i].r_top.y - y;
-            r2=(dx*dx+dy*dy);
-            q=- qepspi /*m_p[i].r_top.charge*/; // (m_p[i].q+m_p[i].q_ext);
-
-            double c=q/((r2+d2));
-
-            sum.x+=c*dx;
-            sum.y+=c*dy;
+        double r2;
+        double q;
+        double dx,dy;
 
 
-        }else
-        {
-            double dx0 = m_p[i].r_top.x - lx*0.5 - x;
-            double dx1 = m_p[i].r_top.x + lx*0.5 - x;
-            dy = m_p[i].r_top.y - y;
-            double dydy= dy*dy+1e-20;
-            double ln_arg=(dx1*dx1+dydy)/(dx0*dx0+dydy);
-            sum.x+=for_q_E*log(ln_arg);
-            sum.y+=2.0*for_q_E*(atan(dx1/dy) - atan(dx0/dy));//dy*(atan(dx1/dy) - atan(dx0/dy))/(fabs(dy)+1e-10);
-        }
+        dx = m_p[i].r_top.x - x;
+        dy = m_p[i].r_top.y - y;
+        r2=(dx*dx+dy*dy);
+        q=- qepspi /*m_p[i].r_top.charge*/; // (m_p[i].q+m_p[i].q_ext);
+
+        double c=q/((r2+d2));
+
+        sum.x+=c*dx;
+        sum.y+=c*dy;
+
+
+    }else
+    {
+        double dx0 = m_p[i].r_top.x - lx*0.5 - x;
+        double dx1 = m_p[i].r_top.x + lx*0.5 - x;
+        dy = m_p[i].r_top.y - y;
+        double dydy= dy*dy+1e-20;
+        double ln_arg=(dx1*dx1+dydy)/(dx0*dx0+dydy);
+        sum.x+=for_q_E*log(ln_arg);
+        sum.y+=2.0*for_q_E*(atan(dx1/dy) - atan(dx0/dy));//dy*(atan(dx1/dy) - atan(dx0/dy))/(fabs(dy)+1e-10);
+    }
 
     return sum;
 
@@ -542,33 +540,33 @@ double pzSolver::getPhidepol(double x, double y, bool _is2d)
     if (!_is2d)
     {
 
-    double r;
-    double q;
-    double dx,dy;
-    //double delta=1e-6;
+        double r;
+        double q;
+        double dx,dy;
+        //double delta=1e-6;
 
-    double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
-    for (int i=0;i<m_p_num;i++)
-    {
-        //    int i=1;
-        dx = m_p[i].r_top.x - x;
-        dy = m_p[i].r_top.y - y;
-        r=sqrt(dx*dx+dy*dy);
-        q= qepspi * m_p[i].r_top.charge;//(m_p[i].q+m_p[i].q_ext);
+        double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
+        for (int i=0;i<m_p_num;i++)
+        {
+            //    int i=1;
+            dx = m_p[i].r_top.x - x;
+            dy = m_p[i].r_top.y - y;
+            r=sqrt(dx*dx+dy*dy);
+            q= qepspi * m_p[i].r_top.charge;//(m_p[i].q+m_p[i].q_ext);
 
-        sum-=q*log(r+delta_phi);
+            sum-=q*log(r+delta_phi);
 
-        /*  dx = m_p[i].r.x - x;
+            /*  dx = m_p[i].r.x - x;
         dy = m_p[i].r.y - m_p[i].dl*0.5 - y;
         r=sqrt(dx*dx+dy*dy);
         q=qe/(eps0*pi2) * (-m_p[i].q);
 
         sum+=q*log(r+delta)/(w_z1 - w_z0);*/
-    }
+        }
     }else
     {
         static double qepspi = qe/(eps0*pi2)/(w_z1 - w_z0);
-          double lx=m_dx;
+        double lx=m_dx;
         for (int i=0;i<m_p_num;i++)
         {
             double dy;
@@ -596,12 +594,12 @@ double pzSolver::getPhi_multiplier(double x, double y, int i,bool _is2d)
     if (!_is2d)
     {
 
-    double r;
-    double q;
-    double dx,dy;
-    //double delta=1e-6;
+        double r;
+        double q;
+        double dx,dy;
+        //double delta=1e-6;
 
-    double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
+        double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
 
         //    int i=1;
         dx = m_p[i].r_top.x - x;
@@ -621,20 +619,20 @@ double pzSolver::getPhi_multiplier(double x, double y, int i,bool _is2d)
     }else
     {
         static double qepspi = qe/(eps0*pi2)/(w_z1 - w_z0);
-          double lx=m_dx;
+        double lx=m_dx;
 
-            double dy;
-            double dx0 = m_p[i].r_top.x - lx*0.5 - x;
-            double dx1 = m_p[i].r_top.x + lx*0.5 - x;
-            dy = m_p[i].r_top.y - y;
-            double dydy= dy*dy;
+        double dy;
+        double dx0 = m_p[i].r_top.x - lx*0.5 - x;
+        double dx1 = m_p[i].r_top.x + lx*0.5 - x;
+        dy = m_p[i].r_top.y - y;
+        double dydy= dy*dy;
 
-            double part1=0.0;
-            if (fabs(dy)>1e-10)
-                part1 = dy*(atan(dx1/dy) - atan(dx0/dy));
+        double part1=0.0;
+        if (fabs(dy)>1e-10)
+            part1 = dy*(atan(dx1/dy) - atan(dx0/dy));
 
-            double part2 = 0.5*(dx1*log(dx1*dx1+dydy+1e-20) - dx0*log(dx0*dx0+dydy+1e-20));
-            sum+=/*(m_p[i].r_top.charge)*/qepspi*(1.0 - (1.0/lx)*(part1 + part2));
+        double part2 = 0.5*(dx1*log(dx1*dx1+dydy+1e-20) - dx0*log(dx0*dx0+dydy+1e-20));
+        sum+=/*(m_p[i].r_top.charge)*/qepspi*(1.0 - (1.0/lx)*(part1 + part2));
 
     }
 
@@ -644,53 +642,52 @@ double pzSolver::getPhi_multiplier(double x, double y, int i,bool _is2d)
 
 double pzSolver::getPhiDiff(double x, double y, int i)
 {
-    double phi1d0 = getPhi1D(0,0,
-                             m_p[i].r_top.x, m_p[i].r_top.y,
-                             m_p[i].q);
-    double phi1d = getPhi1D(x, y,
-                            m_p[i].r_top.x, m_p[i].r_top.y,
-                            m_p[i].q);
-    double rig=(m_p[i].p+0.26)/0.52;
+    double phi0=getPhi_multiplier(x,y,i,is2D);
+    phi0*=m_p[i].r_top.charge;
 
-    double phi2d = getPhi2D(x, y,
-                            m_p[i].r_top.x - m_dx/2,
-                            m_p[i].r_top.x - m_dx/2 +  m_dx * rig,
-                            m_p[i].r_top.y,
-                            m_p[i].q/*m_p[i].r_top.charge*/);
+    double y0=m_p[i].r_top.y;
 
-    return phi2d - phi1d0;
+    double x0=m_p[i].r_top.x-m_dx*0.5;
+    double rig =fmin( fmax((m_p[i].p+0.26)/0.52 , 0.001) , 0.999);
+
+    double x1=x0+m_dx*rig;
+    double x2=m_p[i].r_top.x+m_dx*0.5;
+    //assuming the next cell is not switched
+    double charge2=((m_p[i+1].r_top.charge)/m_dx)*(x2-x1);
+    double charge1=m_p[i].r_top.charge-charge2;
+
+    double phi_left = getPhi2D(x,y,x0,x1,y0,charge1);
+    double phi_right = getPhi2D(x,y,x1,x2,y0,charge2);
+
+    return phi_left + phi_right - phi0;
 }
 
-vec2 pzSolver::getEDiff(double x, double y, int i, double delta)
+vec2 pzSolver::getEDiff(double x, double y, int i)
 {
-    double phi1d = getPhi1D(x, y,
-                            m_p[i].r_top.x, m_p[i].r_top.y,
-                            m_p[i].r_top.charge);
-    double phi1dx = getPhi1D(x + delta, y,
-                             m_p[i].r_top.x, m_p[i].r_top.y,
-                             m_p[i].r_top.charge);
-    double phi1dy = getPhi1D(x, y + delta,
-                             m_p[i].r_top.x, m_p[i].r_top.y,
-                             m_p[i].r_top.charge);
-    double rig=(m_p[i].p+0.26)/0.52;
-    double phi2d = getPhi2D(x, y,
-                            m_p[i].r_top.x - m_dx/2,
-                            m_p[i].r_top.x - m_dx/2 +  m_dx * rig,
-                            m_p[i].r_top.y,
-                            m_p[i].r_top.charge);
-    double phi2dx = getPhi2D(x + delta, y,
-                             m_p[i].r_top.x - m_dx/2,
-                             m_p[i].r_top.x - m_dx/2 +  m_dx * rig,
-                             m_p[i].r_top.y,
-                             m_p[i].r_top.charge);
-    double phi2dy = getPhi2D(x, y + delta,
-                             m_p[i].r_top.x - m_dx/2,
-                             m_p[i].r_top.x - m_dx/2 +  m_dx * rig,
-                             m_p[i].r_top.y,
-                             m_p[i].r_top.charge);
-    vec2 E(0,0,0);
-    E.x = -(phi2dx - phi2d - phi1dx + phi1d)/delta;
-    E.y = -(phi2dy - phi2d - phi1dy + phi1d)/delta;
+
+    vec2 E0=get_E_multiplier(x,y,i,is2D);
+    E0.x*=m_p[i].r_top.charge;
+    E0.y*=m_p[i].r_top.charge;
+
+    double y0=m_p[i].r_top.y;
+
+    double x0=m_p[i].r_top.x-m_dx*0.5;
+    double rig =fmin( fmax((m_p[i].p+0.26)/0.52 , 0.001) , 0.999);
+
+
+    double x1=x0+m_dx*rig;
+    double x2=m_p[i].r_top.x+m_dx*0.5;
+    //assuming the next cell is not switched
+    double charge2=((m_p[i+1].r_top.charge)/m_dx)*(x2-x1);
+    double charge1=m_p[i].r_top.charge-charge2;
+
+
+    vec2 E_left = getE2D(x,y,x0,x1,y0,charge1);
+    vec2 E_right = getE2D(x,y,x1,x2,y0,charge2);
+
+    vec2 E;
+    E.x = E_left.x + E_right.x - E0.x;
+    E.y = E_left.x + E_right.x - E0.x;
     return E;
 }
 
@@ -716,6 +713,26 @@ double pzSolver::getPhi2D(double x, double y, double x0,double x1,double y0,doub
 
     double part2 = 0.5*(dx1*log(dx1*dx1+dydy+1e-20) - dx0*log(dx0*dx0+dydy+1e-20));
     sum=q - (q/lx)*(part1 + part2);
+    return sum;
+}
+
+vec2 pzSolver::getE2D(double x, double y, double x0,double x1,double y0,double charge) //assuming a horizontal patch of charge with constant density
+{
+    double qepspi = (qe/(eps0*pi2))/(w_z1 - w_z0);
+
+    double lx=x1-x0;
+    vec2 sum;
+    double dy =y0-y;
+    double dx0 = x0 - x;
+    double dx1 = x1 - x;
+
+    double for_q_E=-0.5*charge*qepspi/lx;
+
+    double dydy= dy*dy+1e-20;
+    double ln_arg=(dx1*dx1+dydy)/(dx0*dx0+dydy);
+    sum.x+=for_q_E*log(ln_arg);
+    sum.y+=2.0*for_q_E*(atan(dx1/dy) - atan(dx0/dy));//dy*(atan(dx1/dy) - atan(dx0/dy))/(fabs(dy)+1e-10);
+
     return sum;
 }
 

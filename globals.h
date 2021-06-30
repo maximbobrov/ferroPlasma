@@ -136,12 +136,16 @@ double calc_d2_poly(poly &p, double x); // значение второй про�
 double solve_poly(poly &p,double _x0, double rhs,int itn);
 
 void rand_init();
+
+//extern bool g_use_wall;
+#define g_use_wall true
 extern bool serialRegime;
 extern bool g_emitElectrons;
 extern double delta_phi;
 extern double delta_E;
 extern int g_i_wall;
 extern int g_i_wall_edge;
+extern int g_i_wall_tmp;
 
 extern double electrons_in_pack;//200;
 extern double E_global;

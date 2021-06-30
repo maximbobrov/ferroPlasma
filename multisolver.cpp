@@ -31,7 +31,7 @@ double to_pzDown_from_pz[PZ_MAX][ELEC_MAX];
 
 int traj_table_calculated=0;
 
-vec2 multiSolver::trajectories[traj_num_max][1000];
+vec2 multiSolver::trajectories[traj_num_max][2002];
 int multiSolver::trajectories_num[traj_num_max];
 int multiSolver::traj_num=0;
 
@@ -124,6 +124,21 @@ void multiSolver::solvePzDOPRI()
         K7 = val + currStep * (a71 * K1 + a73 * K3 + a74 * K4 + a75 * K5 + a76 * K6);
         m_pzSolver->m_p[i].p = K7;
     }
+
+    if (g_use_wall)
+    {
+        double r = (m_pzSolver->m_p[g_i_wall_tmp].p+0.26)/0.52;
+        while( r>1.0 && g_i_wall_tmp<m_pzSolver->m_p_num-1)
+        {
+            g_i_wall_tmp++;
+            r = (m_pzSolver->m_p[g_i_wall_tmp].p+0.26)/0.52;
+
+        }
+        if (rand()*1.0/RAND_MAX<0.01)
+        {
+            printf("g_i_wall_tmp = %d  r = %f dt_elec=%e \n",g_i_wall_tmp,r, dt_elec);
+        }
+    }
 }
 
 void multiSolver::solve(int itn)
@@ -147,27 +162,10 @@ void multiSolver::solve(int itn)
 
         for (int i=0;i<m_Esolver->m_elec_num;i++)
         {
-
-            double x,y;
-            x=m_Esolver->m_electrodes[i].r.x;
-            y=m_Esolver->m_electrodes[i].r.y;
-            /* m_Esolver->m_electrodes[i].phi_fix_charges = (m_pzSolver->getPhidepol(x,y)-phi_depol0);*/
-
-            m_Esolver->m_electrodes[i].phi_fix_charges = getPhi_at_electrode(i)-phi_depol0/* + m_pzSolver->getPhiDiff(x,y, g_i_wall_edge)*/;
-
+            m_Esolver->m_electrodes[i].phi_fix_charges = getPhi_at_electrode(i)-phi_depol0;
         }
         m_Esolver->solve_ls_fast();
         solvePzAdaptive(dt_elec);
-
-        /* for (int aa=0;aa<3;aa++)
-        {
-            m_pzSolver->get_q();
-            updateEforPz();
-
-            m_pzSolver->solvePz(4);
-            m_pzSolver->step();
-            // m_pzSolver->solvePz_steady(10);
-        }*/
     }
     //printf("dt_elec = %e\n", dt_elec);
     g_t+=dt_elec;
@@ -303,9 +301,6 @@ void multiSolver::updateTrajTable(bool leapfrog,double dt0,double dl0)
 
                     E_=get_slower_E(r.x,r.y);
 
-                    vec2 Ediff(0,0,0);// = m_pzSolver->getEDiff(r.x,r.y, g_i_wall_edge, 1e-7);
-                    E_.x +=Ediff.x;
-                    E_.y +=Ediff.y;
                     double magn=qe/Me;//1e-1;
 
                     v.x += (magn*(E_.x)+acc.x)*Dt*0.5;
@@ -333,8 +328,8 @@ void multiSolver::updateTrajTable(bool leapfrog,double dt0,double dl0)
                 double xx = r.x;//(m_pzSolver->m_p[0].r_top.y - (r.y - r.x * v.y / v.x)) * v.x / v.y;
                 r.x=xx;
                 r.y=m_pzSolver->m_p[0].r_top.y;//last point
-                trajectories[traj_num-1][trajectories_num[traj_num-1]]=r;
-                trajectories_num[traj_num-1]++;
+               // trajectories[traj_num-1][trajectories_num[traj_num-1]]=r;
+               // trajectories_num[traj_num-1]++;
 
                 p_n=(int) ((xx - m_pzSolver->m_p[0].r_top.x + 0.5 * m_pzSolver->m_dx) / m_pzSolver->m_dx);
                 if(inArea && p_n >=0 && p_n<m_pzSolver->m_p_num)
@@ -368,13 +363,7 @@ void multiSolver::updateTrajTable(bool leapfrog,double dt0,double dl0)
 
                 for (int j=0;j<2000;j++)
                 {
-
-
                     E_=get_slower_E(r.x,r.y);
-
-                    vec2 Ediff(0,0,0);// = m_pzSolver->getEDiff(r.x,r.y, g_i_wall_edge, 1e-7);
-                    E_.x +=Ediff.x;
-                    E_.y +=Ediff.y;
                     double magn=qe/Me;//1e-1;
                     double a_=fmax(fabs(magn*(E_.x)),fabs(magn*(E_.y)));
                     double v_=fmax(fabs(v.x),fabs(v.y));
@@ -386,7 +375,6 @@ void multiSolver::updateTrajTable(bool leapfrog,double dt0,double dl0)
                     r.x+=Dt*v.x;
                     r.y+=Dt*v.y;
 
-
                     trajectories[traj_num-1][trajectories_num[traj_num-1]]=r;
                     trajectories_num[traj_num-1]++;
 
@@ -396,13 +384,12 @@ void multiSolver::updateTrajTable(bool leapfrog,double dt0,double dl0)
                     }
                 }
 
-
                 int p_n=0;
                 double xx = r.x;//(m_pzSolver->m_p[0].r_top.y - (r.y - r.x * v.y / v.x)) * v.x / v.y;
                 r.x=xx;
                 r.y=m_pzSolver->m_p[0].r_top.y;//last point
-                trajectories[traj_num-1][trajectories_num[traj_num-1]]=r;
-                trajectories_num[traj_num-1]++;
+               // trajectories[traj_num-1][trajectories_num[traj_num-1]]=r;
+               // trajectories_num[traj_num-1]++;
 
                 p_n=(int) ((xx - m_pzSolver->m_p[0].r_top.x + 0.5 * m_pzSolver->m_dx) / m_pzSolver->m_dx);
                 if(inArea && p_n >=0 && p_n<m_pzSolver->m_p_num)
@@ -627,6 +614,12 @@ double multiSolver::getPhi_at_electrode(int n)
     {
         sum+=(m_pzSolver->m_p[i].r_top.charge)*to_elec_from_pz[n][i];
     }
+
+    if (g_use_wall)
+    {
+    sum+=m_pzSolver->getPhiDiff(m_Esolver->m_charges[n].x,m_Esolver->m_charges[n].y,g_i_wall_tmp);
+    }
+
     return sum;
 }
 
@@ -841,6 +834,13 @@ vec2 multiSolver::get_fast_E(double x, double y)
             (g_grid_Ephi[ni][nj+1].y*(xa) + g_grid_Ephi[ni+1][nj+1].y*(a)) * (b);
 
 
+    if (g_use_wall)
+    {
+    vec2 E_wall=m_pzSolver->getEDiff(x,y,g_i_wall_tmp);
+    res.x+=E_wall.x;
+    res.y+=E_wall.y;
+    }
+
     return res;
 }
 
@@ -986,6 +986,13 @@ vec2 multiSolver::get_slower_E(double x, double y)
             }
         }
     }
+    if (g_use_wall)
+    {
+    vec2 E_wall=m_pzSolver->getEDiff(x,y,g_i_wall_tmp);
+    res.x+=E_wall.x;
+    res.y+=E_wall.y;
+    }
+
     return res;
 }
 
@@ -1023,6 +1030,13 @@ vec2 multiSolver::get_slow_E(double x, double y)
     vec2 Epz = m_pzSolver->getEdepol(x,y,is2D);//is2D); //можно ускорить через кэш!
     res.x = Ee.x + Epz.x;
     res.y = Ee.y +  Epz.y;
+
+    if (g_use_wall)
+    {
+    vec2 E_wall=m_pzSolver->getEDiff(x,y,g_i_wall_tmp);
+    res.x+=E_wall.x;
+    res.y+=E_wall.y;
+    }
     return res;
 }
 
@@ -1055,7 +1069,12 @@ double multiSolver::get_slow_phi(double x, double y, bool _2d)
     */
 
     double phi_depol0=m_pzSolver->getPhidepol(w_x0,w_y0,_2d);
-    return m_pzSolver->getPhidepol(x,y,_2d)-phi_depol0+ m_Esolver->getPhi(x,y);
+    double phi=m_pzSolver->getPhidepol(x,y,_2d)-phi_depol0+ m_Esolver->getPhi(x,y);
+            if (g_use_wall)
+            {
+            phi+=m_pzSolver->getPhiDiff(x,y,g_i_wall_tmp);
+            }
+    return phi ;
 }
 
 

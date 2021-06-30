@@ -9,6 +9,8 @@ double RHS[N_X][N_Y],RHS_p[N_X][N_Y],E_x[N_X][N_Y],E_y[N_X][N_Y];
 int num_thread=1;
 uint32_t xr[32],yr[32],zr[32],wr[32];
 
+//bool g_use_wall=false;
+
 bool serialRegime=false;
 bool g_emitElectrons=false;
 double E_global=1e7;
@@ -25,6 +27,7 @@ double g_save_time2 = 0;
  double electrons_in_pack=100;//200;
 int g_i_wall=0;
 int g_i_wall_edge=21;//*2;
+int g_i_wall_tmp=21;
 double g_dphidt;
 double get_time(void) {
     struct timeval tv;

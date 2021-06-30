@@ -16,7 +16,7 @@ public:
 
 
     int endPosTable[1000];
-    static vec2 trajectories[traj_num_max][1000];
+    static vec2 trajectories[traj_num_max][2002];
     static int trajectories_num[traj_num_max];
     static int traj_num;
 

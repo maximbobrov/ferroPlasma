@@ -31,6 +31,7 @@ void init();
 void saveStatePZ(char* fname);
 int view=VIEW_PHI;
 
+
 int redr=0;
 
 double ck=1.0;
@@ -80,6 +81,7 @@ void draw_fields_2d();
 void updateEulFields();
 void draw_traj();
 void draw_fields_pz_1d();
+ void draw_fields_pz_1d_highres();
 void draw_charges_pz_1d();
 void draw_pz();
 
@@ -140,6 +142,7 @@ void display(void)
 
             g_phi_max = (100 + fileNum*50);
             g_i_wall=g_i_wall_edge;
+            g_i_wall_tmp=g_i_wall;
             for (int i=1; i<pz_solver->m_p_num;i++)
             {
                 if (i<g_i_wall){
@@ -212,19 +215,25 @@ void display(void)
 
     glColor3f(1,1,1);
 
-    draw_fields_2d();
+
     if (view_px)
     {
         draw_pz();
+        draw_traj();
+        draw_fields_pz_1d();
+    }else
+    {
+       draw_fields_2d();
+       draw_fields_pz_1d_highres();
     }
 
     draw_electrode();
 
 //    draw_charges_pz_1d();
 
-//    draw_fields_pz_1d();
 
-    draw_traj();
+
+
 
     glutSwapBuffers();
     if (redr==1 || serialRegime) glutPostRedisplay();
@@ -248,30 +257,16 @@ void updateEulFields()
                 vec2 E_ = multi_solver->get_slower_E(x,y);
                 Ex[i][j] = E_.x;
                 Ey[i][j] = E_.y;
+
             }
             if (view==VIEW_PHI)
             {
                 phi_[i][j]=multi_solver->get_slow_phi(x,y,false);
-
-                /*phi_[i][j]=pz_solver->getPhi1D(x,y,pz_solver->m_p[g_i_wall_edge+2].r_top.x,pz_solver->m_p[g_i_wall_edge+2].r_top.y,100);
-                phi_[i][j]-=pz_solver->getPhi1D(w_x0,w_y0,pz_solver->m_p[g_i_wall_edge+2].r_top.x,pz_solver->m_p[g_i_wall_edge+2].r_top.y,100);
-                phi_[i][j]*=phi_[i][j];*/
             }
 
             if (view==VIEW_P)
             {
-
                 phi_[i][j]=multi_solver->get_slow_phi(x,y,true);
-                //phi_[i][j]=multi_solver->get_slow_phi(x,y);
-               // double dl=pz_solver->m_dx;
-
-               // phi_[i][j]=pz_solver->getPhiDiff(x,y, g_i_wall_edge);//pz_solver->getPhi2D(x,y,pz_solver->m_p[g_i_wall_edge+2].r_top.x-dl*0.5,pz_solver->m_p[g_i_wall_edge+2].r_top.x+dl*0.5, pz_solver->m_p[g_i_wall_edge+2].r_top.y,100);
-
-                //phi_[i][j]-=pz_solver->getPhi2D(w_x0,w_y0,pz_solver->m_p[g_i_wall_edge+2].r_top.x-dl*0.5,pz_solver->m_p[g_i_wall_edge+2].r_top.x+dl*0.5, pz_solver->m_p[g_i_wall_edge+2].r_top.y,100);
-
-
-                //phi_[i][j]*=phi_[i][j];
-
             }
         }
     }
@@ -358,52 +353,15 @@ void draw_fields_pz_1d()
 {
     static vec2 Ef[1000];
     static double  phi_f[1000],phi_f2[1000];
-    double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0,is2D);
+    //double phi_depol0=pz_solver->getPhidepol(w_x0,w_y0,is2D);
 
     for (int i=0;i< pz_solver->m_p_num;i++)
     {
         vec2 r;
         r.x= pz_solver->m_p[i].r_top.x;
         r.y=0;
-        // Ef[i] = multi_solver->get_slower_E(r.x,r.y);
-
-        phi_f[i]=pz_solver->m_p[i].E*pz_solver->m_p[i].dl;//pz_solver->getE_self(i)*pz_solver->m_p[i].dl;//multi_solver->getPhi_at_pz_up(i)-phi_depol0;
-
-        phi_f2[i]=multi_solver->getPhi_at_pz_down(i)-phi_depol0;
-        // printf("phi+f=%f \n",phi_f[i]);
+        phi_f[i]=pz_solver->m_p[i].E*pz_solver->m_p[i].dl-g_phi_max*2;
     }
-
-    /*glLineWidth(1.5);
-     glBegin(GL_LINE_STRIP);
-
-     for( i=0; i < pz_solver->m_p_num; i++ )
-     {
-
-         glColor3f(1,0,0);
-         glVertex2f(pz_solver->m_p[i].r_top.x, scale * 15000.0*(-Ef[i].x /fabs(Ef[0].x) ) * (w_y1 - w_y0)-5e-6);
-     }
-     glEnd();
-
-     glBegin(GL_LINE_STRIP);
-
-     for( i=0; i < pz_solver->m_p_num; i++ )
-     {
-
-         glColor3f(0,0,1);
-         glVertex2f(pz_solver->m_p[i].r_top.x, scale * 15000.0*(-Ef[i].y /fabs(Ef[0].x) ) * (w_y1 - w_y0)-5e-6);
-     }
-     glEnd();*/
-    glLineWidth(2);
-    glBegin(GL_LINE_STRIP);
-
-    for(int i=0; i < pz_solver->m_p_num; i++ )
-    {
-
-        glColor3f(1,1,1);
-        glVertex2f(pz_solver->m_p[i].r_top.x, scale * /*(1.0/g_phi_max)*/100.0*(-phi_f[i]) * (w_y1 - w_y0)-5e-6);
-    }
-    glEnd();
-
 
     glLineWidth(2);
     glBegin(GL_LINE_STRIP);
@@ -411,22 +369,30 @@ void draw_fields_pz_1d()
     for(int i=0; i < pz_solver->m_p_num; i++ )
     {
 
-        glColor3f(0.5,0.5,0.5);
-        glVertex2f(pz_solver->m_p[i].r_top.x, scale * /*(1.0/g_phi_max)*/100.0*(-phi_f2[i]) * (w_y1 - w_y0)-5e-6);
-    }
-    glEnd();
-
-    glBegin(GL_LINE_STRIP);
-
-    for(int i=0; i < pz_solver->m_p_num; i++ )
-    {
-
-        glColor3f(1,1,1);
-        glVertex2f(pz_solver->m_p[i].r_top.x, scale * 15000.0*(0.0 ) * (w_y1 - w_y0)-5e-6);
+        glColor3f(0,1,1);
+        glVertex2f(pz_solver->m_p[i].r_top.x, pz_solver->m_p[i].r_top.y + scale * (1.0/g_phi_max)*1000.0*(-phi_f[i])* (w_y1 - w_y0) );
     }
     glEnd();
 }
 
+
+ void draw_fields_pz_1d_highres()
+ {
+
+     glLineWidth(2);
+     glBegin(GL_LINE_STRIP);
+     for (int i=0;i< 1000;i++)
+     {
+         vec2 r;
+         r.x= pz_solver->m_p[g_i_wall_edge-2].r_top.x+ pz_solver->m_dx*0.03*i;
+         r.y=pz_solver->m_p[g_i_wall_edge-2].r_top.y;
+         double phi_f=multi_solver->get_slow_phi(r.x,r.y,is2D)+g_phi_max;
+
+         glColor3f(0,1,1);
+         glVertex2f(r.x, r.y + scale * (1.0/g_phi_max)*1000.0*(phi_f)* (w_y1 - w_y0) );
+     }
+     glEnd();
+ }
 void draw_charges_pz_1d()
 {
     glLineWidth(2.5);
@@ -464,7 +430,7 @@ void draw_pz()
 {
     glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
     glBegin(GL_QUADS);
-    for (int i=0;i<g_i_wall_edge;i++)
+    for (int i=0;i<g_i_wall_tmp;i++)
     {
 
         glColor3f(ck * pz_solver->m_p[i].p/0.26,-ck * pz_solver->m_p[i].p/0.26,0);
@@ -482,7 +448,7 @@ void draw_pz()
 
 
     glBegin(GL_QUADS);
-    int i=g_i_wall_edge;
+    int i=g_i_wall_tmp;
     glColor3f(1,0.5,0.5);
     double rig=(pz_solver->m_p[i].p+0.26)/0.52;
     glVertex2f(pz_solver->m_p[i].r_top.x-pz_solver->m_dx*0.5,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl);
@@ -501,7 +467,7 @@ void draw_pz()
     glEnd();
 
     glBegin(GL_QUADS);
-    for (int i=g_i_wall_edge+1;i<pz_solver->m_p_num;i++)
+    for (int i=g_i_wall_tmp+1;i<pz_solver->m_p_num;i++)
     {
 
         glColor3f(ck * pz_solver->m_p[i].p/0.26,-ck * pz_solver->m_p[i].p/0.26,0);
@@ -558,6 +524,15 @@ void draw_pz()
         glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.05,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl*0.1+
                                                                     pz_solver->m_p[i].dl*0.1*fabs(q_ext));
 
+
+        if (q_ext+qp>0)
+        glColor3f(1.0,0.0,0);
+        else
+        glColor3f(0.0,0.0,1.0);
+        glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.15,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl*0.1);
+        glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.15,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl*0.1+
+                                                                    pz_solver->m_p[i].dl*(q_ext+qp));
+
     }
     glEnd();
 
@@ -584,7 +559,7 @@ void draw_electrode()
             double y=(lagr_solver->m_electrodes[i].r.y);
             glVertex3f(x,y,0.0);
 
-            vec2 E=multi_solver->get_slow_E(x,y);
+            vec2 E=multi_solver->get_slower_E(x,y);
 
             /*double ex=E.x;
             double ey=E.y;
@@ -1009,6 +984,7 @@ void sim_prepare()
         multi_solver->solve(10);
 
     g_i_wall=g_i_wall_edge;
+    g_i_wall_tmp=g_i_wall;
     g_phi_max =phi;//*= -1;
     for (int i=1; i<pz_solver->m_p_num;i++)
     {
@@ -1061,49 +1037,7 @@ void spec(int key, int x, int y)
         printf("q_spec= %e \n",q_spec);
     }
 
-    if (key==GLUT_KEY_LEFT)
-    {
 
-        proc-=0.01;
-        if  (proc<0.0) proc=0.0;
-
-        pz_solver->m_p[g_i_wall_edge].p=0.26*(proc)+ (-0.26)*(1.0-proc);
-
-        /*  g_i_wall--;
-        if (g_i_wall<0) g_i_wall=0;
-
-         for (int i=1; i<pz_solver->m_p_num;i++)
-        {
-            if (i<g_i_wall)
-                pz_solver->m_p[i].q_ext=q_spec;
-            else
-                pz_solver->m_p[i].q_ext=-q_spec*0.9;
-        }*/
-        printf("proc %f \n",proc);
-    }
-
-    if (key==GLUT_KEY_RIGHT)
-    {
-
-        proc+=0.01;
-        if  (proc>1.0) proc=1.0;
-
-        pz_solver->m_p[g_i_wall_edge].p=0.26*(proc)+ (-0.26)*(1.0-proc);
-
-
-        /*g_i_wall++;
-        if (g_i_wall>pz_solver->m_p_num-1) g_i_wall=g_i_wall>pz_solver->m_p_num-1;
-
-         for (int i=1; i<pz_solver->m_p_num;i++)
-        {
-            if (i<g_i_wall)
-                pz_solver->m_p[i].q_ext=q_spec;
-            else
-                pz_solver->m_p[i].q_ext=-q_spec*0.9;
-        }*/
-        printf("proc %f \n",proc);
-
-    }
 
     if (key==GLUT_KEY_PAGE_UP)
     {
@@ -1146,7 +1080,7 @@ void kb(unsigned char key, int x, int y)
     double max_err=0.0;
     if (key=='.')
     {
-        scale+=1.1;
+        scale*=1.1;
 
         printf("scale=%e \n", scale);
     }
@@ -1308,6 +1242,13 @@ void kb(unsigned char key, int x, int y)
     if (key=='s')
     {
         scale_f-=0.01;
+    }
+
+    if (key == 'u')
+    {
+       // g_use_wall=!g_use_wall;
+       // printf("g_use_wall=%d \n",g_use_wall);
+
     }
     glutPostRedisplay();
 }
