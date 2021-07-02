@@ -31,19 +31,19 @@ void eFieldLagrangian::init()
 
     vec2 p[5];
 
-    p[0].x=w_x0-0e-6;         p[0].y=0;
+    p[0].x=w_x0-0e-6;         p[0].y=0.7e-6;
     p[1].x=w_x0 /*-40e-6*/;        p[1].y=w_y1;
     p[2].x=w_x0-30e-6;        p[2].y=w_y1;
-    p[3].x=w_x0-30e-6;        p[3].y=0;
+    p[3].x=w_x0-30e-6;        p[3].y=0.7e-6;
     p[4].x=p[0].x;            p[4].y=p[0].y;
 
     int emit_1[4] = {1,0,0,0};
     //double dl[5] = {0.5 * 0.125e-6, 2e-6, 4e-6, 2e-6, 0.5 * 0.25e-6};
     double dl[5] = {1. * 0.15e-6, 2e-6, 4e-6, 2e-6, 1.0 * 0.5e-6};
 
-    //   addQuad_stabilized(p,dl, -g_phi ,emit_1, w_y0+25e-6 + 0.5 * dl_pz, 30,0);
+       addQuad_stabilized(p,dl, -g_phi ,emit_1, 0.0, 3,0);
 
-    addQuad_noSmooth(p,dl, -g_phi ,emit_1, 0);
+  //  addQuad_noSmooth(p,dl, -g_phi ,emit_1, 0);
 
     printf("elecnum1 = %d\n", m_elec_num);
 

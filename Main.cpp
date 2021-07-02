@@ -95,11 +95,12 @@ void display(void)
     if (redr==1)
     {
         // double t0 = get_time();
-        for (int j=0;j<10;j++)
+        for (int j=0;j<50;j++)
         {
-        multi_solver->updateTrajTable(false,1e-15,0.5e-7);
+        //multi_solver->updateTrajTable(false,1e-15,0.5e-7);
+            multi_solver->updateTrajTable(true,9e-13,0.5e-7);
         //  double t1 = get_time();
-        for (int i=0;i<5;i++)
+        for (int i=0;i<2;i++)
         {
        //      multi_solver->updateTrajTable();
             multi_solver->solve(10);
@@ -332,6 +333,8 @@ void draw_traj()
         vec2 r(0,0,0);
         glLineWidth(1.5);
         double cur=10.0*multiSolver::trajectories[i][0].charge;
+        if (cur>0)
+        {
         glColor3f(cur,0,1.0-cur);
         glBegin(GL_LINE_STRIP);
         for (int j=0;j<multiSolver::trajectories_num[i];j++)
@@ -346,6 +349,7 @@ void draw_traj()
         glPointSize(10);
             glVertex2f(r.x,r.y);
         glEnd();
+        }
     }
 }
 
@@ -499,12 +503,12 @@ void draw_pz()
 
 
     glDisable(GL_LINE_SMOOTH);
-     glLineWidth(7);
+     glLineWidth(6);
     glBegin(GL_LINES);
 
     for (int i=0;i<pz_solver->m_p_num;i++)
     {
-        double q0=(0.3)*pz_solver->m_p[i].ds/qe;
+        double q0=((0.3)*pz_solver->m_p[i].ds/qe);
         double qp=pz_solver->m_p[i].q/q0;
         double q_ext=pz_solver->m_p[i].q_ext/q0;
 
@@ -512,16 +516,16 @@ void draw_pz()
         glColor3f(0.5,0,0);
         else
         glColor3f(0.0,0,0.5);
-        glVertex2f(pz_solver->m_p[i].r_top.x-pz_solver->m_dx*0.05,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl*0.1);
-        glVertex2f(pz_solver->m_p[i].r_top.x-pz_solver->m_dx*0.05,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl*0.1+
+        glVertex2f(pz_solver->m_p[i].r_top.x-pz_solver->m_dx*0.075,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl*0.1);
+        glVertex2f(pz_solver->m_p[i].r_top.x-pz_solver->m_dx*0.075,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl*0.1+
                                                                     pz_solver->m_p[i].dl*0.1*fabs(qp));
 
         if (q_ext>0)
         glColor3f(1.0,0.5,0);
         else
         glColor3f(0.0,0.5,1.0);
-        glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.05,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl*0.1);
-        glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.05,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl*0.1+
+        glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.075,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl*0.1);
+        glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.075,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl*0.1+
                                                                     pz_solver->m_p[i].dl*0.1*fabs(q_ext));
 
 
@@ -529,8 +533,8 @@ void draw_pz()
         glColor3f(1.0,0.0,0);
         else
         glColor3f(0.0,0.0,1.0);
-        glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.15,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl*0.1);
-        glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.15,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl*0.1+
+        glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.25,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl*0.1);
+        glVertex2f(pz_solver->m_p[i].r_top.x+pz_solver->m_dx*0.25,pz_solver->m_p[i].r_top.y -pz_solver->m_p[i].dl*0.1+
                                                                     pz_solver->m_p[i].dl*(q_ext+qp));
 
     }
@@ -1166,7 +1170,7 @@ void kb(unsigned char key, int x, int y)
     if (key=='=')
     {
 
-        multi_solver->updateTrajTable(true,1e-14,0.5e-7);
+        multi_solver->updateTrajTable(true,3e-13,0.5e-7);
         //updateEulFields();
         // savePotential();
     }
@@ -1178,7 +1182,22 @@ void kb(unsigned char key, int x, int y)
         {
             lagr_solver->m_electrodes[i].phi_fix *=-1.0;
         }*/
-        g_phi_max *= -1;
+       // g_phi_max *= -1;
+
+        g_emitElectrons=false;
+        for (int j=0;j<30;j++)
+        {
+        //multi_solver->updateTrajTable(false,1e-15,0.5e-7);
+           //  multi_solver->updateTrajTable(true,3e-13,0.5e-7);
+        //  double t1 = get_time();
+        for (int i=0;i<5;i++)
+        {
+       //      multi_solver->updateTrajTable();
+            multi_solver->solve(10);
+        }
+        //    double t2 = get_time();
+        }
+        g_emitElectrons=true;
     }
     if (key=='d')
     {
@@ -1276,7 +1295,8 @@ void init()
 
     multi_solver->prepare_caches(is2D);
     multi_solver->fast_Fields_prepare();
-
+//multi_solver->init();
+    multi_solver->dt_elec = 3e-11 / 1e6;
     sim_prepare();
 }
 

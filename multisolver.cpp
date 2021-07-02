@@ -38,7 +38,7 @@ int multiSolver::traj_num=0;
 void multiSolver::solvePzAdaptive(double dtElec)
 {
     double gamma = 1e4;
-    double dt_loc = 1e-11;
+    double dt_loc = 1e-12;
     m_pzSolver->m_dt =  dt_loc;
     for (int aa=0;aa<int(dtElec *  gamma/ dt_loc);aa++)
     {
@@ -255,8 +255,13 @@ void multiSolver::updateTrajTable(bool leapfrog,double dt0,double dl0)
 
                 m_Esolver->m_electrodes[i].eCurrent=flux;
 
+
+
                 full_flux+=flux;
                 if (max_flux<flux) max_flux=flux;
+            }else
+            {
+                m_Esolver->m_electrodes[i].eCurrent=0.0;
             }
         }
     }
@@ -271,14 +276,19 @@ void multiSolver::updateTrajTable(bool leapfrog,double dt0,double dl0)
 
     if (leapfrog) //fixed dt
     {
+
         traj_num=0;
-        for (int i=0;i<m_Esolver->m_elec_num;i++) {
-            vec2 r = m_Esolver->m_electrodes[i].r;
+        for (int i=0;i<m_Esolver->m_elec_num-1;i++) {
+
+            double alpha_=rand()*1.0/RAND_MAX;
+            vec2 r;
+                   r.x = m_Esolver->m_electrodes[i].r.x*(1.0-alpha_)+m_Esolver->m_electrodes[i+1].r.x*(alpha_);
+                   r.y = m_Esolver->m_electrodes[i].r.y*(1.0-alpha_)+m_Esolver->m_electrodes[i+1].r.y*(alpha_);
             vec2 v(0.0,0.0,0.0);
             vec2 acc(0.0, 0.0,0.0);
             bool inArea = true;
 
-            double Dt=dt0;
+            double Dt=dt0/200;//dt0;
 
             vec2 E_=get_slower_E(r.x,r.y);
 
@@ -292,7 +302,7 @@ void multiSolver::updateTrajTable(bool leapfrog,double dt0,double dl0)
                 if (traj_num<traj_num_max) traj_num++;
 
 
-
+                    bool wall_hit=false;
                 for (int j=0;j<200;j++)
                 {
 
@@ -309,7 +319,13 @@ void multiSolver::updateTrajTable(bool leapfrog,double dt0,double dl0)
                     acc.x=magn*(E_.x);
                     acc.y=magn*(E_.y);
 
-                    if (r.y+Dt*v.y<m_pzSolver->m_p[0].r_top.y) break;
+                    if (r.y+Dt*v.y<m_pzSolver->m_p[0].r_top.y)
+                    {
+                        wall_hit=true;
+                        //printf("aaaa %d\n",traj_num-1);
+                        break;
+
+                    }
                     r.x+=Dt*v.x;
                     r.y+=Dt*v.y;
 
@@ -332,12 +348,26 @@ void multiSolver::updateTrajTable(bool leapfrog,double dt0,double dl0)
                // trajectories_num[traj_num-1]++;
 
                 p_n=(int) ((xx - m_pzSolver->m_p[0].r_top.x + 0.5 * m_pzSolver->m_dx) / m_pzSolver->m_dx);
-                if(inArea && p_n >=0 && p_n<m_pzSolver->m_p_num)
+                if(inArea && p_n >=0 && p_n<m_pzSolver->m_p_num && wall_hit){
+                    //trajectories[traj_num-1][0].charge=1.0;
                     endPosTable[i] = p_n;
-                else
+                }else
+                {
+                    trajectories[traj_num-1][0].charge=-1.0;
                     endPosTable[i] = -1;
+                }
             }
         }
+        full_flux=0.0;
+        for (int i=1;i<m_Esolver->m_elec_num-1;i++)
+        {
+            if (endPosTable[i] > 0)
+            {
+               full_flux+= m_Esolver->m_electrodes[i].eCurrent;
+            }
+        }
+         dt_elec=1e-22*electrons_in_pack/100.0;//fmax(3e-22,fmin(electrons_in_pack/full_flux,1e-16));
+
     }else //fixed dl
     {
         traj_num=0;
@@ -408,7 +438,21 @@ int multiSolver::getEndPos(int i)
 
 void multiSolver::electronEmissionEndMoveToElectrode(double d_t)
 {
-   for (int i=0;i<m_Esolver->m_elec_num-1;i+=1)
+    for (int i=0;i<m_Esolver->m_elec_num-1;i+=1)        {
+        m_Esolver->m_electrodes[i].eToEmit=m_Esolver->m_electrodes[i].eCurrent*d_t;
+        int n=getEndPos(i);
+        if ( m_Esolver->m_electrodes[i].eToEmit>1.0 && n>2){
+
+           //  m_pzSolver->m_p[n-2].q_ext += m_Esolver->m_electrodes[i].eToEmit*0.075;
+           //  m_pzSolver->m_p[n+2].q_ext += m_Esolver->m_electrodes[i].eToEmit*0.075;
+             m_pzSolver->m_p[n-1].q_ext += m_Esolver->m_electrodes[i].eToEmit*0.1;
+             m_pzSolver->m_p[n+1].q_ext += m_Esolver->m_electrodes[i].eToEmit*0.1;
+
+             m_pzSolver->m_p[n].q_ext += m_Esolver->m_electrodes[i].eToEmit*0.8;
+
+        }
+    }
+   /*for (int i=0;i<m_Esolver->m_elec_num-1;i+=1)
     {
         if (m_Esolver->m_electrodes[i].canEmit)
         {
@@ -488,7 +532,7 @@ void multiSolver::electronEmissionEndMoveToElectrode(double d_t)
 
             }
         }
-    }
+    }*/
     m_pzSolver->get_q();
 
 }

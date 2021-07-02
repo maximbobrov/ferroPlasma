@@ -6,7 +6,7 @@
 
 pzSolver::pzSolver()
 {
-    this->m_p_num=300;
+    this->m_p_num=100;//300;
     m_p=new pElem[m_p_num];
     m_rCentre=new vec2[2 * m_p_num];
     m_dt=1e-7;//15.0*45e-14;//1e-11;
@@ -20,13 +20,14 @@ void pzSolver::init()
     double _dx,_dz;
     _dz=w_z1-w_z0;
     _dx=1 * (w_x1/*-25e-6-*/- w_x0)/(m_p_num-1);
+    _dx/=9.0;
     m_dx=_dx;
 
     for (int i=0;i<m_p_num;i++) //first electrode
     {
         m_p[i].dl=dl_pz;// - 1e-6; //100 nm width;
         //double alpha=i*1.0/(m_p_num-1);
-        m_p[i].r_top.x = w_x0 + m_dx * (i-g_i_wall_edge);// -18e-6;//(w_x0/*-25e-6*/)*(1.0-alpha)+w_x1*alpha;
+        m_p[i].r_top.x = w_x0 + m_dx * (i-g_i_wall_edge+1);// -18e-6;//(w_x0/*-25e-6*/)*(1.0-alpha)+w_x1*alpha;
         m_p[i].r_top.y = 0.0;//(w_y0+(m_p[i].dl-1e-8)*0.5+5e-9);
 
         //m_p[i].r_top.x = ;m_p[i].r.x;
@@ -653,8 +654,11 @@ double pzSolver::getPhiDiff(double x, double y, int i)
     double x1=x0+m_dx*rig;
     double x2=m_p[i].r_top.x+m_dx*0.5;
     //assuming the next cell is not switched
-    double charge2=((m_p[i+1].r_top.charge)/m_dx)*(x2-x1);
-    double charge1=m_p[i].r_top.charge-charge2;
+    //double charge2=((m_p[i+1].r_top.charge)/m_dx)*(x2-x1);
+    //double charge1=m_p[i].r_top.charge-charge2;
+
+    double charge2=m_p[i].r_top.charge;//((m_p[i+1].r_top.charge)/m_dx)*(x2-x1);
+    double charge1=0.0;//m_p[i].r_top.charge-charge2;
 
     double phi_left = getPhi2D(x,y,x0,x1,y0,charge1);
     double phi_right = getPhi2D(x,y,x1,x2,y0,charge2);
@@ -678,8 +682,8 @@ vec2 pzSolver::getEDiff(double x, double y, int i)
     double x1=x0+m_dx*rig;
     double x2=m_p[i].r_top.x+m_dx*0.5;
     //assuming the next cell is not switched
-    double charge2=((m_p[i+1].r_top.charge)/m_dx)*(x2-x1);
-    double charge1=m_p[i].r_top.charge-charge2;
+    double charge2=m_p[i].r_top.charge;//((m_p[i+1].r_top.charge)/m_dx)*(x2-x1);
+    double charge1=0.0;//m_p[i].r_top.charge-charge2;
 
 
     vec2 E_left = getE2D(x,y,x0,x1,y0,charge1);

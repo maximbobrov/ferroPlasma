@@ -10,6 +10,7 @@
 
 
 #define is2D true
+#define g_use_wall false
 
 #define M_PI 3.1415926535
 
@@ -138,7 +139,7 @@ double solve_poly(poly &p,double _x0, double rhs,int itn);
 void rand_init();
 
 //extern bool g_use_wall;
-#define g_use_wall true
+
 extern bool serialRegime;
 extern bool g_emitElectrons;
 extern double delta_phi;
